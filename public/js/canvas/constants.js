@@ -9,6 +9,8 @@ const RUBBER = "rubber";
 const PICTURE = "picture";
 const ELLIPSE = "ellipse";
 const KEYS = {
+    SHIFT: 16,
+    CTRL: 17,
     LEFT: 37,
     UP: 38,
     RIGHT: 39,

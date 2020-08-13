@@ -32,7 +32,7 @@ class CanvasPainter {
         this.keys = [];
     }
     beginInterval() {
-        this.intervaId = setInterval(this.intervalMethod.bind(this), 1);
+        this.intervaId = setInterval(this.intervalMethod.bind(this), 20);
     }
     stopInterval() {
         clearInterval(this.intervalId);
@@ -54,15 +54,19 @@ class CanvasPainter {
         }
         if (this.keys[KEYS.UP]) {
             tempPosition.y--;
+            if (this.keys[KEYS.SHIFT]) tempPosition.y--;
         }
         if (this.keys[KEYS.DOWN]) {
             tempPosition.y++;
+            if (this.keys[KEYS.SHIFT]) tempPosition.y++;
         }
         if (this.keys[KEYS.LEFT]) {
             tempPosition.x--;
+            if (this.keys[KEYS.SHIFT]) tempPosition.x--;
         }
         if (this.keys[KEYS.RIGHT]) {
             tempPosition.x++;
+            if (this.keys[KEYS.SHIFT]) tempPosition.x++;
         }
         
         const collision = false;//this.checkCollisions();
@@ -78,6 +82,7 @@ class CanvasPainter {
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
     }
     keyDownEvent(event) {
+        console.log(event.key,':',event.keyCode)
         this.keys[event.keyCode] = true;
     }
     keyUpEvent(event) {
