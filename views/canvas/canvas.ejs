@@ -1,0 +1,12 @@
+<% layout('layout') %>
+
+<div class="container">
+    <canvas id="canvas"></canvas>
+    <link rel="stylesheet" href="/css/canvas.css" type="text/css">
+</div>
+
+<script type="module">
+    import CanvasPainter from '/js/canvas/canvas.js';
+    window.CanvasPainter = CanvasPainter;
+    new CanvasPainter(document.getElementById('canvas'));
+</script>
