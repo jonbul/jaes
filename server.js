@@ -1,6 +1,8 @@
 const express = require('express');
 const session = require('express-session');
 const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io').listen(http); ;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const validator = require('express-validator');
@@ -28,6 +30,7 @@ mongoose.connect('mongodb+srv://jonbul:m_Airrebexte1987!@nodecourse.er3ps.azure.
 app.use(flash());
 
 
+global.io = io;
 app.use(passport.initialize());
 app.use(express.static('public'));
 
@@ -41,13 +44,6 @@ app.use(session({
     store: new MongoStore({mongooseConnection: mongoose.connection})
 }));
 
-
-
-
-
-
-
-
 app.set('view engine', 'ejs');
 app.engine('ejs', engine);
 
@@ -56,9 +52,8 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-//app.use(validator());
-
 require('./routes/user')(app);
 require('./routes/canvas')(app);
+require('./routes/canvasIO')(io);
 
-app.listen(port, () => {console.log('Hello from port ' + port)})
+http.listen(port, () => {console.log('Hello from port ' + port)})
