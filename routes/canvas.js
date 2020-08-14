@@ -1,10 +1,10 @@
 module.exports = (app) => {
-    app.get('/canvas', (req, res) => {
+    app.get('/game', (req, res) => {
         let user;
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;
-            res.render('canvas/canvas', {
-                title: 'Canvas',
+            res.render('canvas/game', {
+                title: 'Game',
                 username: user.username
             });
         } else {

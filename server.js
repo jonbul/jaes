@@ -54,6 +54,6 @@ app.use(bodyParser.json());
 
 require('./routes/user')(app);
 require('./routes/canvas')(app);
-require('./routes/canvasIO')(io);
+require('./routes/socketIO')(io);
 
 http.listen(port, () => {console.log('Hello from port ' + port)})

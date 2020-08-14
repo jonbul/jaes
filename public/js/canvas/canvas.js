@@ -38,7 +38,14 @@ class CanvasPainter {
         this.beginInterval();
         this.keys = [];
         this.characters = {};
-        io.on('players updated',this.drawPlayers.bind(this));
+        this.socketIOEvents();
+    }
+    socketIOEvents() {
+        this.io.on('players updated',this.drawPlayers.bind(this));
+        this.io.on('player leave', id => {
+            delete this.character[id];
+            this.drawPlayers();
+        });
     }
     beginInterval() {
         this.intervaId = setInterval(this.intervalMethod.bind(this), 20);
@@ -62,7 +69,8 @@ class CanvasPainter {
             username: this.username
         }*/
         let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
-        const speed = this.keys[KEYS.SHIFT] ? 2 : 1;
+        let speed = this.keys[KEYS.SHIFT] ? 2 : 1;
+        if (this.keys[KEYS.CTRL]) speed = speed / 2;
         if (this.keys[KEYS.UP]) {
             form.y = form.y - speed;
         }
