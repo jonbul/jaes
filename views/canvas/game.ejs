@@ -1,0 +1,15 @@
+<% layout('layout') %>
+
+<div class="container">
+    <br>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <link rel="stylesheet" href="/css/canvas.css" type="text/css">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA==" crossorigin="anonymous"></script>
+<script type="module">
+    import CanvasPainter from '/js/canvas/canvas.js';
+    window.CanvasPainter = CanvasPainter;
+    window.socket = io();
+    new CanvasPainter(document.getElementById('canvas'), _username, socket);
+</script>

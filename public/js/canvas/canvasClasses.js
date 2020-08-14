@@ -35,18 +35,18 @@ class Rect{
         this.rorationInDegrees = rorationInDegrees;
     }
     
-    draw (context) {
+    draw (context, plusX = 0, plusY = 0) {
         if (this.rorationInDegrees)
         context.rotate(this.grad*Math.PI/180);
         
         context.fillStyle=this.backgroundColor;//BACKGROUND
-        context.fillRect(this.x,this.y,this.width,this.height);
-        if (this.borderWidth) {
+        context.fillRect(this.x + plusX,this.y + plusY,this.width,this.height);
+        /*if (this.borderWidth) {
             context.strokeRect(this.x,this.y,this.width,this.height);
             context.strokeStyle = this.borderColor;
             context.lineWidth=this.borderWidth;
             context.stroke();
-        }
+        }*/
         if (this.rorationInDegrees)
         context.rotate((360-this.rorationInDegrees)*Math.PI/180);
     }
@@ -64,11 +64,11 @@ class Arc{
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         if(this.radius<0)this.radius*=-1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.arc(this.x,this.y,this.radius, this.startAngle, this.endAngle);
+        context.arc(this.x + plusX,this.y + plusY,this.radius, this.startAngle, this.endAngle);
         if(this.borderWidth>0){
             context.strokeStyle = borderColor;//BORDER
             context.strokeStyle = this.borderColor;
@@ -94,11 +94,11 @@ class Ellipse{
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         if(this.radius<0)this.radius*=-1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.ellipse(this.x,this.y,this.radiusX,this.radiusY,this.rotation, this.startAngle, this.endAngle);
+        context.ellipse(this.x + plusX,this.y + plusY,this.radiusX,this.radiusY,this.rotation, this.startAngle, this.endAngle);
         if(this.borderWidth>0){
             context.strokeStyle = borderColor;//BORDER
             //context.strokeArc(this.x,this.y,this.width,this.height);
@@ -121,11 +121,11 @@ class Line{
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
-        context.moveTo(this.x1,this.y1);
-        context.lineTo(this.x2,this.y2);
+        context.moveTo(this.x1 + plusX,this.y1 + plusY);
+        context.lineTo(this.x2 + plusX,this.y2 + plusY);
         context.lineWidth = this.borderWidth; 
         context.stroke();
         context.fill();
@@ -140,14 +140,14 @@ class Poligon{
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         if(this.points.length>0){
             context.fillStyle= this.backgroundColor;
             context.strokeStyle = this.borderColor;
             context.beginPath();
-            context.moveTo(this.points[0].x, this.points[0].y);
+            context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
             for(var i = 1; i < this.points.length; i++){
-                context.lineTo(this.points[i].x,this.points[i].y);
+                context.lineTo(this.points[i].x + plusX,this.points[i].y + plusY);
             }
             context.lineWidth = this.borderWidth;
             context.closePath();
@@ -168,12 +168,12 @@ class Pencil{
         this.borderColor = borderColor;
         this.cbrw = cbrw;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         context.strokeStyle = this.borderColor;
         context.beginPath();
-        context.moveTo(this.points[0].x, this.points[0].y);
+        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
         for(var i = 1; i < this.points.length; i++){
-            context.lineTo(this.points[i].x,this.points[i].y);
+            context.lineTo(this.points[i].x + plusX,this.points[i].y + plusY);
         }
         context.lineWidth = this.borderWidth;
         context.stroke();
@@ -191,15 +191,15 @@ class ClosedPencil{
         this.borderColor = borderColor;
         this.cbrw = cbrw;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         context.fillStyle= this.backgroundColor;
         context.strokeStyle = this.borderColor;
         context.beginPath();
-        context.moveTo(this.points[0].x, this.points[0].y);
+        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
         for(var i = 1; i < this.points.length; i++){
-            context.lineTo(this.points[i].x,this.points[i].y);
+            context.lineTo(this.points[i].x + plusX,this.points[i].y + plusY);
         }
-        context.lineTo(this.points[0].x, this.points[0].y);
+        context.lineTo(this.points[0].x + plusX, this.points[0].y + plusY);
         context.lineWidth = this.borderWidth;
         context.closePath();
         context.fill();
@@ -246,21 +246,19 @@ class Picture{
         
         var elem = this;
     }
-    draw(context){
+    draw(context, plusX = 0, plusY = 0){
         context.rotate(this.grad*Math.PI/180);
-        context.drawImage(this.img,this.sx,this.sy,this.sw,this.sh,this.x,this.y,this.width,this.height);
+        context.drawImage(this.img,this.sx + plusX,this.sy + plusY,this.sw,this.sh,this.x,this.y,this.width,this.height);
         context.rotate((360-this.grad)*Math.PI/180);
     }
     getImageFromSrc(src){
         var image = new Image();
-        var b = false;
         image.onload = function(){
             elem = addImgToElem(elem, this);
             
             elem.img = image;//ctx.drawImage(this.src,0,0); // Or at whatever offset you like
         };
         image.src = src;
-        //while(!b);
     }
     addImgToElem(elem, img){
         elem.img = img;
@@ -272,9 +270,9 @@ class Text {
     constructor(text, x, y, fontSize, fontFamily) {
 
     }
-    draw(context) {
+    draw(context, plusX = 0, plusY = 0) {
         context.font = `${fontSize} ${fontFamily}`;
-        context.fillText(text, x, y);
+        context.fillText(text, x + plusX, y + plusY);
     }
 }
 
@@ -298,7 +296,19 @@ class Layer{
         this.visible = true;
     }
 }
-
+class Character {
+    constructor (username, forms = [], x = 0, y = 0) {
+        this.name = username;
+        this.forms = forms;
+        this.x = x;
+        this.y = y;
+    }
+    draw (context) {
+        this.forms.forEach(form => {
+            form.draw(context, this.x, this.y);
+        });
+    }
+}
 export {
     Arc,
     ClickXY,

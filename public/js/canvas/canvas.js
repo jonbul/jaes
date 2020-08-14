@@ -16,20 +16,36 @@ import {
 import { KEYS } from './constants.js';
 
 class CanvasPainter {
-    constructor(canvas) {
+    constructor(canvas, username, io) {
         window.canvasPaint = this;
+        this.username = username
+        this.io = io;
         if (!canvas instanceof HTMLCanvasElement) {
             throw 'Paramete 1 must be a Canvas HTML Element'
         }
         this.board = canvas;
         this.context = canvas.getContext('2d');
 
-        this.character = new Rect(10, 10, 10, 10, '#ff0000', '#000000', 0, 0);
+        this.character = {
+            form: new Rect(10, 10, 10, 10, '#ff0000', '#000000', 0, 0),
+            username
+        };
+        this.io.emit('player movement', this.character);
+
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0)
         this.loadEvents();
 
         this.beginInterval();
         this.keys = [];
+        this.characters = {};
+        this.socketIOEvents();
+    }
+    socketIOEvents() {
+        this.io.on('players updated',this.drawPlayers.bind(this));
+        this.io.on('player leave', id => {
+            delete this.character[id];
+            this.drawPlayers();
+        });
     }
     beginInterval() {
         this.intervaId = setInterval(this.intervalMethod.bind(this), 20);
@@ -38,44 +54,62 @@ class CanvasPainter {
         clearInterval(this.intervalId);
     }
     intervalMethod() {
-        this.clear();
         this.movement();
-        this.drawPlayers();
     }
     clear() {
         this.cleanBoard.draw(this.context);
     }
     movement(){
-        const tempPosition = {
-            x: this.character.x,
-            y: this.character.y,
-            h: this.character.height,
-            w: this.character.width,
-        }
+        const form = this.character.form;
+        /*const tempPosition = {
+            x: character.x,
+            y: character.y,
+            h: character.height,
+            w: character.width,
+            username: this.username
+        }*/
+        let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
+        let speed = this.keys[KEYS.SHIFT] ? 2 : 1;
+        if (this.keys[KEYS.CTRL]) speed = speed / 2;
         if (this.keys[KEYS.UP]) {
-            tempPosition.y--;
-            if (this.keys[KEYS.SHIFT]) tempPosition.y--;
+            form.y = form.y - speed;
         }
         if (this.keys[KEYS.DOWN]) {
-            tempPosition.y++;
-            if (this.keys[KEYS.SHIFT]) tempPosition.y++;
+            form.y = form.y + speed;
         }
         if (this.keys[KEYS.LEFT]) {
-            tempPosition.x--;
-            if (this.keys[KEYS.SHIFT]) tempPosition.x--;
+            form.x = form.x - speed;
         }
         if (this.keys[KEYS.RIGHT]) {
-            tempPosition.x++;
-            if (this.keys[KEYS.SHIFT]) tempPosition.x++;
+            form.x = form.x + speed;
         }
         
-        const collision = false;//this.checkCollisions();
-        
-        this.character.x = tempPosition.x;
-        this.character.y = tempPosition.y;
+        if (move) {
+            const collision = false;//this.checkCollisions();
+            this.io.emit('player movement', this.character);
+        }
+        //character.x = tempPosition.x;
+        //character.y = tempPosition.y;
     }
-    drawPlayers() {
-        this.character.draw(this.context);
+    drawPlayers(playersDetails) {
+        this.clear();
+        const characters = this.characters;
+        const player = new Rect()
+        for (let id in playersDetails) {
+            const plDetails = playersDetails[id];
+            for (let prop in  plDetails.form) {
+                if (!characters[id]) {
+                    characters[id] = {};
+                    characters[id].form = new Rect();
+                    characters[id].username = plDetails.username;
+                }
+                characters[id].form[prop] = plDetails.form[prop];
+            }
+            characters[id].form.draw(this.context);
+        }
+        /*for (let id in characters) {
+            playersDetails[id].form.draw();
+        }*/
     }
     loadEvents(){
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
