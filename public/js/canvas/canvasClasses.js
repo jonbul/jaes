@@ -1,4 +1,4 @@
-import _const from './constants.js';
+import CONST from './constants.js';
 class MasterJasonFile{
     constructor(cnvW,cnvH,bgc,gridH,gridV,layers){
         this.canvas = function(cnvW,cnvH){
@@ -20,10 +20,10 @@ class MasterJasonFile{
     }
     
 }
-//FORMS
+//Shapes
 class Rect{
     constructor(x,y,width,height,backgroundColor,borderColor,borderWidth = 0,rorationInDegrees = 0){
-        this.desc = _const.RECT;
+        this.desc = CONST.RECT;
         this.pos = 0;
         this.x = x;
         this.y = y;
@@ -53,7 +53,7 @@ class Rect{
 }
 class Arc{
     constructor(x,y,radius,startAngle,endAngle,backgroundColor,borderColor,borderWidth){
-        this.desc = _const.ARC;
+        this.desc = CONST.ARC;
         this.pos = 0;
         this.x = x;
         this.y = y;
@@ -81,7 +81,7 @@ class Arc{
 }
 class Ellipse{
     constructor(x,y,radiusX,radiusY,rotation,startAngle,endAngle,backgroundColor,borderColor,borderWidth){
-        this.desc = _const.ELLIPSE;
+        this.desc = CONST.ELLIPSE;
         this.pos = 0;
         this.x = x;
         this.y = y;
@@ -112,7 +112,7 @@ class Ellipse{
 }
 class Line{
     constructor(x1,y1,x2,y2,borderColor,borderWidth){
-        this.desc = _const.LINE;
+        this.desc = CONST.LINE;
         this.pos = 0;
         this.x1 = x1;
         this.y1 = y1;
@@ -133,7 +133,7 @@ class Line{
 }
 class Poligon{
     constructor(points,backgroundColor,borderColor,borderWidth){
-        this.desc = _const.POLIGON;
+        this.desc = CONST.POLIGON;
         this.pos = 0;
         this.points = points || [];
         this.backgroundColor = backgroundColor;
@@ -158,7 +158,7 @@ class Poligon{
 }
 class Pencil{
     constructor(points,borderColor,cbrw){
-        this.desc = _const.PENCIL;
+        this.desc = CONST.PENCIL;
         this.pos = 0;
         if(points !== undefined){
             this.points = points;
@@ -181,7 +181,7 @@ class Pencil{
 }
 class ClosedPencil{
     constructor(points,backgroundColor,borderColor,cbrw){
-        this.desc = _const.CLOSEDPENCIL;
+        this.desc = CONST.CLOSEDPENCIL;
         this.pos = 0;
         if(points !== undefined){
             this.points = points;
@@ -210,7 +210,7 @@ class ClosedPencil{
 }
 class Rubber{
     constructor(points,cbrw){
-        this.desc = _const.RUBBER;
+        this.desc = CONST.RUBBER;
         this.pos = 0;
         if(points !== undefined){
             this.points = points;
@@ -228,7 +228,7 @@ class Rubber{
 }
 class Picture{
     constructor(img,src,sx,sy,sw,sh,x,y,width,height,grad){
-        this.desc = _const.PICTURE;
+        this.desc = CONST.PICTURE;
         this.pos = 0;
         this.img = img;
         this.src = src;
@@ -297,20 +297,37 @@ class Layer{
     }
 }
 class Character {
-    constructor (username, forms = [], x = 0, y = 0) {
+    constructor (username, shapes = [], x = 0, y = 0) {
         this.name = username;
-        this.forms = forms;
+        this.shapes = shapes;
         this.x = x;
         this.y = y;
     }
     draw (context) {
-        this.forms.forEach(form => {
-            form.draw(context, this.x, this.y);
+        this.shapes.forEach(shape => {
+            shape.draw(context, this.x, this.y);
         });
     }
 }
 export {
     Arc,
+    Character,
+    ClickXY,
+    ClosedPencil,
+    Ellipse,
+    Layer,
+    Line,
+    MasterJasonFile,
+    Pencil,
+    Picture,
+    Poligon,
+    Rect,
+    Rubber
+}
+
+export default {
+    Arc,
+    Character,
     ClickXY,
     ClosedPencil,
     Ellipse,

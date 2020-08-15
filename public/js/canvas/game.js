@@ -11,13 +11,15 @@ import {
     Picture,
     Poligon,
     Rect,
-    Rubber
+    Rubber,
+    Character
 } from './canvasClasses.js';
+import canvasClasses from './canvasClasses.js';
 import { KEYS } from './constants.js';
 
-class CanvasPainter {
+class Game {
     constructor(canvas, username, io) {
-        window.canvasPaint = this;
+        window.game = this;
         this.username = username
         this.io = io;
         if (!canvas instanceof HTMLCanvasElement) {
@@ -26,10 +28,9 @@ class CanvasPainter {
         this.board = canvas;
         this.context = canvas.getContext('2d');
 
-        this.character = {
-            form: new Rect(10, 10, 10, 10, '#ff0000', '#000000', 0, 0),
-            username
-        };
+        this.character = new Character(this.username,
+            [new Rect(0, 0, 10, 10, '#ff0000', '#000000', 0, 0)],
+            10, 10);
         this.io.emit('player movement', this.character);
 
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0)
@@ -60,7 +61,7 @@ class CanvasPainter {
         this.cleanBoard.draw(this.context);
     }
     movement(){
-        const form = this.character.form;
+        const character = this.character;
         /*const tempPosition = {
             x: character.x,
             y: character.y,
@@ -72,16 +73,16 @@ class CanvasPainter {
         let speed = this.keys[KEYS.SHIFT] ? 2 : 1;
         if (this.keys[KEYS.CTRL]) speed = speed / 2;
         if (this.keys[KEYS.UP]) {
-            form.y = form.y - speed;
+            character.y = character.y - speed;
         }
         if (this.keys[KEYS.DOWN]) {
-            form.y = form.y + speed;
+            character.y = character.y + speed;
         }
         if (this.keys[KEYS.LEFT]) {
-            form.x = form.x - speed;
+            character.x = character.x - speed;
         }
         if (this.keys[KEYS.RIGHT]) {
-            form.x = form.x + speed;
+            character.x = character.x + speed;
         }
         
         if (move) {
@@ -94,18 +95,23 @@ class CanvasPainter {
     drawPlayers(playersDetails) {
         this.clear();
         const characters = this.characters;
-        const player = new Rect()
         for (let id in playersDetails) {
             const plDetails = playersDetails[id];
-            for (let prop in  plDetails.form) {
+            for (let prop in  plDetails.shapes) {
                 if (!characters[id]) {
-                    characters[id] = {};
-                    characters[id].form = new Rect();
-                    characters[id].username = plDetails.username;
+                    characters[id] = new Character(plDetails.username, []);
+                    plDetails.shapes.forEach(shape => {
+                        const newShape = new canvasClasses[shape.desc]();
+                        for (let shapeProp in  shape) {
+                            newShape[shapeProp] = shape[shapeProp];
+                        }
+                        characters[id].shapes.push(newShape);
+                    });
                 }
-                characters[id].form[prop] = plDetails.form[prop];
+                characters[id].x = plDetails.x;
+                characters[id].y = plDetails.y;
             }
-            characters[id].form.draw(this.context);
+            characters[id].draw(this.context);
         }
         /*for (let id in characters) {
             playersDetails[id].form.draw();
@@ -123,4 +129,4 @@ class CanvasPainter {
         this.keys[event.keyCode] = false;
     }
 }
-export default CanvasPainter;
+export default Game;

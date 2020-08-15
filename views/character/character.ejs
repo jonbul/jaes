@@ -1,0 +1,29 @@
+<% layout('layout') %>
+
+<div class="container">
+
+    <br>
+    <input id="characterName" placeholder="Character Name">
+    <br><br>
+    <div class="row">
+        <div class="col-2">
+            <% include partials/tools %>
+        </div>
+        <div class="col-4">
+            <canvas id="canvas" width="200" height="200"></canvas>
+        </div>
+        <div class="col-4"></div>
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="/css/character.css" type="text/css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
+    integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
+    crossorigin="anonymous"></script>
+<script type="module">
+    import CharacterEditor from '/js/character/character.js';
+    window.CharacterEditor = CharacterEditor;
+    window.socket = io();
+    new CharacterEditor(document.getElementById('canvas'), document.getElementById('characterName'));
+</script>

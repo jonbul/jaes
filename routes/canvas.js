@@ -11,4 +11,16 @@ module.exports = (app) => {
             res.redirect('/');
         }
     });
+    app.get('/character', (req, res) => {
+        let user;
+        if (req.session.passport && req.session.passport.user) {
+            user = req.session.passport.user;
+            res.render('character/character', {
+                title: 'Game',
+                username: user.username
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
 }
