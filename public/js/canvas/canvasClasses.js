@@ -31,7 +31,7 @@ class Rect{
         this.height = height;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
         this.rorationInDegrees = rorationInDegrees;
     }
     
@@ -41,28 +41,28 @@ class Rect{
         
         context.fillStyle=this.backgroundColor;//BACKGROUND
         context.fillRect(this.x + plusX,this.y + plusY,this.width,this.height);
-        /*if (this.borderWidth) {
+        if (this.borderWidth) {
             context.strokeRect(this.x,this.y,this.width,this.height);
             context.strokeStyle = this.borderColor;
-            context.lineWidth=this.borderWidth;
+            context.lineWidth = this.borderWidth;
             context.stroke();
-        }*/
+        }
         if (this.rorationInDegrees)
         context.rotate((360-this.rorationInDegrees)*Math.PI/180);
     }
 }
 class Arc{
-    constructor(x,y,radius,startAngle,endAngle,backgroundColor,borderColor,borderWidth){
+    constructor(x,y,radius,backgroundColor,borderColor,borderWidth,startAngle = 0,endAngle = 360){
         this.desc = CONST.ARC;
         this.pos = 0;
         this.x = x;
         this.y = y;
         this.radius = radius;
-        this.startAngle = startAngle;
-        this.endAngle = endAngle;
+        this.startAngle = (startAngle * 2 / 360) * Math.PI;
+        this.endAngle = (endAngle * 2 / 360) * Math.PI;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         if(this.radius<0)this.radius*=-1;
@@ -70,9 +70,8 @@ class Arc{
         context.fillStyle = this.backgroundColor;//BACKGROUND
         context.arc(this.x + plusX,this.y + plusY,this.radius, this.startAngle, this.endAngle);
         if(this.borderWidth>0){
-            context.strokeStyle = borderColor;//BORDER
-            context.strokeStyle = this.borderColor;
-            context.lineWidth=this.borderWidth;
+            context.strokeStyle = this.borderColor;//BORDER
+            context.lineWidth = this.borderWidth;
             context.stroke();
         }
         
@@ -80,7 +79,7 @@ class Arc{
     }
 }
 class Ellipse{
-    constructor(x,y,radiusX,radiusY,rotation,startAngle,endAngle,backgroundColor,borderColor,borderWidth){
+    constructor(x,y,radiusX,radiusY,rotation,backgroundColor,borderColor,borderWidth,startAngle = 0,endAngle = 360){
         this.desc = CONST.ELLIPSE;
         this.pos = 0;
         this.x = x;
@@ -88,11 +87,11 @@ class Ellipse{
         this.radiusX = radiusX;
         this.radiusY = radiusY;
         this.rotation = rotation;
-        this.startAngle = startAngle;
-        this.endAngle = endAngle;
+        this.startAngle = (startAngle * 2 / 360) * Math.PI;
+        this.endAngle = (endAngle * 2 / 360) * Math.PI;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         if(this.radius<0)this.radius*=-1;
@@ -100,9 +99,7 @@ class Ellipse{
         context.fillStyle = this.backgroundColor;//BACKGROUND
         context.ellipse(this.x + plusX,this.y + plusY,this.radiusX,this.radiusY,this.rotation, this.startAngle, this.endAngle);
         if(this.borderWidth>0){
-            context.strokeStyle = borderColor;//BORDER
-            //context.strokeArc(this.x,this.y,this.width,this.height);
-            context.strokeStyle = this.borderColor;
+            context.strokeStyle = this.borderColor;//BORDER
             context.lineWidth=this.borderWidth;
             context.stroke();
         }
@@ -119,7 +116,7 @@ class Line{
         this.x2 = x2;
         this.y2 = y2;
         this.borderColor = borderColor;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         context.beginPath();
@@ -138,7 +135,7 @@ class Poligon{
         this.points = points || [];
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         if(this.points.length>0){
@@ -162,7 +159,7 @@ class Pencil{
         this.pos = 0;
         this.points = points;
         this.color = color;
-        this.borderWidth = borderWidth;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         context.strokeStyle = this.color;
@@ -176,7 +173,7 @@ class Pencil{
     }
 }
 class ClosedPencil{
-    constructor(points,backgroundColor,borderColor,cbrw){
+    constructor(points,backgroundColor,borderColor,borderWidth){
         this.desc = CONST.CLOSEDPENCIL;
         this.pos = 0;
         if(points !== undefined){
@@ -186,7 +183,7 @@ class ClosedPencil{
         }
         this.borderColor = borderColor;
         this.backgroundColor = backgroundColor;
-        this.cbrw = cbrw;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0){
         context.fillStyle= this.backgroundColor;
@@ -206,7 +203,7 @@ class ClosedPencil{
     }
 }
 class Rubber{
-    constructor(points,cbrw){
+    constructor(points,borderWidth){
         this.desc = CONST.RUBBER;
         this.pos = 0;
         if(points !== undefined){
@@ -214,7 +211,7 @@ class Rubber{
         }else{
             this.points = [];
         }
-        this.cbrw = cbrw;
+        this.borderWidth = parseInt(borderWidth);
     }
     draw(context){
         for(var i = 0; i < this.points.length-1; i++){

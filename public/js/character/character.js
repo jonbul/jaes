@@ -31,6 +31,7 @@ class CharacterEditor {
             toolList: document.getElementById('toolList'),
             color: {
                 border: document.getElementById('border-color'),
+                borderWidth: document.getElementById('border-width'),
                 background: document.getElementById('background-color'),
                 opacity: document.getElementById('opacity')
             }
@@ -72,11 +73,6 @@ class CharacterEditor {
         this.menus.color.bgColor = `rgba(${r},${g},${b},${a})`;
     }
     toolClickEvent(evt) {
-        /*if (evt.target.className.split(' ').indexOf('active') >= 0) {
-            this.selectedTool = evt.target.value;
-        } else {
-            this.selectedTool = this.menus.toolList.querySelector('.active').value;
-        }*/
         this.selectedTool = evt.target.value;
     }
     loadCanvasEvents() {
@@ -85,17 +81,26 @@ class CharacterEditor {
         document.body.addEventListener('mousemove', this.canvasMouseMove.bind(this));
     }
     canvasMouseDown(evt) {
-        this.drawingObj = {
-            tool: this.selectedTool,
-            shape: undefined,
-            startPosition: new ClickXY(evt),
-            initialized: false
+        switch (this.drawingObj.tool) {
+            case CONST.PENCIL:
+            case CONST.CLOSEDPENCIL:
+            case CONST.ARC:
+            case CONST.ELLIPSE:
+            case CONST.RECT:
+            case CONST.LINE:
+                this.drawingObj = {
+                    tool: this.selectedTool,
+                    shape: undefined,
+                    startPosition: new ClickXY(evt),
+                    initialized: false
+                };
+                this.canvasMouseMove(evt);
+                break;
         }
-        this.canvasMouseMove(evt);
     }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
-        this.characterShapes.push(this.drawingObj.shape);
+        if (this.drawingObj.shape) this.characterShapes.push(this.drawingObj.shape);
         this.drawingObj = undefined;
     }
     canvasMouseMove(evt) {
@@ -107,22 +112,77 @@ class CharacterEditor {
             case CONST.CLOSEDPENCIL:
                 this.drawingClosedPencil(evt, this.drawingObj);
                 break;
+            case CONST.ARC:
+                this.drawingArc(evt, this.drawingObj);
+                break;
+            case CONST.ELLIPSE:
+                this.drawingEllipse(evt, this.drawingObj);
+                break;
+            case CONST.RECT:
+                this.drawingRect(evt, this.drawingObj);
+                break;
+            case CONST.LINE:
+                this.drawingLine(evt, this.drawingObj);
+                break;
         }
     }
     drawingPencil(evt, drawingObj) {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
-            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value);
+            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         drawingObj.shape.points.push(new ClickXY(evt));
     }
     drawingClosedPencil(evt, drawingObj) {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
-            drawingObj.shape = new ClosedPencil([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value);
+            drawingObj.shape = new ClosedPencil([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
-        console.log(this.menus.color.bgColor);
         drawingObj.shape.points.push(new ClickXY(evt));
+    }
+    drawingArc(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        if (!this.drawingObj.initialized) {
+            this.drawingObj.initialized = true;
+
+            drawingObj.shape = new Arc(currentPos.x, currentPos.y,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+        }
+        const arc = drawingObj.shape;
+        arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
+    }
+    drawingEllipse(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        if (!this.drawingObj.initialized) {
+            this.drawingObj.initialized = true;
+
+            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y,0,0,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+        }
+        const ellipse = drawingObj.shape;
+        ellipse.radiusX = currentPos.x - ellipse.x;
+        ellipse.radiusY = currentPos.y - ellipse.y;
+        if (ellipse.radiusX < 0) ellipse.radiusX *= -1;
+        if (ellipse.radiusY < 0) ellipse.radiusY *= -1;
+    }
+    drawingRect(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        if (!this.drawingObj.initialized) {
+            this.drawingObj.initialized = true;
+
+            drawingObj.shape = new Rect(currentPos.x, currentPos.y,0,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+        }
+        const rect = drawingObj.shape;
+        rect.width = currentPos.x - rect.x;
+        rect.height = currentPos.y - rect.y; 
+        console.log(rect);
+    }
+    drawingLine(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        if (!this.drawingObj.initialized) {
+            this.drawingObj.initialized = true;
+            drawingObj.shape = new Line(currentPos.x,currentPos.y,currentPos.x,currentPos.y, this.menus.color.border.value, this.menus.color.borderWidth.value);
+        }
+        drawingObj.shape.x2 = currentPos.x;
+        drawingObj.shape.y2 = currentPos.y;
     }
 }
 
