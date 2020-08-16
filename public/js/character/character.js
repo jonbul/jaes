@@ -23,8 +23,8 @@ class CharacterEditor {
 
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
         this.layers = [];
-        this.characterShapes = [];
-        this.layers[0] = new Layer('character', this.characterShapes);
+        this.currentLayer = [];
+        this.layers[0] = new Layer('Layer', this.currentLayer);
         
 
         this.menus = {
@@ -34,7 +34,9 @@ class CharacterEditor {
                 borderWidth: document.getElementById('border-width'),
                 background: document.getElementById('background-color'),
                 opacity: document.getElementById('opacity')
-            }
+            },
+            
+            layerList: document.getElementById('layerList'),
         }
 
         this.selectedTool = this.menus.toolList.querySelector('.active').value;
@@ -57,6 +59,7 @@ class CharacterEditor {
     loadEvents() {
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.loadColorEvents();
+        this.loadLayerComponentsEvents();
         this.loadCanvasEvents();
     }
     loadColorEvents() {
@@ -71,6 +74,15 @@ class CharacterEditor {
         const b = parseInt(coloSplitted[2], 16);
         const a = this.menus.color.opacity.value;
         this.menus.color.bgColor = `rgba(${r},${g},${b},${a})`;
+    }
+    loadLayerComponentsEvents() {
+        
+        this.layers.forEach(layer => {
+            const option = document.createElement('option');
+            option.setAttribute('name', layer.name);
+            option.innerHTML = layer.name;
+            this.menus.layerList.appendChild(option);
+        });
     }
     toolClickEvent(evt) {
         this.selectedTool = evt.target.value;
@@ -100,7 +112,7 @@ class CharacterEditor {
     }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
-        if (this.drawingObj.shape) this.characterShapes.push(this.drawingObj.shape);
+        if (this.drawingObj.shape) this.currentLayer.push(this.drawingObj.shape);
         this.drawingObj = undefined;
     }
     canvasMouseMove(evt) {

@@ -1,0 +1,20 @@
+<div class="row">
+    <div class="col-12">
+        <div class="list-group list-group-horizontal" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action list-group-item-light active" id="list-tools-list" data-toggle="list"
+                href="#list-tools" role="tab" aria-controls="tools">Tools</a>
+            <a class="list-group-item list-group-item-action list-group-item-light" id="list-color-list" data-toggle="list"
+                href="#list-color" role="tab" aria-controls="color">Color</a>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="list-tools" role="tabpanel" aria-labelledby="list-tools-list">
+                <% include tools %>
+            </div>
+            <div class="tab-pane fade" id="list-color" role="tabpanel" aria-labelledby="list-color-list">
+                <% include colors %>
+            </div>
+        </div>
+    </div>
+</div>
