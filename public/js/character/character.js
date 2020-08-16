@@ -28,10 +28,15 @@ class CharacterEditor {
         
 
         this.menus = {
-            tools: document.getElementById('toolList')
+            toolList: document.getElementById('toolList'),
+            color: {
+                border: document.getElementById('border-color'),
+                background: document.getElementById('background-color'),
+                opacity: document.getElementById('opacity')
+            }
         }
 
-        this.selectedTool = this.menus.tools.querySelector('.active').value;
+        this.selectedTool = this.menus.toolList.querySelector('.active').value;
 
         this.loadEvents();
         this.interval = setInterval(this.canvasInterval.bind(this));
@@ -49,15 +54,30 @@ class CharacterEditor {
         }
     }
     loadEvents() {
-        this.menus.tools.addEventListener('click', this.toolClickEvent.bind(this));
+        this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
+        this.loadColorEvents();
         this.loadCanvasEvents();
     }
+    loadColorEvents() {
+        this.menus.color.background.addEventListener('change', this.updateBgColor.bind(this));
+        this.menus.color.opacity.addEventListener('change', this.updateBgColor.bind(this));
+        this.updateBgColor();
+    }
+    updateBgColor() {
+        const coloSplitted = this.menus.color.background.value.match(/\w{2}/g);
+        const r = parseInt(coloSplitted[0], 16);
+        const g = parseInt(coloSplitted[1], 16);
+        const b = parseInt(coloSplitted[2], 16);
+        const a = this.menus.color.opacity.value;
+        this.menus.color.bgColor = `rgba(${r},${g},${b},${a})`;
+    }
     toolClickEvent(evt) {
-        if (evt.target.className.split(' ').indexOf('active') >= 0) {
+        /*if (evt.target.className.split(' ').indexOf('active') >= 0) {
             this.selectedTool = evt.target.value;
         } else {
-            this.selectedTool = this.menus.tools.querySelector('.active').value;
-        }
+            this.selectedTool = this.menus.toolList.querySelector('.active').value;
+        }*/
+        this.selectedTool = evt.target.value;
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
@@ -92,15 +112,16 @@ class CharacterEditor {
     drawingPencil(evt, drawingObj) {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
-            drawingObj.shape = new Pencil([drawingObj.startPosition], '#000');
+            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value);
         }
         drawingObj.shape.points.push(new ClickXY(evt));
     }
-    drawingPencil(evt, drawingObj) {
+    drawingClosedPencil(evt, drawingObj) {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
-            drawingObj.shape = new ClosedPencil([drawingObj.startPosition], '#000');
+            drawingObj.shape = new ClosedPencil([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value);
         }
+        console.log(this.menus.color.bgColor);
         drawingObj.shape.points.push(new ClickXY(evt));
     }
 }
