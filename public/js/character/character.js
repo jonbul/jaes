@@ -23,8 +23,8 @@ class CharacterEditor {
 
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
         this.layers = [];
-        this.currentLayer = [];
-        this.layers[0] = new Layer('Layer', this.currentLayer);
+        this.currentLayer = new Layer('Layer', this.currentLayer);
+        this.layers[0] = this.currentLayer;
         
 
         this.menus = {
@@ -37,6 +37,7 @@ class CharacterEditor {
             },
             
             layerList: document.getElementById('layerList'),
+            layerExampleCanvas: document.getElementById('layerExampleCanvas'),
         }
 
         this.selectedTool = this.menus.toolList.querySelector('.active').value;
@@ -83,6 +84,59 @@ class CharacterEditor {
             option.innerHTML = layer.name;
             this.menus.layerList.appendChild(option);
         });
+        this.menus.layerList.addEventListener('change', this.layerChange.bind(this));
+        document.getElementById('createLayer').addEventListener('click', this.createLayer.bind(this));
+        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this));
+        document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
+        document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
+        this.layerChange();
+    }
+    layerChange() {
+        this.currentLayer = this.layers[this.menus.layerList.selectedIndex];
+        this.layerPreviewUpdate();
+    }
+    layerPreviewUpdate() {
+        const context = this.menus.layerExampleCanvas.getContext('2d');
+        new Rect(0,0,this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
+        this.currentLayer.draw(context);
+    }
+    createLayer() {
+        const nLayer = new Layer(document.getElementById('newLayerName').value);
+        this.layers.push(nLayer);
+
+        const option = document.createElement('option');
+        option.setAttribute('name', nLayer.name);
+        option.innerHTML = nLayer.name;
+        this.menus.layerList.appendChild(option);
+
+        $('#newLayerModal').modal('hide')
+    }
+    removeLayer() {
+        if (this.layers.length === 1) return;
+        this.layers.pop(this.menus.layerList.selectedIndex);
+        this.menus.layerList.removeChild(this.menus.layerList.selectedOptions[0]);
+        this.currentLayer = this.layers[0];
+        this.layerPreviewUpdate();
+    }
+    moveUpLayer() {
+        const currentIndex = this.menus.layerList.selectedIndex;
+        if (currentIndex <= 0) return;
+        //Array
+        const tempLayer = this.layers[currentIndex];
+        this.layers[currentIndex] = this.layers[currentIndex-1];
+        this.layers[currentIndex-1] = tempLayer;
+        //Select
+        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex], this.menus.layerList[currentIndex-1]);
+    }
+    moveDownLayer() {
+        const currentIndex = this.menus.layerList.selectedIndex;
+        if (currentIndex >= this.layers.length-1) return;
+        //Array
+        const tempLayer = this.layers[currentIndex];
+        this.layers[currentIndex] = this.layers[currentIndex+1];
+        this.layers[currentIndex+1] = tempLayer;
+        //Select
+        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex+1], this.menus.layerList[currentIndex]);
     }
     toolClickEvent(evt) {
         this.selectedTool = evt.target.value;
@@ -112,8 +166,9 @@ class CharacterEditor {
     }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
-        if (this.drawingObj.shape) this.currentLayer.push(this.drawingObj.shape);
+        if (this.drawingObj.shape) this.currentLayer.shapes.push(this.drawingObj.shape);
         this.drawingObj = undefined;
+        this.layerChange();
     }
     canvasMouseMove(evt) {
         if (!this.drawingObj) return;

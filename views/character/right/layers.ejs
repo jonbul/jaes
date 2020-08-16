@@ -1,1 +1,35 @@
-<select id="layerList" class="custom-select"></select>
+<div class="mt-2">
+    <div class="">
+        <select id="layerList" class="custom-select"></select>
+    </div>
+    <div class="mt-2 ml-0 mr-0 row">
+            <button title="Add Layer" class="btn btn-light" id="addLayer" data-toggle="modal" data-target="#newLayerModal"><i class="fas fa-plus"></i></button>
+            <button title="Remove Layer" class="btn btn-light" id="removeLayer"><i class="fas fa-trash"></i></button>
+            <button title="Move Up Layer" class="btn btn-light" id="moveUpLayer"><i class="fas fa-chevron-up"></i></button>
+            <button title="Move Down Layer" class="btn btn-light" id="moveDownLayer"><i class="fas fa-chevron-down"></i></button>
+        
+    </div>
+    
+    <canvas id="layerExampleCanvas" width="200" height="400"></canvas>
+</div>
+
+
+<div class="modal" tabindex="-1" role="dialog" id="newLayerModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Layer</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+              <input type="text" name="" id="newLayerName" placeholder="New Layer Name" class="form-control">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="createLayer">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
