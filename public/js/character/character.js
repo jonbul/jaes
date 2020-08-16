@@ -93,7 +93,7 @@ class CharacterEditor {
         document.body.addEventListener('mousemove', this.canvasMouseMove.bind(this));
     }
     canvasMouseDown(evt) {
-        switch (this.drawingObj.tool) {
+        switch (this.selectedTool) {
             case CONST.PENCIL:
             case CONST.CLOSEDPENCIL:
             case CONST.ARC:
