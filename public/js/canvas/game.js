@@ -12,7 +12,8 @@ import {
     Poligon,
     Rect,
     Rubber,
-    Character
+    Character,
+    Text
 } from './canvasClasses.js';
 import canvasClasses from './canvasClasses.js';
 import { KEYS } from './constants.js';
@@ -33,7 +34,7 @@ class Game {
             10, 10);
         this.io.emit('player movement', this.character);
 
-        this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0)
+        this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
         this.loadEvents();
 
         this.beginInterval();

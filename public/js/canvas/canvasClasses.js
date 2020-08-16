@@ -157,19 +157,15 @@ class Poligon{
     }
 }
 class Pencil{
-    constructor(points,borderColor,cbrw){
+    constructor(points = [], color, borderWidth = 1){
         this.desc = CONST.PENCIL;
         this.pos = 0;
-        if(points !== undefined){
-            this.points = points;
-        }else{
-            this.points = [];
-        }
-        this.borderColor = borderColor;
-        this.cbrw = cbrw;
+        this.points = points;
+        this.color = color;
+        this.borderWidth = borderWidth;
     }
     draw(context, plusX = 0, plusY = 0){
-        context.strokeStyle = this.borderColor;
+        context.strokeStyle = this.color;
         context.beginPath();
         context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
         for(var i = 1; i < this.points.length; i++){
@@ -189,6 +185,7 @@ class ClosedPencil{
             this.points = [];
         }
         this.borderColor = borderColor;
+        this.backgroundColor = backgroundColor;
         this.cbrw = cbrw;
     }
     draw(context, plusX = 0, plusY = 0){
@@ -277,23 +274,27 @@ class Text {
 }
 
 class ClickXY{
-    constructor(x,y){
-        this.x = x;
-        this.y = y;
+    constructor(evt){
+        this.canvas = evt.target;
+        this.x = evt.layerX / (parseFloat(getComputedStyle(this.canvas).width) / this.canvas.width);
+        this.y = evt.layerY / (parseFloat(getComputedStyle(this.canvas).height) / this.canvas.height);
     }
 }
 class Layer{
-    constructor(elements){
+    constructor(name, shapes = []){
         this.pos = 0;
         
-        if(elements === undefined){
-            this.elements = [];
-        }else{
-            this.elements = elements;
-        }
-        this.name = "name";
+        this.shapes = shapes;
+        this.name = name;
         this.desc = "desc";
         this.visible = true;
+    }
+    draw(context) {
+        if (this.visible) {
+            this.shapes.forEach(shape => {
+                shape.draw(context);
+            });
+        }
     }
 }
 class Character {
@@ -322,7 +323,8 @@ export {
     Picture,
     Poligon,
     Rect,
-    Rubber
+    Rubber,
+    Text
 }
 
 export default {
@@ -338,5 +340,6 @@ export default {
     Picture,
     Poligon,
     Rect,
-    Rubber
+    Rubber,
+    Text
 }
