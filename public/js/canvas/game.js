@@ -100,7 +100,7 @@ class Game {
             const plDetails = playersDetails[id];
             for (let prop in  plDetails.shapes) {
                 if (!characters[id]) {
-                    characters[id] = new Character(plDetails.username, []);
+                    characters[id] = new Character(plDetails.name, []);
                     plDetails.shapes.forEach(shape => {
                         const newShape = new canvasClasses[shape.desc]();
                         for (let shapeProp in  shape) {

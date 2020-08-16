@@ -261,12 +261,18 @@ class Picture{
 }
 
 class Text {
-    constructor(text, x, y, fontSize, fontFamily) {
-
+    constructor(text, x, y, fontSize=12, fontFamily='Helvetica', color='#000000') {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.fontSize = fontSize;
+        this.fontFamily = fontFamily;
+        this.color = color;
     }
     draw(context, plusX = 0, plusY = 0) {
-        context.font = `${fontSize} ${fontFamily}`;
-        context.fillText(text, x + plusX, y + plusY);
+        context.font = `${this.fontSize} ${this.fontFamily}`;
+        context.fillStyle = this.color;
+        context.fillText(this.text, this.x + plusX, this.y + plusY);
     }
 }
 
@@ -300,11 +306,13 @@ class Character {
         this.shapes = shapes;
         this.x = x;
         this.y = y;
+        this.nameShape = new Text(this.name, this.x, this.y - 10, 10, 'Helvetica', '#222222')
     }
     draw (context) {
         this.shapes.forEach(shape => {
             shape.draw(context, this.x, this.y);
         });
+        this.nameShape.draw(context, this.x, this.y);
     }
 }
 export {
