@@ -154,12 +154,9 @@ class CharacterEditor {
             block.setAttribute('data-toggle', 'list');
             block.setAttribute('name', 'shape');
             block.innerHTML = `<div class="col-12">
-                <h6>${shape.desc}</h6>
-            </div>
-            <div class="col-6">
-                <canvas width="100" height="100"></canvas>
-            </div>
-            <div class="col-6"></div>`;
+            <canvas width="100" height="100"></canvas>
+            <label class="shapeDesc">${shape.desc}</label>
+            </div>`;
 
             shapeList.appendChild(block);
             const canvas = block.querySelector('canvas');
