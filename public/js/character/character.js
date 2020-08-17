@@ -177,7 +177,7 @@ class CharacterEditor {
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
     }
     canvasMouseDown(evt) {
-        const pos = new ClickXY(evt);
+        const currentPos = new ClickXY(evt);
         switch (this.selectedTool) {
             case CONST.PENCIL:
             case CONST.CLOSEDPENCIL:
@@ -188,7 +188,7 @@ class CharacterEditor {
                 this.drawingObj = {
                     tool: this.selectedTool,
                     shape: undefined,
-                    startPosition: pos,
+                    startPosition: currentPos,
                     initialized: false
                 };
                 this.canvasMouseMove(evt);
@@ -197,17 +197,82 @@ class CharacterEditor {
                 if (!this.drawingObj) {
                     this.drawingObj = {
                         tool: this.selectedTool,
-                        shape: new Polygon([], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value),
-                        startPosition: pos,
+                        shape: new Polygon([currentPos], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value),
+                        startPosition: currentPos,
                     };
                 }
-                this.drawingObj.shape.points.push(pos);
+                const points = this.drawingObj.shape.points;
+                if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
+                    points.push(currentPos);
+                }
+                break;
+            case CONST.SEMIARC:
+                this.semiArcClick(evt);
                 break;
         }
     }
+    semiArcClick(evt) {
+        const currentPos = new ClickXY(evt);
+        let arc;
+        if (!this.drawingObj) {
+            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            this.drawingObj = {
+                tool: this.selectedTool,
+                shape: arc,
+                startPosition: currentPos,
+                step: -1
+            };
+        } else {
+            arc = this.drawingObj.shape;
+        }
+        const drawingObj = this.drawingObj;
+        console.log(this.drawingObj.step);
+        switch(drawingObj.step) {
+            case 0:
+                arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
+                const c1 = currentPos.x - arc.x;//Base
+                const c2 = currentPos.y - arc.y;//Height
+                const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
+                let a = Math.asin(c2 / h); 
+                
+                if (c1 < 0 && h >= 0) {
+                    a = Math.PI - a;
+                } else if (c1 < 0 && h < 0) {
+                    a = -1 * a + Math.PI;
+                } else if (c1 >= 0 && h < 0) {
+                    a += 2 * Math.PI;
+                }
+                
+                while (a > 2 * Math.PI) {
+                    a -= 2 * Math.PI;
+                }
+
+                arc.startAngle = a;
+                arc.endAngle = a;
+
+
+                Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
+
+                drawingObj.extraShapes = [];
+                break;
+            case 1:
+                if (arc.desc === CONST.ARC) {
+                    if (arc.r < 0) {
+                        arc.r *= -1;
+                    }
+                }
+
+                this.currentLayer.shapes.push(this.drawingObj.shape);
+                this.drawingObj = undefined;
+                this.layerChange();
+                break;
+        }
+        if (this.drawingObj)
+            this.drawingObj.step++;
+    }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
-        if (this.drawingObj.tool === CONST.POLYGON) return;
+        if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         if (this.drawingObj.shape.desc === CONST.RECT) {
             const shape = this.drawingObj.shape;
             if (shape.width < 0) {
@@ -246,7 +311,9 @@ class CharacterEditor {
                 this.drawingLine(evt, this.drawingObj);
                 break;
             case CONST.POLYGON:
-                this.drawingPolygon(evt, this.drawingObj)
+                this.drawingPolygon(evt, this.drawingObj);
+            case CONST.SEMIARC:
+                this.drawingSemiArc(evt, this.drawingObj);
 
         }
     }
@@ -325,6 +392,34 @@ class CharacterEditor {
             new Line(currentPos.x, currentPos.y, shapePoints[0].x, shapePoints[0].y, '#000000', 1),
             new Line(currentPos.x, currentPos.y, shapePoints[shapePoints.length - 1].x, shapePoints[shapePoints.length - 1].y, '#000000', 1)
         ]
+    }
+    drawingSemiArc(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        const arc = drawingObj.shape;
+        switch(this.drawingObj.step) {
+            case 0:
+                arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
+                drawingObj.extraShapes = [
+                    new Line(arc.x, arc.y, currentPos.x, currentPos.y, '#000000', 1)];
+                break;
+            case 1:
+                let c1 = currentPos.x - arc.x;//Base
+                let c2 = currentPos.y - arc.y;//Height
+                let h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
+                let a = Math.asin(c2 / h); 
+                
+                if (c1 < 0 && c2 >= 0) {
+                    a = Math.PI - a;
+                } else if (c1 < 0 && c2 < 0) {
+                    a = a * -1 + Math.PI;
+                } else if (c1 >= 0 && c2 < 0) {
+                    a += 2 * Math.PI;
+                }
+
+                arc.endAngle = a;
+                
+                break;
+        }
     }
 }
 
