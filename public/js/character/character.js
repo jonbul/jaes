@@ -3,7 +3,7 @@ import {
     Arc,
     Character,
     ClickXY,
-    ClosedPencil,
+    Abstract,
     Ellipse,
     Layer,
     Line,
@@ -180,7 +180,7 @@ class CharacterEditor {
         const currentPos = new ClickXY(evt);
         switch (this.selectedTool) {
             case CONST.PENCIL:
-            case CONST.CLOSEDPENCIL:
+            case CONST.ABSTRACT:
             case CONST.ARC:
             case CONST.ELLIPSE:
             case CONST.RECT:
@@ -236,8 +236,8 @@ class CharacterEditor {
             case CONST.PENCIL:
                 this.drawingPencil(evt, this.drawingObj);
                 break;
-            case CONST.CLOSEDPENCIL:
-                this.drawingClosedPencil(evt, this.drawingObj);
+            case CONST.ABSTRACT:
+                this.drawingAbstract(evt, this.drawingObj);
                 break;
             case CONST.ARC:
                 this.drawingArc(evt, this.drawingObj);
@@ -275,12 +275,15 @@ class CharacterEditor {
             drawingObj.shape.points.push(point);
         }
     }
-    drawingClosedPencil(evt, drawingObj) {
+    drawingAbstract(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new ClosedPencil([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
-        drawingObj.shape.points.push(new ClickXY(evt));
+        const point = new ClickXY(evt);
+        if (!isNaN(point.x) && !isNaN(point.y)) {
+            drawingObj.shape.points.push(point);
+        }
     }
     drawingArc(evt, drawingObj) {
         const currentPos = new ClickXY(evt);

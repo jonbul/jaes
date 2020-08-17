@@ -299,9 +299,9 @@ class Pencil{
         context.stroke();
     }
 }
-class ClosedPencil{
+class Abstract{
     constructor(points,backgroundColor,borderColor,borderWidth){
-        this.desc = CONST.CLOSEDPENCIL;
+        this.desc = CONST.ABSTRACT;
         this.pos = 0;
         if(points !== undefined){
             this.points = points;
@@ -477,7 +477,7 @@ export {
     Arc,
     Character,
     ClickXY,
-    ClosedPencil,
+    Abstract,
     Ellipse,
     Layer,
     Line,
@@ -494,7 +494,7 @@ export default {
     Arc,
     Character,
     ClickXY,
-    ClosedPencil,
+    Abstract,
     Ellipse,
     Layer,
     Line,

@@ -2,7 +2,7 @@
 import {
     Arc,
     ClickXY,
-    ClosedPencil,
+    Abstract,
     Ellipse,
     Layer,
     Line,
