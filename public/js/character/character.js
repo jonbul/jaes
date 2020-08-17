@@ -10,7 +10,7 @@ import {
     MasterJasonFile,
     Pencil,
     Picture,
-    Poligon,
+    Polygon,
     Rect,
     Rubber,
     Text
@@ -55,6 +55,11 @@ class CharacterEditor {
         });
         if (this.drawingObj) {
             this.drawingObj.shape.draw(this.context);
+            if (this.drawingObj.extraShapes) {
+                this.drawingObj.extraShapes.forEach(shape => {
+                    shape.draw(this.context);
+                });
+            }
         }
     }
     loadEvents() {
@@ -169,8 +174,10 @@ class CharacterEditor {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
         document.body.addEventListener('mousemove', this.canvasMouseMove.bind(this));
+        this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
     }
     canvasMouseDown(evt) {
+        const pos = new ClickXY(evt);
         switch (this.selectedTool) {
             case CONST.PENCIL:
             case CONST.CLOSEDPENCIL:
@@ -181,15 +188,26 @@ class CharacterEditor {
                 this.drawingObj = {
                     tool: this.selectedTool,
                     shape: undefined,
-                    startPosition: new ClickXY(evt),
+                    startPosition: pos,
                     initialized: false
                 };
                 this.canvasMouseMove(evt);
+                break;
+            case CONST.POLYGON:
+                if (!this.drawingObj) {
+                    this.drawingObj = {
+                        tool: this.selectedTool,
+                        shape: new Polygon([], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value),
+                        startPosition: pos,
+                    };
+                }
+                this.drawingObj.shape.points.push(pos);
                 break;
         }
     }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
+        if (this.drawingObj.tool === CONST.POLYGON) return;
         if (this.drawingObj.shape.desc === CONST.RECT) {
             const shape = this.drawingObj.shape;
             if (shape.width < 0) {
@@ -227,29 +245,39 @@ class CharacterEditor {
             case CONST.LINE:
                 this.drawingLine(evt, this.drawingObj);
                 break;
+            case CONST.POLYGON:
+                this.drawingPolygon(evt, this.drawingObj)
+
+        }
+    }
+    canvasDblClick(evt) {
+        if (this.drawingObj.tool === CONST.POLYGON) {
+            if (this.drawingObj.shape) this.currentLayer.shapes.push(this.drawingObj.shape);
+            this.drawingObj = undefined;
+            this.layerChange();
         }
     }
     drawingPencil(evt, drawingObj) {
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
             drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         const point = new ClickXY(evt);
-        if(!isNaN(point.x) && !isNaN(point.y)) {
+        if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
         }
     }
     drawingClosedPencil(evt, drawingObj) {
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
             drawingObj.shape = new ClosedPencil([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         drawingObj.shape.points.push(new ClickXY(evt));
     }
     drawingArc(evt, drawingObj) {
         const currentPos = new ClickXY(evt);
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
 
             drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
@@ -258,8 +286,8 @@ class CharacterEditor {
     }
     drawingEllipse(evt, drawingObj) {
         const currentPos = new ClickXY(evt);
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
 
             drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
@@ -271,8 +299,8 @@ class CharacterEditor {
     }
     drawingRect(evt, drawingObj) {
         const currentPos = new ClickXY(evt);
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
 
             drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
@@ -283,12 +311,20 @@ class CharacterEditor {
     }
     drawingLine(evt, drawingObj) {
         const currentPos = new ClickXY(evt);
-        if (!this.drawingObj.initialized) {
-            this.drawingObj.initialized = true;
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
             drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         drawingObj.shape.x2 = currentPos.x;
         drawingObj.shape.y2 = currentPos.y;
+    }
+    drawingPolygon(evt, drawingObj) {
+        const currentPos = new ClickXY(evt);
+        const shapePoints = drawingObj.shape.points;
+        drawingObj.extraShapes = [
+            new Line(currentPos.x, currentPos.y, shapePoints[0].x, shapePoints[0].y, '#000000', 1),
+            new Line(currentPos.x, currentPos.y, shapePoints[shapePoints.length - 1].x, shapePoints[shapePoints.length - 1].y, '#000000', 1)
+        ]
     }
 }
 

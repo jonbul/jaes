@@ -202,11 +202,11 @@ class Line{
         context.fill();
     }
 }
-class Poligon{
-    constructor(points,backgroundColor,borderColor,borderWidth){
-        this.desc = CONST.POLIGON;
+class Polygon{
+    constructor(points = [],backgroundColor,borderColor,borderWidth){
+        this.desc = CONST.POLYGON;
         this.pos = 0;
-        this.points = points || [];
+        this.points = points;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
@@ -223,6 +223,37 @@ class Poligon{
             context.lineWidth = this.borderWidth;
             context.closePath();
             context.fill();
+            context.stroke();
+        }
+    }
+    draw100x100(context){
+        let newPoints = [];
+        this.points.forEach(p => {
+            newPoints.push(p.x);
+            newPoints.push(p.y);
+        });
+        let maxValue = Math.max(...newPoints);
+        let minValue = Math.min(...newPoints);
+        
+        let x = (this.points[0].x - minValue) * 100 / maxValue;
+        let y = (this.points[0].y - minValue) * 100 / maxValue;
+
+        context.fillStyle= this.backgroundColor;
+        context.strokeStyle = this.borderColor;
+        context.beginPath();
+        context.moveTo(x, y);
+        for(var i = 1; i < this.points.length; i++){
+            let x = (this.points[i].x - minValue) * 100 / maxValue;
+            let y = (this.points[i].y - minValue) * 100 / maxValue;
+            context.lineTo(x, y);
+        }
+        x = (this.points[0].x - minValue) * 100 / maxValue;
+        y = (this.points[0].y - minValue) * 100 / maxValue;
+        context.lineTo(x, y);
+        context.lineWidth = this.borderWidth;
+        context.closePath();
+        context.fill();
+        if(context.lineWidth>0){
             context.stroke();
         }
     }
@@ -453,7 +484,7 @@ export {
     MasterJasonFile,
     Pencil,
     Picture,
-    Poligon,
+    Polygon,
     Rect,
     Rubber,
     Text
@@ -470,7 +501,7 @@ export default {
     MasterJasonFile,
     Pencil,
     Picture,
-    Poligon,
+    Polygon,
     Rect,
     Rubber,
     Text

@@ -9,7 +9,7 @@ import {
     MasterJasonFile,
     Pencil,
     Picture,
-    Poligon,
+    Polygon,
     Rect,
     Rubber,
     Character,
