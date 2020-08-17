@@ -380,6 +380,28 @@ class Rubber {
         }
         context.stroke();
     }
+    draw100x100(context, boardSmallSideSize = 100) {
+        let newPoints = [];
+        this.points.forEach(p => {
+            newPoints.push(p.x);
+            newPoints.push(p.y);
+        });
+        let maxValue = Math.max(...newPoints);
+        let minValue = Math.min(...newPoints);
+
+        let x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
+        let y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        context.strokeStyle = '#000000';
+        context.beginPath();
+        context.moveTo(x, y);
+        for (var i = 1; i < this.points.length; i++) {
+            let x = (this.points[i].x - minValue) * boardSmallSideSize / maxValue;
+            let y = (this.points[i].y - minValue) * boardSmallSideSize / maxValue;
+            context.lineTo(x, y);
+        }
+        context.lineWidth = this.borderWidth * 2;
+        context.stroke();
+    }
 }
 class Picture {
     constructor(img, src, sx, sy, sw, sh, x, y, width, height, grad) {
@@ -477,10 +499,10 @@ class Character {
     }
 }
 export {
+    Abstract,
     Arc,
     Character,
     ClickXY,
-    Abstract,
     Ellipse,
     Layer,
     Line,
@@ -494,10 +516,10 @@ export {
 }
 
 export default {
+    Abstract,
     Arc,
     Character,
     ClickXY,
-    Abstract,
     Ellipse,
     Layer,
     Line,

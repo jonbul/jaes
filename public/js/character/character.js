@@ -1,9 +1,9 @@
 import CONST from '../canvas/constants.js';
 import {
+    Abstract,
     Arc,
     Character,
     ClickXY,
-    Abstract,
     Ellipse,
     Layer,
     Line,
@@ -182,6 +182,7 @@ class CharacterEditor {
             case CONST.ELLIPSE:
             case CONST.RECT:
             case CONST.LINE:
+            case CONST.RUBBER:
                 this.drawingObj = {
                     tool: this.selectedTool,
                     shape: undefined,
@@ -250,8 +251,13 @@ class CharacterEditor {
                 break;
             case CONST.POLYGON:
                 this.drawingPolygon(evt, this.drawingObj);
+                break;
             case CONST.SEMIARC:
                 this.drawingSemiArc(evt, this.drawingObj);
+                break;
+            case CONST.RUBBER:
+                this.drawingRubber(evt, this.drawingObj);
+                break;
 
         }
     }
@@ -419,6 +425,16 @@ class CharacterEditor {
         }
         if (this.drawingObj)
             this.drawingObj.step++;
+    }
+    drawingRubber(evt, drawingObj) {
+        if (!drawingObj.initialized) {
+            drawingObj.initialized = true;
+            drawingObj.shape = new Rubber([drawingObj.startPosition], this.menus.color.borderWidth.value);
+        }
+        const point = new ClickXY(evt);
+        if (!isNaN(point.x) && !isNaN(point.y)) {
+            drawingObj.shape.points.push(point);
+        }
     }
 }
 
