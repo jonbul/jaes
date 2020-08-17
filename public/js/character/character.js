@@ -226,7 +226,6 @@ class CharacterEditor {
             arc = this.drawingObj.shape;
         }
         const drawingObj = this.drawingObj;
-        console.log(this.drawingObj.step);
         switch(drawingObj.step) {
             case 0:
                 arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
