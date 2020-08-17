@@ -211,64 +211,6 @@ class CharacterEditor {
                 break;
         }
     }
-    semiArcClick(evt) {
-        const currentPos = new ClickXY(evt);
-        let arc;
-        if (!this.drawingObj) {
-            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
-            this.drawingObj = {
-                tool: this.selectedTool,
-                shape: arc,
-                startPosition: currentPos,
-                step: -1
-            };
-        } else {
-            arc = this.drawingObj.shape;
-        }
-        const drawingObj = this.drawingObj;
-        switch(drawingObj.step) {
-            case 0:
-                arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
-                const c1 = currentPos.x - arc.x;//Base
-                const c2 = currentPos.y - arc.y;//Height
-                const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
-                let a = Math.asin(c2 / h); 
-                
-                if (c1 < 0 && h >= 0) {
-                    a = Math.PI - a;
-                } else if (c1 < 0 && h < 0) {
-                    a = -1 * a + Math.PI;
-                } else if (c1 >= 0 && h < 0) {
-                    a += 2 * Math.PI;
-                }
-                
-                while (a > 2 * Math.PI) {
-                    a -= 2 * Math.PI;
-                }
-
-                arc.startAngle = a;
-                arc.endAngle = a;
-
-
-                Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
-
-                drawingObj.extraShapes = [];
-                break;
-            case 1:
-                if (arc.desc === CONST.ARC) {
-                    if (arc.r < 0) {
-                        arc.r *= -1;
-                    }
-                }
-
-                this.currentLayer.shapes.push(this.drawingObj.shape);
-                this.drawingObj = undefined;
-                this.layerChange();
-                break;
-        }
-        if (this.drawingObj)
-            this.drawingObj.step++;
-    }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
@@ -419,6 +361,64 @@ class CharacterEditor {
                 
                 break;
         }
+    }
+    semiArcClick(evt) {
+        const currentPos = new ClickXY(evt);
+        let arc;
+        if (!this.drawingObj) {
+            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            this.drawingObj = {
+                tool: this.selectedTool,
+                shape: arc,
+                startPosition: currentPos,
+                step: -1
+            };
+        } else {
+            arc = this.drawingObj.shape;
+        }
+        const drawingObj = this.drawingObj;
+        switch(drawingObj.step) {
+            case 0:
+                arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
+                const c1 = currentPos.x - arc.x;//Base
+                const c2 = currentPos.y - arc.y;//Height
+                const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
+                let a = Math.asin(c2 / h); 
+                
+                if (c1 < 0 && h >= 0) {
+                    a = Math.PI - a;
+                } else if (c1 < 0 && h < 0) {
+                    a = -1 * a + Math.PI;
+                } else if (c1 >= 0 && h < 0) {
+                    a += 2 * Math.PI;
+                }
+                
+                while (a > 2 * Math.PI) {
+                    a -= 2 * Math.PI;
+                }
+
+                arc.startAngle = a;
+                arc.endAngle = a;
+
+
+                Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
+
+                drawingObj.extraShapes = [];
+                break;
+            case 1:
+                if (arc.desc === CONST.ARC) {
+                    if (arc.r < 0) {
+                        arc.r *= -1;
+                    }
+                }
+
+                this.currentLayer.shapes.push(this.drawingObj.shape);
+                this.drawingObj = undefined;
+                this.layerChange();
+                break;
+        }
+        if (this.drawingObj)
+            this.drawingObj.step++;
     }
 }
 
