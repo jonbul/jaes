@@ -17,7 +17,7 @@ import {
 } from '../canvas/canvasClasses.js';
 
 class CharacterEditor {
-    constructor (canvas, nameInput) {
+    constructor(canvas, nameInput) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
@@ -25,7 +25,7 @@ class CharacterEditor {
         this.layers = [];
         this.currentLayer = new Layer('Layer', this.currentLayer);
         this.layers[0] = this.currentLayer;
-        
+
 
         this.menus = {
             toolList: document.getElementById('toolList'),
@@ -35,7 +35,7 @@ class CharacterEditor {
                 background: document.getElementById('background-color'),
                 opacity: document.getElementById('opacity')
             },
-            
+
             layerList: document.getElementById('layerList'),
             layerExampleCanvas: document.getElementById('layerExampleCanvas'),
         }
@@ -77,7 +77,7 @@ class CharacterEditor {
         this.menus.color.bgColor = `rgba(${r},${g},${b},${a})`;
     }
     loadLayerComponentsEvents() {
-        
+
         this.layers.forEach(layer => {
             const option = document.createElement('option');
             option.setAttribute('name', layer.name);
@@ -97,8 +97,9 @@ class CharacterEditor {
     }
     layerPreviewUpdate() {
         const context = this.menus.layerExampleCanvas.getContext('2d');
-        new Rect(0,0,this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
+        new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
         this.currentLayer.draw(context);
+        this.updateShapeList();
     }
     createLayer() {
         const nLayer = new Layer(document.getElementById('newLayerName').value);
@@ -123,20 +124,43 @@ class CharacterEditor {
         if (currentIndex <= 0) return;
         //Array
         const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex-1];
-        this.layers[currentIndex-1] = tempLayer;
+        this.layers[currentIndex] = this.layers[currentIndex - 1];
+        this.layers[currentIndex - 1] = tempLayer;
         //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex], this.menus.layerList[currentIndex-1]);
+        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex], this.menus.layerList[currentIndex - 1]);
     }
     moveDownLayer() {
         const currentIndex = this.menus.layerList.selectedIndex;
-        if (currentIndex >= this.layers.length-1) return;
+        if (currentIndex >= this.layers.length - 1) return;
         //Array
         const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex+1];
-        this.layers[currentIndex+1] = tempLayer;
+        this.layers[currentIndex] = this.layers[currentIndex + 1];
+        this.layers[currentIndex + 1] = tempLayer;
         //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex+1], this.menus.layerList[currentIndex]);
+        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex + 1], this.menus.layerList[currentIndex]);
+    }
+    updateShapeList() {
+        const shapeList = document.getElementById('shapeList');
+        const currentLayer = this.currentLayer;
+        shapeList.innerHTML = '';
+        currentLayer.shapes.forEach(shape => {
+            const block = document.createElement('div');
+            block.className = "list-group-item list-group-item-action";
+            block.setAttribute('data-toggle', 'list');
+            block.setAttribute('name', 'shape');
+            block.innerHTML = `<div class="col-12">
+                <h6>${shape.desc}</h6>
+            </div>
+            <div class="col-6">
+                <canvas width="100" height="100"></canvas>
+            </div>
+            <div class="col-6"></div>`;
+
+            shapeList.appendChild(block);
+            const canvas = block.querySelector('canvas');
+            const context = canvas.getContext('2d');
+            shape.draw100x100(context);
+        });
     }
     toolClickEvent(evt) {
         this.selectedTool = evt.target.value;
@@ -166,6 +190,18 @@ class CharacterEditor {
     }
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
+        if (this.drawingObj.shape.desc === CONST.RECT) {
+            const shape = this.drawingObj.shape;
+            if (shape.width < 0) {
+                shape.x += shape.width;
+                shape.width *= -1;
+            }
+            if (shape.height < 0) {
+                shape.y += shape.height;
+                shape.height *= -1;
+            }
+        }
+
         if (this.drawingObj.shape) this.currentLayer.shapes.push(this.drawingObj.shape);
         this.drawingObj = undefined;
         this.layerChange();
@@ -198,7 +234,10 @@ class CharacterEditor {
             this.drawingObj.initialized = true;
             drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
-        drawingObj.shape.points.push(new ClickXY(evt));
+        const point = new ClickXY(evt);
+        if(!isNaN(point.x) && !isNaN(point.y)) {
+            drawingObj.shape.points.push(point);
+        }
     }
     drawingClosedPencil(evt, drawingObj) {
         if (!this.drawingObj.initialized) {
@@ -212,7 +251,7 @@ class CharacterEditor {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
 
-            drawingObj.shape = new Arc(currentPos.x, currentPos.y,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         const arc = drawingObj.shape;
         arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
@@ -222,7 +261,7 @@ class CharacterEditor {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
 
-            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y,0,0,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         const ellipse = drawingObj.shape;
         ellipse.radiusX = currentPos.x - ellipse.x;
@@ -235,18 +274,18 @@ class CharacterEditor {
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
 
-            drawingObj.shape = new Rect(currentPos.x, currentPos.y,0,0,this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         const rect = drawingObj.shape;
         rect.width = currentPos.x - rect.x;
-        rect.height = currentPos.y - rect.y; 
+        rect.height = currentPos.y - rect.y;
         console.log(rect);
     }
     drawingLine(evt, drawingObj) {
         const currentPos = new ClickXY(evt);
         if (!this.drawingObj.initialized) {
             this.drawingObj.initialized = true;
-            drawingObj.shape = new Line(currentPos.x,currentPos.y,currentPos.x,currentPos.y, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.color.border.value, this.menus.color.borderWidth.value);
         }
         drawingObj.shape.x2 = currentPos.x;
         drawingObj.shape.y2 = currentPos.y;

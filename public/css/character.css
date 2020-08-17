@@ -10,3 +10,9 @@
     width: 200px;
     height: 400px;
 }
+
+#shapeList canvas {
+    height: 30px;
+    width: 30px;
+    height: auto;
+}
