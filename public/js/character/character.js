@@ -150,19 +150,52 @@ class CharacterEditor {
         shapeList.innerHTML = '';
         currentLayer.shapes.forEach(shape => {
             const block = document.createElement('div');
-            block.className = "list-group-item list-group-item-action";
+            block.className = "list-group-item list-group-item-action pl-2 pr-2";
             block.setAttribute('data-toggle', 'list');
             block.setAttribute('name', 'shape');
             block.innerHTML = `<div class="col-12">
             <canvas width="100" height="100"></canvas>
             <label class="shapeDesc">${shape.desc}</label>
+            </div>
+            <div class="col-12">
+            <button title="Remove Shape" class="btn btn-light removeShape"><i class="fas fa-trash"></i></button>
+            <button title="Move Up Shape" class="btn btn-light moveUpShape"><i class="fas fa-chevron-up"></i></button>
+            <button title="Move Down Shape" class="btn btn-light moveDownShape"><i class="fas fa-chevron-down"></i></button>
             </div>`;
 
             shapeList.appendChild(block);
             const canvas = block.querySelector('canvas');
             const context = canvas.getContext('2d');
             shape.draw100x100(context);
+
+            
+            block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
+            block.querySelector('.moveUpShape').addEventListener('click', this.moveUpShape.bind(this, shape));
+            block.querySelector('.moveDownShape').addEventListener('click', this.moveDownShape.bind(this, shape));
         });
+    }
+    removeShape(shape, evt) {
+        const index = this.currentLayer.shapes.indexOf(shape);
+        this.currentLayer.shapes.splice(index, 1);
+        this.layerPreviewUpdate();
+    }
+    moveUpShape(shape, evt) {
+        const shapes = this.currentLayer.shapes;
+        const index = shapes.indexOf(shape);
+        if (index === 0) return;
+        const temp = shapes[index];
+        shapes[index] = shapes[index - 1];
+        shapes[index - 1] = temp;
+        this.layerPreviewUpdate();
+    }
+    moveDownShape(shape, evt) {
+        const shapes = this.currentLayer.shapes;
+        const index = shapes.indexOf(shape);
+        if (index === shapes.length - 1) return;
+        const temp = shapes[index];
+        shapes[index] = shapes[index + 1];
+        shapes[index + 1] = temp;
+        this.layerPreviewUpdate();
     }
     toolClickEvent(evt) {
         this.selectedTool = evt.target.value;
