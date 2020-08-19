@@ -36,19 +36,24 @@ class Rect {
     }
 
     draw(context, plusX = 0, plusY = 0) {
-        if (this.rorationInDegrees)
-            context.rotate(this.grad * Math.PI / 180);
+        let moveX = this.x;
+        let moveY = this.y;
+        context.translate(moveX, moveY);
+        if(this.rorationInDegrees>0) {
+            moveX = this.x + this.width / 2;
+            moveY = this.y + this.height / 2;
+            context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
+        }
 
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.fillRect(this.x + plusX, this.y + plusY, this.width, this.height);
-        if (this.borderWidth) {
-            context.strokeRect(this.x + plusX, this.y + plusY, this.width, this.height);
-            context.strokeStyle = this.borderColor;
-            context.lineWidth = this.borderWidth;
-            context.stroke();
-        }
-        if (this.rorationInDegrees)
-            context.rotate((360 - this.rorationInDegrees) * Math.PI / 180);
+        context.fillRect(plusX, plusY, this.width, this.height);
+
+        context.strokeRect(plusX, plusY, this.width, this.height);
+        context.strokeStyle = this.borderColor;
+        context.lineWidth = this.borderWidth;
+        context.stroke();
+        
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
     draw100x100(context, boardSmallSideSize = 100) {
         const minLength = boardSmallSideSize * 90 / 100;
@@ -62,19 +67,18 @@ class Rect {
             height = minLength;
             width = this.width * minLength / this.height;
         }
-        if (this.rorationInDegrees)
-            context.rotate(this.grad * Math.PI / 180);
+        if(this.rorationInDegrees>0)
+            context.rotate(this.rorationInDegrees*Math.PI/180);
 
-        context.fillStyle = this.backgroundColor;//BACKGROUND
+        context.fillStyle = this.backgroundColor;
         context.fillRect(padding, padding, width, height);
-        if (this.borderWidth) {
-            context.strokeRect(padding, padding, width, height);
-            context.strokeStyle = this.borderColor;
-            context.lineWidth = this.borderWidth;
-            context.stroke();
-        }
-        if (this.rorationInDegrees)
-            context.rotate((360 - this.rorationInDegrees) * Math.PI / 180);
+        
+        context.strokeRect(padding, padding, width, height);
+        context.strokeStyle = this.borderColor;
+        context.lineWidth = this.borderWidth;
+        
+        context.stroke();
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Arc {

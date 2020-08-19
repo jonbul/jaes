@@ -18,6 +18,7 @@ import {
 
 class CharacterEditor {
     constructor(canvas, nameInput) {
+        window._this = this;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
@@ -30,12 +31,12 @@ class CharacterEditor {
         this.menus = {
             toolList: document.getElementById('toolList'),
             color: {
-                border: document.getElementById('border-color'),
+                borderColor: document.getElementById('border-color'),
                 borderWidth: document.getElementById('border-width'),
                 background: document.getElementById('background-color'),
                 opacity: document.getElementById('opacity')
             },
-
+            rotation: document.getElementById('rotation'),
             layerList: document.getElementById('layerList'),
             layerExampleCanvas: document.getElementById('layerExampleCanvas'),
         }
@@ -101,6 +102,8 @@ class CharacterEditor {
         this.layerPreviewUpdate();
     }
     layerPreviewUpdate() {
+        this.menus.layerExampleCanvas.width = this.canvas.width;
+        this.menus.layerExampleCanvas.height = this.canvas.height;
         const context = this.menus.layerExampleCanvas.getContext('2d');
         new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
         this.currentLayer.draw(context);
@@ -198,7 +201,14 @@ class CharacterEditor {
         this.layerPreviewUpdate();
     }
     toolClickEvent(evt) {
-        this.selectedTool = evt.target.value;
+        let btn = evt.target;
+        while (btn.tagName !== 'BUTTON' && btn.tagName !== 'BODY') {
+            btn = btn.parentElement;
+        }
+        if(btn.tagName === 'BODY') {
+            btn = document.querySelector('#toolListCollapse .active');
+        }
+        this.selectedTool = btn.value;
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
@@ -228,7 +238,7 @@ class CharacterEditor {
                 if (!this.drawingObj) {
                     this.drawingObj = {
                         tool: this.selectedTool,
-                        shape: new Polygon([currentPos], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value),
+                        shape: new Polygon([currentPos], this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value),
                         startPosition: currentPos,
                     };
                 }
@@ -245,8 +255,13 @@ class CharacterEditor {
     canvasMouseUp(evt) {
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
-        if (this.drawingObj.shape.desc === CONST.RECT) {
-            const shape = this.drawingObj.shape;
+        const shape = this.drawingObj.shape;
+        if (shape.desc === CONST.RECT) {
+            if(isNaN(shape.x + shape.y + shape.width + shape.height)) {
+                this.drawingObj = undefined;
+                return;
+            }
+
             if (shape.width < 0) {
                 shape.x += shape.width;
                 shape.width *= -1;
@@ -304,7 +319,7 @@ class CharacterEditor {
     drawingPencil(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
         }
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
@@ -314,7 +329,7 @@ class CharacterEditor {
     drawingAbstract(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
         }
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
@@ -326,7 +341,7 @@ class CharacterEditor {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
         }
         const arc = drawingObj.shape;
         arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
@@ -336,7 +351,7 @@ class CharacterEditor {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
         }
         const ellipse = drawingObj.shape;
         ellipse.radiusX = currentPos.x - ellipse.x;
@@ -349,7 +364,7 @@ class CharacterEditor {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value, this.menus.rotation.value);
         }
         const rect = drawingObj.shape;
         rect.width = currentPos.x - rect.x;
@@ -360,7 +375,7 @@ class CharacterEditor {
         const currentPos = new ClickXY(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
         }
         drawingObj.shape.x2 = currentPos.x;
         drawingObj.shape.y2 = currentPos.y;
@@ -405,7 +420,7 @@ class CharacterEditor {
         const currentPos = new ClickXY(evt);
         let arc;
         if (!this.drawingObj) {
-            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.border.value, this.menus.color.borderWidth.value);
+            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
             this.drawingObj = {
                 tool: this.selectedTool,
                 shape: arc,
