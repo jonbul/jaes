@@ -21,13 +21,13 @@
         </div>
     </div>
 
-<link rel="stylesheet" href="/css/character.css" type="text/css">
+<link rel="stylesheet" href="/css/paintingBoard.css" type="text/css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
     integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
     crossorigin="anonymous"></script>
 <script type="module">
-    import CharacterEditor from '/js/character/character.js';
-    window.CharacterEditor = CharacterEditor;
+    import PaintingBoard from '/js/paintingBoard/paintingBoard.js';
+    window.PaintingBoard = PaintingBoard;
     window.socket = io();
-    new CharacterEditor(document.getElementById('canvas'), document.getElementById('characterName'));
+    new PaintingBoard(document.getElementById('canvas'), document.getElementById('characterName'));
 </script>

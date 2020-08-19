@@ -16,7 +16,7 @@ import {
     Text
 } from '../canvas/canvasClasses.js';
 
-class CharacterEditor {
+class PaintingBoard {
     constructor(canvas, nameInput) {
         window._this = this;
         this.canvas = canvas;
@@ -485,4 +485,4 @@ class CharacterEditor {
     }
 }
 
-export default CharacterEditor;
+export default PaintingBoard;

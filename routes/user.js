@@ -69,4 +69,17 @@ module.exports = (app) => {
             res.redirect('/');
         });
     });
+
+    app.get('/profile', (req, res) => {
+        let user;
+        if (req.session.passport && req.session.passport.user) {
+            user = req.session.passport.user;
+        }
+        console.log(!!req.user);
+        res.render('user/profile', {
+            title: 'Profile',
+            username: user.username,
+            user: user
+        });
+    });
 }
