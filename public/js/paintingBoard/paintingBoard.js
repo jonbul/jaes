@@ -29,17 +29,22 @@ class PaintingBoard {
 
 
         this.menus = {
+            background: document.getElementById('background-color'),
+            borderColor: document.getElementById('border-color'),
+            borderWidth: document.getElementById('border-width'),
             toolList: document.getElementById('toolList'),
-            color: {
-                borderColor: document.getElementById('border-color'),
-                borderWidth: document.getElementById('border-width'),
-                background: document.getElementById('background-color'),
-                opacity: document.getElementById('opacity')
-            },
-            rotation: document.getElementById('rotation'),
+            gridSize: document.getElementById('gridSize'),
             layerList: document.getElementById('layerList'),
             layerExampleCanvas: document.getElementById('layerExampleCanvas'),
+            opacity: document.getElementById('opacity'),
+            resolution: {
+                height: document.getElementById('canvasHeight'),
+                width: document.getElementById('canvasWidth')
+            },
+            rotation: document.getElementById('rotation'),
         }
+        this.menus.resolution.width.value = canvas.width;
+        this.menus.resolution.height.value = canvas.height;
 
         this.selectedTool = this.menus.toolList.querySelector('.active').value;
 
@@ -47,10 +52,21 @@ class PaintingBoard {
         this.interval = setInterval(this.canvasInterval.bind(this));
     }
     clear() {
-        this.cleanBoard.draw(this.context);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     canvasInterval() {
         this.clear();
+        const gridSize = this.menus.gridSize.value;
+        if (gridSize) {
+            for(let i = 1; gridSize * i < this.canvas.width; i++) {
+                const pos = gridSize * i;
+                new Line(pos ,0 ,pos , this.canvas.height, '#000000', 1 ).draw(this.context);
+            }
+            for(let i = 1; gridSize * i < this.canvas.height; i++) {
+                const pos = gridSize * i;
+                new Line(0, pos, this.canvas.width, pos, '#000000', 1).draw(this.context);
+            }
+        }
         this.layers.forEach(layer => {
             layer.draw(this.context)
         });
@@ -64,23 +80,32 @@ class PaintingBoard {
         }
     }
     loadEvents() {
+        this.resolutionChangeEvent();
+        this.menus.resolution.height.addEventListener('change', this.resolutionChangeEvent.bind(this));
+        this.menus.resolution.width.addEventListener('change', this.resolutionChangeEvent.bind(this));
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
         this.loadCanvasEvents();
     }
+    resolutionChangeEvent() {
+        this.canvas.height = this.menus.resolution.height.value;
+        this.canvas.width = this.menus.resolution.width.value;
+        this.canvas.style.height = this.canvas.height * 100 / this.canvas.width + '%';
+        console.log('YEEEE');
+    }
     loadColorEvents() {
-        this.menus.color.background.addEventListener('change', this.updateBgColor.bind(this));
-        this.menus.color.opacity.addEventListener('change', this.updateBgColor.bind(this));
+        this.menus.background.addEventListener('change', this.updateBgColor.bind(this));
+        this.menus.opacity.addEventListener('change', this.updateBgColor.bind(this));
         this.updateBgColor();
     }
     updateBgColor() {
-        const coloSplitted = this.menus.color.background.value.match(/\w{2}/g);
+        const coloSplitted = this.menus.background.value.match(/\w{2}/g);
         const r = parseInt(coloSplitted[0], 16);
         const g = parseInt(coloSplitted[1], 16);
         const b = parseInt(coloSplitted[2], 16);
-        const a = this.menus.color.opacity.value;
-        this.menus.color.bgColor = `rgba(${r},${g},${b},${a})`;
+        const a = this.menus.opacity.value;
+        this.menus.bgColor = `rgba(${r},${g},${b},${a})`;
     }
     loadLayerComponentsEvents() {
 
@@ -238,7 +263,7 @@ class PaintingBoard {
                 if (!this.drawingObj) {
                     this.drawingObj = {
                         tool: this.selectedTool,
-                        shape: new Polygon([currentPos], this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value),
+                        shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
                         startPosition: currentPos,
                     };
                 }
@@ -319,7 +344,7 @@ class PaintingBoard {
     drawingPencil(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
@@ -329,7 +354,7 @@ class PaintingBoard {
     drawingAbstract(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
@@ -341,7 +366,7 @@ class PaintingBoard {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Arc(currentPos.x, currentPos.y, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const arc = drawingObj.shape;
         arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
@@ -351,7 +376,7 @@ class PaintingBoard {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Ellipse(currentPos.x, currentPos.y, 0, 0, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const ellipse = drawingObj.shape;
         ellipse.radiusX = currentPos.x - ellipse.x;
@@ -364,7 +389,7 @@ class PaintingBoard {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value, this.menus.rotation.value);
+            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value, this.menus.rotation.value);
         }
         const rect = drawingObj.shape;
         rect.width = currentPos.x - rect.x;
@@ -374,7 +399,7 @@ class PaintingBoard {
         const currentPos = new ClickXY(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         drawingObj.shape.x2 = currentPos.x;
         drawingObj.shape.y2 = currentPos.y;
@@ -419,7 +444,7 @@ class PaintingBoard {
         const currentPos = new ClickXY(evt);
         let arc;
         if (!this.drawingObj) {
-            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.color.bgColor, this.menus.color.borderColor.value, this.menus.color.borderWidth.value);
+            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
             this.drawingObj = {
                 tool: this.selectedTool,
                 shape: arc,
@@ -476,7 +501,7 @@ class PaintingBoard {
     drawingRubber(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Rubber([drawingObj.startPosition], this.menus.color.borderWidth.value);
+            drawingObj.shape = new Rubber([drawingObj.startPosition], this.menus.borderWidth.value);
         }
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {

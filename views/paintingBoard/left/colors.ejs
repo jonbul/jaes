@@ -1,4 +1,8 @@
 <div class="mt-2">
+    <label for="background-color" class="">Resolution</label><br>
+    <label for="">Width</label> <input type="number" class="w-50 float-right" id="canvasWidth">
+    
+    <label>Height</label> <input type="number" class="w-50 float-right" id="canvasHeight">
     <label for="background-color" class="">Background</label>
 
     <input class="form-control" type="color" value="#563d7c" id="background-color">
@@ -6,7 +10,9 @@
     <label>Border Color</label>
     <input class="form-control" type="color" value="#000000" id="border-color">
     <label>Border Width</label>
-    <input type="number" id="border-width" value="1" min="0">
+    <input type="number" id="border-width" value="1" min="0" class="w-100">
     <label for="opacity" class="">Opacity</label>
     <input class="form-control-range" type="range" min="0" max="1" value="#000000" id="opacity" value="1" step="0.01">
+    <label for="opacity" class="">Grid</label>
+    <input class="form-control-range" type="number" min="0" value="#000000" id="gridSize" value="0">
 </div>

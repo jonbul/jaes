@@ -173,7 +173,7 @@ class Ellipse {
     }
 }
 class Line {
-    constructor(x1, y1, x2, y2, borderColor, borderWidth) {
+    constructor(x1, y1, x2, y2, borderColor='#ffffff', borderWidth=1) {
         this.desc = CONST.LINE;
         this.pos = 0;
         this.x1 = x1;
