@@ -93,7 +93,8 @@ class PaintingBoard {
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
-        this.canvas.style.height = this.canvas.height * 100 / this.canvas.width + '%';
+        const style = getComputedStyle(this.canvas);
+        this.canvas.style.height = (this.canvas.height * parseFloat(style.width) / this.canvas.width) + 'px';
         console.log('YEEEE');
     }
     loadColorEvents() {
