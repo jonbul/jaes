@@ -32,7 +32,8 @@ class PaintingBoard {
             background: document.getElementById('background-color'),
             borderColor: document.getElementById('border-color'),
             borderWidth: document.getElementById('border-width'),
-            toolList: document.getElementById('toolList'),
+            currentPosition: document.getElementById('currentPosition'),
+            followGrid: document.getElementById('followGrid'),
             gridSize: document.getElementById('gridSize'),
             layerList: document.getElementById('layerList'),
             layerExampleCanvas: document.getElementById('layerExampleCanvas'),
@@ -42,6 +43,7 @@ class PaintingBoard {
                 width: document.getElementById('canvasWidth')
             },
             rotation: document.getElementById('rotation'),
+            toolList: document.getElementById('toolList'),
         }
         this.menus.resolution.width.value = canvas.width;
         this.menus.resolution.height.value = canvas.height;
@@ -238,11 +240,19 @@ class PaintingBoard {
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
-        document.body.addEventListener('mousemove', this.canvasMouseMove.bind(this));
+        this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
     }
+    getCurrentPos(evt) {let currentPos;
+        if(this.menus.followGrid.checked) {
+            currentPos = new ClickXY(evt, this.menus.gridSize.value);
+        } else {
+            currentPos = new ClickXY(evt);
+        }
+        return currentPos;
+    }
     canvasMouseDown(evt) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         switch (this.selectedTool) {
             case CONST.PENCIL:
             case CONST.ABSTRACT:
@@ -302,6 +312,8 @@ class PaintingBoard {
         this.layerChange();
     }
     canvasMouseMove(evt) {
+        const currentPos = this.getCurrentPos(evt);
+        this.menus.currentPosition.innerHTML = `${currentPos.x} x ${currentPos.y}`;
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
             case CONST.PENCIL:
@@ -346,7 +358,7 @@ class PaintingBoard {
             drawingObj.initialized = true;
             drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.borderColor.value, this.menus.borderWidth.value);
         }
-        const point = new ClickXY(evt);
+        const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
         }
@@ -356,13 +368,13 @@ class PaintingBoard {
             drawingObj.initialized = true;
             drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
-        const point = new ClickXY(evt);
+        const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
         }
     }
     drawingArc(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
@@ -372,7 +384,7 @@ class PaintingBoard {
         arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
     }
     drawingEllipse(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
@@ -385,7 +397,7 @@ class PaintingBoard {
         if (ellipse.radiusY < 0) ellipse.radiusY *= -1;
     }
     drawingRect(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
@@ -396,7 +408,7 @@ class PaintingBoard {
         rect.height = currentPos.y - rect.y;
     }
     drawingLine(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
             drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.borderColor.value, this.menus.borderWidth.value);
@@ -405,7 +417,7 @@ class PaintingBoard {
         drawingObj.shape.y2 = currentPos.y;
     }
     drawingPolygon(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         const shapePoints = drawingObj.shape.points;
         drawingObj.extraShapes = [
             new Line(currentPos.x, currentPos.y, shapePoints[0].x, shapePoints[0].y, '#000000', 1),
@@ -413,7 +425,7 @@ class PaintingBoard {
         ]
     }
     drawingSemiArc(evt, drawingObj) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         const arc = drawingObj.shape;
         switch(this.drawingObj.step) {
             case 0:
@@ -441,7 +453,7 @@ class PaintingBoard {
         }
     }
     semiArcClick(evt) {
-        const currentPos = new ClickXY(evt);
+        const currentPos = this.getCurrentPos(evt);
         let arc;
         if (!this.drawingObj) {
             arc = new Arc(currentPos.x, currentPos.y,0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);

@@ -463,10 +463,12 @@ class Text {
 }
 
 class ClickXY {
-    constructor(evt) {
+    constructor(evt, round = 1) {
         this.canvas = evt.target;
         this.x = evt.layerX / (parseFloat(getComputedStyle(this.canvas).width) / this.canvas.width);
         this.y = evt.layerY / (parseFloat(getComputedStyle(this.canvas).height) / this.canvas.height);
+        this.x = Math.round(this.x / round) * round;
+        this.y = Math.round(this.y / round) * round;
     }
 }
 class Layer {
