@@ -26,7 +26,6 @@ module.exports = (app) => {
     });
     
     app.post('/register', passport.authenticate('local.signup'), (req, res) => {
-        console.log('registering');
         const errors = req.flash('error');
         if (errors && errors.length) {
             res.status(500).json({errors});

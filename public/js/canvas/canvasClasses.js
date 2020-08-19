@@ -199,7 +199,6 @@ class Line {
         x2 = this.x2 * boardSmallSideSize / maxValue;
         y1 = this.y1 * boardSmallSideSize / maxValue;
         y2 = this.y2 * boardSmallSideSize / maxValue;
-        console.log(x1, x2, y1, y2, maxValue);
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
         context.moveTo(x1, y1);

@@ -369,7 +369,6 @@ class CharacterEditor {
         const rect = drawingObj.shape;
         rect.width = currentPos.x - rect.x;
         rect.height = currentPos.y - rect.y;
-        console.log(rect);
     }
     drawingLine(evt, drawingObj) {
         const currentPos = new ClickXY(evt);

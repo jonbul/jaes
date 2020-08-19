@@ -7,7 +7,6 @@ module.exports = io => {
             io.emit('players updated', players);
         });
         socket.on('disconnect', () => {
-            console.log(socket.id);
             delete players[socket.id];
             io.emit('player leave', socket.id);
         })
