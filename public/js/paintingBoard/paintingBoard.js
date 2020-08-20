@@ -58,17 +58,6 @@ class PaintingBoard {
     }
     canvasInterval() {
         this.clear();
-        const gridSize = this.menus.gridSize.value;
-        if (gridSize) {
-            for(let i = 1; gridSize * i < this.canvas.width; i++) {
-                const pos = gridSize * i;
-                new Line(pos ,0 ,pos , this.canvas.height, '#000000', 1 ).draw(this.context);
-            }
-            for(let i = 1; gridSize * i < this.canvas.height; i++) {
-                const pos = gridSize * i;
-                new Line(0, pos, this.canvas.width, pos, '#000000', 1).draw(this.context);
-            }
-        }
         this.layers.forEach(layer => {
             layer.draw(this.context)
         });
@@ -78,6 +67,17 @@ class PaintingBoard {
                 this.drawingObj.extraShapes.forEach(shape => {
                     shape.draw(this.context);
                 });
+            }
+        }
+        const gridSize = this.menus.gridSize.value;
+        if (gridSize) {
+            for(let i = 1; gridSize * i < this.canvas.width; i++) {
+                const pos = gridSize * i;
+                new Line(pos ,0 ,pos , this.canvas.height, 'rgba(0,0,0,0.5)', 1 ).draw(this.context);
+            }
+            for(let i = 1; gridSize * i < this.canvas.height; i++) {
+                const pos = gridSize * i;
+                new Line(0, pos, this.canvas.width, pos, 'rgba(0,0,0,0.5)', 1).draw(this.context);
             }
         }
     }
@@ -292,6 +292,7 @@ class PaintingBoard {
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         const shape = this.drawingObj.shape;
+        console.log(shape);
         if (shape.desc === CONST.RECT) {
             if(isNaN(shape.x + shape.y + shape.width + shape.height)) {
                 this.drawingObj = undefined;
@@ -305,6 +306,26 @@ class PaintingBoard {
             if (shape.height < 0) {
                 shape.y += shape.height;
                 shape.height *= -1;
+            }
+        } else if(shape.desc === CONST.ARC) {
+            if(!shape.radius) {
+                this.drawingObj = undefined;
+                return;
+            }
+        } else if(shape.desc === CONST.ELLIPSE) {
+            if(!shape.radiusX && ! radiusY) {
+                this.drawingObj = undefined;
+                return;
+            }
+        } else if(shape.desc === CONST.LINE) {
+            if(shape.x1 === shape.x2 && shape.y1 === shape.y2) {
+                this.drawingObj = undefined;
+                return;
+            }
+        } else if(shape.desc === CONST.ABSTRACT) {
+            if(shape.points.length <= 1) {
+                this.drawingObj = undefined;
+                return;
             }
         }
 
@@ -370,9 +391,10 @@ class PaintingBoard {
             drawingObj.shape = new Abstract([drawingObj.startPosition], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const point = this.getCurrentPos(evt);
-        if (!isNaN(point.x) && !isNaN(point.y)) {
-            drawingObj.shape.points.push(point);
-        }
+        if (isNaN(point.x) || isNaN(point.y)) return;
+        const lastPoint = drawingObj.shape.points[drawingObj.shape.points.length-1];
+        if(lastPoint && lastPoint.x === point.x && lastPoint.y === point.y) return;
+        drawingObj.shape.points.push(point);
     }
     drawingArc(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
