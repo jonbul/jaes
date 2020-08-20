@@ -244,6 +244,7 @@ class PaintingBoard {
             btn = document.querySelector('#toolListCollapse .active');
         }
         this.selectedTool = btn.value;
+        this.canvas.setAttribute('tool', btn.value);
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
@@ -296,6 +297,15 @@ class PaintingBoard {
         }
     }
     canvasMouseUp(evt) {
+        if (evt.target === this.canvas && this.selectedTool === CONST.COLORPICKER) {
+            const colorData = this.getCurrentPositionColor(evt);
+
+            this.menus.background.value = colorData.hex;
+            this.menus.opacity.value = colorData.alpha;
+
+
+            
+        }
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         const shape = this.drawingObj.shape;
@@ -548,6 +558,28 @@ class PaintingBoard {
         const point = new ClickXY(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
+        }
+    }
+    getCurrentPositionColor(evt) {
+        const currentPos = this.getCurrentPos(evt);
+        const imgData = this.context.getImageData(currentPos.x, currentPos.y, 1, 1);
+        let red = imgData.data[0].toString(16);
+        if(red.length<2) red = '0' + red;
+        let green = imgData.data[1].toString(16);
+        if(green.length<2) green = '0' + green;
+        let blue = imgData.data[2].toString(16);
+        if(blue.length<2) blue = '0' + blue;
+        const alpha = imgData.data[3] / 255;
+        
+        return {
+            red: imgData.data[0],
+            green: imgData.data[1],
+            blue: imgData.data[2],
+            hex: `#${red}${green}${blue}`,
+            alpha255: imgData.data[3],
+            alpha,
+            rgb: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]})`,
+            rgba: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]},${alpha})`
         }
     }
 }
