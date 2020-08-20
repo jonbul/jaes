@@ -44,6 +44,7 @@ class PaintingBoard {
             },
             rotation: document.getElementById('rotation'),
             toolList: document.getElementById('toolList'),
+            visibleLayer: document.getElementById('visibleLayer'),
         }
         this.menus.resolution.width.value = canvas.width;
         this.menus.resolution.height.value = canvas.height;
@@ -123,10 +124,16 @@ class PaintingBoard {
         document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this));
         document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
         document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
+        this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
         this.layerChange();
+    }
+    visibleLayerChange() {
+        this.currentLayer.visible = this.menus.visibleLayer.checked;
     }
     layerChange() {
         this.currentLayer = this.layers[this.menus.layerList.selectedIndex];
+        
+        this.menus.visibleLayer.checked = this.currentLayer.visible;
         this.layerPreviewUpdate();
     }
     layerPreviewUpdate() {
