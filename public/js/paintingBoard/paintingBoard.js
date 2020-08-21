@@ -311,7 +311,7 @@ class PaintingBoard {
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         const shape = this.drawingObj.shape;
-        console.log(shape);
+        if (!shape) return;
         if (shape.desc === CONST.RECT) {
             if(isNaN(shape.x + shape.y + shape.width + shape.height)) {
                 this.drawingObj = undefined;
@@ -348,7 +348,7 @@ class PaintingBoard {
             }
         }
 
-        if (this.drawingObj.shape) this.currentLayer.shapes.push(this.drawingObj.shape);
+        this.currentLayer.shapes.push(this.drawingObj.shape);
         this.drawingObj = undefined;
         this.layerChange();
     }
@@ -389,7 +389,11 @@ class PaintingBoard {
     }
     canvasDblClick(evt) {
         if (this.drawingObj.tool === CONST.POLYGON) {
-            if (this.drawingObj.shape) this.currentLayer.shapes.push(this.drawingObj.shape);
+            const shape = this.drawingObj.shape;
+            if (shape) {
+                shape.
+                this.currentLayer.shapes.push(shape);
+            }
             this.drawingObj = undefined;
             this.layerChange();
         }
