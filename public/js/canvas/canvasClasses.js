@@ -24,7 +24,6 @@ class MasterJasonFile {
 class Rect {
     constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rorationInDegrees = 0) {
         this.desc = CONST.RECT;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -84,7 +83,6 @@ class Rect {
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
         this.desc = CONST.ARC;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -125,7 +123,6 @@ class Arc {
 class Ellipse {
     constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
         this.desc = CONST.ELLIPSE;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.radiusX = radiusX;
@@ -175,7 +172,6 @@ class Ellipse {
 class Line {
     constructor(x1, y1, x2, y2, borderColor='#ffffff', borderWidth=1) {
         this.desc = CONST.LINE;
-        this.pos = 0;
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
@@ -211,7 +207,6 @@ class Line {
 class Polygon {
     constructor(points = [], backgroundColor, borderColor, borderWidth) {
         this.desc = CONST.POLYGON;
-        this.pos = 0;
         this.points = points;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
@@ -267,7 +262,6 @@ class Polygon {
 class Pencil {
     constructor(points = [], color, borderWidth = 1) {
         this.desc = CONST.PENCIL;
-        this.pos = 0;
         this.points = points;
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
@@ -308,7 +302,6 @@ class Pencil {
 class Abstract {
     constructor(points, backgroundColor, borderColor, borderWidth) {
         this.desc = CONST.ABSTRACT;
-        this.pos = 0;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -369,7 +362,6 @@ class Abstract {
 class Rubber {
     constructor(points, borderWidth) {
         this.desc = CONST.RUBBER;
-        this.pos = 0;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -409,7 +401,6 @@ class Rubber {
 class Picture {
     constructor(img, src, sx, sy, sw, sh, x, y, width, height, grad) {
         this.desc = CONST.PICTURE;
-        this.pos = 0;
         this.img = img;
         this.src = src;
         this.x = x;
@@ -470,14 +461,17 @@ class ClickXY {
         this.x = Math.round(this.x / round) * round;
         this.y = Math.round(this.y / round) * round;
     }
+    getSimple() {
+        return {
+            x: this.x,
+            y: this.y,
+        }
+    }
 }
 class Layer {
     constructor(name, shapes = []) {
-        this.pos = 0;
-
         this.shapes = shapes;
         this.name = name;
-        this.desc = "desc";
         this.visible = true;
     }
     draw(context) {

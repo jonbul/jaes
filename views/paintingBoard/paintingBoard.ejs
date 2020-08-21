@@ -2,10 +2,10 @@
 
     <div class="row mt-2">
         <div class="col-11">
-            <input id="characterName" class="form-control" placeholder="Name">
+            <input id="projectName" class="form-control" placeholder="Name">
         </div>
         <div class="col-1">
-            <button class="btn btn-primary" value="save">Save</button>
+            <button class="btn btn-primary" value="save" id="save">Save</button>
         </div>
     </div>
     <div class="row mt-2">
@@ -30,5 +30,5 @@
     import PaintingBoard from '/js/paintingBoard/paintingBoard.js';
     window.PaintingBoard = PaintingBoard;
     window.socket = io();
-    new PaintingBoard(document.getElementById('canvas'), document.getElementById('characterName'));
+    new PaintingBoard(document.getElementById('canvas'), document.getElementById('projectName'));
 </script>

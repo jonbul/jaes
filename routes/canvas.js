@@ -1,3 +1,5 @@
+const PaintingProject = require('../model/paintingProject');
+
 module.exports = (app) => {
     app.get('/game', (req, res) => {
         let user;
@@ -22,5 +24,10 @@ module.exports = (app) => {
         } else {
             res.redirect('/');
         }
+    });
+    app.post('/paintingBoard/save', (req, res) => {
+        console.log(req);
+        res.send(req.body);
+        //PaintingProject.save()
     });
 }

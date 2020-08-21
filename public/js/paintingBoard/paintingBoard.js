@@ -1,3 +1,4 @@
+import {asyncRequest} from '../functions.js';
 import CONST from '../canvas/constants.js';
 import {
     Abstract,
@@ -90,6 +91,7 @@ class PaintingBoard {
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
         this.loadCanvasEvents();
+        document.getElementById('save').addEventListener('click', this.save.bind(this));
     }
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
@@ -258,7 +260,7 @@ class PaintingBoard {
         } else {
             currentPos = new ClickXY(evt);
         }
-        return currentPos;
+        return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
         const currentPos = this.getCurrentPos(evt);
@@ -330,7 +332,7 @@ class PaintingBoard {
                 return;
             }
         } else if(shape.desc === CONST.ELLIPSE) {
-            if(!shape.radiusX && ! radiusY) {
+            if(!shape.radiusX && !shape.radiusY) {
                 this.drawingObj = undefined;
                 return;
             }
@@ -581,6 +583,22 @@ class PaintingBoard {
             rgb: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]})`,
             rgba: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]},${alpha})`
         }
+    }
+    save() {
+        const name = document.getElementById('projectName').value;
+        if(!name) {
+            //error msg
+            return;
+        }
+        const data = {
+            name,
+            layers: this.layers
+        };
+        asyncRequest({
+            url: '/paintingBoard/save',
+            method: 'POST',
+            data
+        })
     }
 }
 
