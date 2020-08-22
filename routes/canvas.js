@@ -24,28 +24,28 @@ module.exports = (app) => {
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;
             res.render('paintingBoard/paintingBoard', {
-                title: 'Game',
-                username: user.username
-            });
-        } else {
-            res.redirect('/');
-        }
-    });
-    /*app.get('/paintingBoard', async (req, res) => {
-        let user;
-        if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
-            let project;
-            project = await PaintingProject.findById(id).exec();
-            res.render('paintingBoard/paintingBoard', {
-                title: 'Game',
+                title: 'PaintingBoard',
                 username: user.username,
                 project
             });
         } else {
             res.redirect('/');
         }
-    });*/
+    });
+    app.get('/paintingBoard/projects', async (req, res) => {
+        let user;
+        if (req.session.passport && req.session.passport.user) {
+            user = req.session.passport.user;
+            const projects = await PaintingProject.find({userId: req.session.passport.user._id}) || [];
+            res.render('paintingBoard/projects', {
+                title: 'Projects',
+                username: user.username,
+                projects
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
     app.post('/paintingBoard/save', async (req, res) => {
         const projectData = req.body.project;
         const id = projectData._id;

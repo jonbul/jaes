@@ -1,5 +1,6 @@
 import {asyncRequest, showAlert} from '../functions.js';
 import CONST from '../canvas/constants.js';
+import CanvasClasses from '../canvas/canvasClasses.js';
 import {
     Abstract,
     Arc,
@@ -18,16 +19,24 @@ import {
 } from '../canvas/canvasClasses.js';
 
 class PaintingBoard {
-    constructor(canvas, nameInput) {
+    constructor(canvas, project) {
         window._this = this;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
-        this.layers = [];
-        this.currentLayer = new Layer('Layer', this.currentLayer);
-        this.layers.push(this.currentLayer);
-        this.project = { layers: this.layers};
+        
+        if (!project) {
+            this.layers = [];
+            this.currentLayer = new Layer('Layer', this.currentLayer);
+            this.layers.push(this.currentLayer);
+            this.project = { layers: this.layers};
+        } else {
+            this.project = this.parseProject(project);
+            this.layers = project.layers;
+            this.currentLayer = project.layers[0];
+            document.getElementById('projectName').value = project.name;
+        }
 
         this.menus = {
             background: document.getElementById('background-color'),
@@ -54,6 +63,20 @@ class PaintingBoard {
 
         this.loadEvents();
         this.interval = setInterval(this.canvasInterval.bind(this));
+    }
+    parseProject(project) {
+        const parsedLayers = [];
+        project.layers.forEach(layer => {
+            const newLayer = new Layer(layer.name);
+            layer.shapes.forEach(shape => {
+                const newShape = new CanvasClasses[shape.desc]();
+                for (const prop in shape) newShape[prop] = shape[prop]
+                newLayer.shapes.push(newShape);
+            });
+            parsedLayers.push(newLayer);
+        });
+        project.layers = parsedLayers;
+        return project.layers = parsedLayers;
     }
     clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);

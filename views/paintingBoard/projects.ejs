@@ -1,0 +1,9 @@
+<% layout('layout') %>
+<span id="alerts"></span>
+<ul></ul>
+<% projects.forEach(project => { %>
+    <li>
+    <a href="/paintingBoard?id=<%= project._id %>"><%= project.name %></a>
+    </li>
+<% }) %>
+</ul>
