@@ -1,4 +1,4 @@
-import {asyncRequest} from '../functions.js';
+import {asyncRequest, showAlert} from '../functions.js';
 import CONST from '../canvas/constants.js';
 import {
     Abstract,
@@ -26,8 +26,8 @@ class PaintingBoard {
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
         this.layers = [];
         this.currentLayer = new Layer('Layer', this.currentLayer);
-        this.layers[0] = this.currentLayer;
-
+        this.layers.push(this.currentLayer);
+        this.project = { layers: this.layers};
 
         this.menus = {
             background: document.getElementById('background-color'),
@@ -337,7 +337,8 @@ class PaintingBoard {
                 return;
             }
         } else if(shape.desc === CONST.LINE) {
-            if(shape.x1 === shape.x2 && shape.y1 === shape.y2) {
+            const points = shape.points;
+            if(points[0].x === points[1].x && points[0].y === points[1].y) {
                 this.drawingObj = undefined;
                 return;
             }
@@ -391,7 +392,6 @@ class PaintingBoard {
         if (this.drawingObj.tool === CONST.POLYGON) {
             const shape = this.drawingObj.shape;
             if (shape) {
-                shape.
                 this.currentLayer.shapes.push(shape);
             }
             this.drawingObj = undefined;
@@ -457,17 +457,16 @@ class PaintingBoard {
         const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
-            drawingObj.shape = new Line(currentPos.x, currentPos.y, currentPos.x, currentPos.y, this.menus.borderColor.value, this.menus.borderWidth.value);
+            drawingObj.shape = new Line([currentPos], this.menus.borderColor.value, this.menus.borderWidth.value);
         }
-        drawingObj.shape.x2 = currentPos.x;
-        drawingObj.shape.y2 = currentPos.y;
+        drawingObj.shape.points[1] = currentPos;
     }
     drawingPolygon(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         const shapePoints = drawingObj.shape.points;
         drawingObj.extraShapes = [
-            new Line(currentPos.x, currentPos.y, shapePoints[0].x, shapePoints[0].y, '#000000', 1),
-            new Line(currentPos.x, currentPos.y, shapePoints[shapePoints.length - 1].x, shapePoints[shapePoints.length - 1].y, '#000000', 1)
+            new Line([currentPos, shapePoints[0]], '#000000', 1),
+            new Line([currentPos, shapePoints[shapePoints.length - 1]], '#000000', 1)
         ]
     }
     drawingSemiArc(evt, drawingObj) {
@@ -588,21 +587,28 @@ class PaintingBoard {
             rgba: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]},${alpha})`
         }
     }
-    save() {
+    async save() {
         const name = document.getElementById('projectName').value;
         if(!name) {
-            //error msg
+            showAlert({
+                msg: 'Name field empty'
+            })
             return;
         }
-        const data = {
-            name,
-            layers: this.layers
-        };
-        asyncRequest({
+        this.project.name = name;
+        const response = await asyncRequest({
             url: '/paintingBoard/save',
             method: 'POST',
-            data
-        })
+            data: {
+                id: this.projectId,
+                project: this.project
+            }
+        });
+        if (response.success) {
+            console.log(response.response);
+            this.project._id = response.response.id;
+            console.log(this.project._id);
+        }
     }
 }
 

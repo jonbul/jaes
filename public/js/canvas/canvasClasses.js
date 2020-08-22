@@ -24,7 +24,6 @@ class MasterJasonFile {
 class Rect {
     constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rorationInDegrees = 0) {
         this.desc = CONST.RECT;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -86,7 +85,6 @@ class Rect {
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
         this.desc = CONST.ARC;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -127,7 +125,6 @@ class Arc {
 class Ellipse {
     constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
         this.desc = CONST.ELLIPSE;
-        this.pos = 0;
         this.x = x;
         this.y = y;
         this.radiusX = radiusX;
@@ -175,21 +172,17 @@ class Ellipse {
     }
 }
 class Line {
-    constructor(x1, y1, x2, y2, borderColor='#ffffff', borderWidth=1) {
+    constructor(points = [], borderColor='#ffffff', borderWidth=1) {
         this.desc = CONST.LINE;
-        this.pos = 0;
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
+        this.points = points;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
     draw(context, plusX = 0, plusY = 0) {
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
-        context.moveTo(this.x1 + plusX, this.y1 + plusY);
-        context.lineTo(this.x2 + plusX, this.y2 + plusY);
+        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
+        context.lineTo(this.points[1].x + plusX, this.points[1].y + plusY);
         context.lineWidth = this.borderWidth;
         context.stroke();
         context.fill();
@@ -197,10 +190,10 @@ class Line {
     draw100x100(context, boardSmallSideSize = 100) {
         let x1, x2, y1, y2;
         let maxValue = Math.max(this.x1, this.x2, this.y1, this.y2);
-        x1 = this.x1 * boardSmallSideSize / maxValue;
-        x2 = this.x2 * boardSmallSideSize / maxValue;
-        y1 = this.y1 * boardSmallSideSize / maxValue;
-        y2 = this.y2 * boardSmallSideSize / maxValue;
+        x1 = this.points[0].x * boardSmallSideSize / maxValue;
+        x2 = this.points[1].x * boardSmallSideSize / maxValue;
+        y1 = this.points[0].y * boardSmallSideSize / maxValue;
+        y2 = this.points[1].y * boardSmallSideSize / maxValue;
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
         context.moveTo(x1, y1);
@@ -213,7 +206,6 @@ class Line {
 class Polygon {
     constructor(points = [], backgroundColor, borderColor, borderWidth) {
         this.desc = CONST.POLYGON;
-        this.pos = 0;
         this.points = points;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
@@ -272,7 +264,6 @@ class Polygon {
 class Pencil {
     constructor(points = [], color, borderWidth = 1) {
         this.desc = CONST.PENCIL;
-        this.pos = 0;
         this.points = points;
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
@@ -313,7 +304,6 @@ class Pencil {
 class Abstract {
     constructor(points, backgroundColor, borderColor, borderWidth) {
         this.desc = CONST.ABSTRACT;
-        this.pos = 0;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -321,21 +311,21 @@ class Abstract {
         }
         this.borderColor = borderColor;
         this.backgroundColor = backgroundColor;
-        this.borderWidth = parseInt(borderWidth);
+        this.borderWidth = borderWidth ? parseInt(borderWidth) : 0;
     }
     draw(context, plusX = 0, plusY = 0) {
-        context.fillStyle = this.backgroundColor;
-        context.strokeStyle = this.borderColor;
         context.beginPath();
+        context.fillStyle = this.backgroundColor;
         context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
         for (var i = 1; i < this.points.length; i++) {
             context.lineTo(this.points[i].x + plusX, this.points[i].y + plusY);
         }
         context.lineTo(this.points[0].x + plusX, this.points[0].y + plusY);
-        context.lineWidth = this.borderWidth;
         context.closePath();
         context.fill();
-        if (context.lineWidth > 0) {
+        if (this.borderWidth) {
+            context.strokeStyle = this.borderColor;
+            context.lineWidth = this.borderWidth;
             context.stroke();
         }
     }
@@ -374,7 +364,6 @@ class Abstract {
 class Rubber {
     constructor(points, borderWidth) {
         this.desc = CONST.RUBBER;
-        this.pos = 0;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -414,7 +403,6 @@ class Rubber {
 class Picture {
     constructor(img, src, sx, sy, sw, sh, x, y, width, height, grad) {
         this.desc = CONST.PICTURE;
-        this.pos = 0;
         this.img = img;
         this.src = src;
         this.x = x;
@@ -484,8 +472,6 @@ class ClickXY {
 }
 class Layer {
     constructor(name, shapes = []) {
-        this.pos = 0;
-
         this.shapes = shapes;
         this.name = name;
         this.desc = "desc";

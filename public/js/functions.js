@@ -4,11 +4,15 @@ function asyncRequest({url, method, data}) {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState === 4) {
-                const responseObj = {
-                    response: this.responseText,
+                let response = this.responseText;
+                try {
+                    response = JSON.parse(this.responseText);
+                } catch(e) {
+                }
+                resolve({
+                    response,
                     success: this.status === 200
-                };
-                resolve(responseObj);
+                });
             }
         };
         xhttp.open(method || 'GET', url);

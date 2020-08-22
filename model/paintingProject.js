@@ -1,18 +1,38 @@
 const mongoose = require('mongoose');
+const { Int32 } = require('mongodb');
+const Shape = require('./shape');
 
 const PaintingProject = new mongoose.Schema(
     {
-        user_Id: String,
-        name: String,
+        userId: {type: String, required: true},
+        name: {type: String, required: true},
         layers: [
             {
                 name: String,
                 visible: Boolean,
-                shapes: [mongoose.Schema.Types.Mixed]
+                shapes: [{
+                    desc: String,
+                    x: Number,
+                    y: Number,
+                    points: [{
+                        x: Number,
+                        y: Number,
+                    }],
+                    width: Number,
+                    height: Number,
+                    radius: Number,
+                    radiusX: Number,
+                    radiusY: Number,
+                    startAngle: Number,
+                    endAngle: Number,
+                    backgroundColor: String,
+                    borderColor: String,
+                    borderWidth: Number,
+                    rorationInDegrees: Number,
+                }]
             }
         ]
     }
-)
-
+);
 
 module.exports = mongoose.model('paintingProject', PaintingProject);
