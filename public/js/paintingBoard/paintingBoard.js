@@ -33,7 +33,7 @@ class PaintingBoard {
             this.project = { layers: this.layers};
         } else {
             this.project = this.parseProject(project);
-            this.layers = project.layers;
+            this.layers = this.project.layers;
             this.currentLayer = project.layers[0];
             document.getElementById('projectName').value = project.name;
         }
@@ -75,8 +75,11 @@ class PaintingBoard {
             });
             parsedLayers.push(newLayer);
         });
-        project.layers = parsedLayers;
-        return project.layers = parsedLayers;
+        return {
+            _id: project._id,
+            name: project.name,
+            layers: parsedLayers
+        };
     }
     clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);

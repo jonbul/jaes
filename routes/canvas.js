@@ -48,7 +48,7 @@ module.exports = (app) => {
     });
     app.post('/paintingBoard/save', async (req, res) => {
         const projectData = req.body.project;
-        const id = projectData._id;
+        const id = req.query.id || projectData._id;
         let project;
         if (id) {
             project = await PaintingProject.findById(id).exec();
