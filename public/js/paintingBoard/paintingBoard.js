@@ -25,20 +25,6 @@ class PaintingBoard {
         this.context = canvas.getContext('2d');
 
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
-        
-        if (!project) {
-            this.layers = [];
-            this.currentLayer = new Layer('Layer', this.currentLayer);
-            this.layers.push(this.currentLayer);
-            this.project = { layers: this.layers};
-            this.project.dateCreated = Date.now();
-        } else {
-            this.project = this.parseProject(project);
-            this.layers = this.project.layers;
-            this.currentLayer = project.layers[0];
-            this.dateCreated = project.dateCreated;
-            document.getElementById('projectName').value = project.name;
-        }
 
         this.menus = {
             background: document.getElementById('background-color'),
@@ -58,8 +44,26 @@ class PaintingBoard {
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
         }
-        this.menus.resolution.width.value = canvas.width;
-        this.menus.resolution.height.value = canvas.height;
+        
+        if (!project) {
+            this.layers = [];
+            this.currentLayer = new Layer('Layer', this.currentLayer);
+            this.layers.push(this.currentLayer);
+            this.project = { layers: this.layers};
+            this.project.dateCreated = Date.now();
+            this.menus.resolution.width.value = canvas.width;
+            this.menus.resolution.height.value = canvas.height;
+        } else {
+            this.project = this.parseProject(project);
+            this.layers = this.project.layers;
+            this.currentLayer = project.layers[0];
+            this.dateCreated = project.dateCreated;
+            document.getElementById('projectName').value = project.name;
+            this.menus.resolution.width.value = project.canvas.width;
+            this.menus.resolution.height.value = project.canvas.height;
+            this.canvas.width = project.canvas.width;
+            this.canvas.height = project.canvas.height;
+        }
 
         this.selectedTool = this.menus.toolList.querySelector('.active').value;
 
@@ -624,6 +628,10 @@ class PaintingBoard {
             return;
         }
         this.project.name = name;
+        this.project.canvas = {
+            width: this.menus.resolution.width.value,
+            height: this.menus.resolution.height.value
+        };
         const response = await asyncRequest({
             url: '/paintingBoard/save',
             method: 'POST',

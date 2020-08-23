@@ -8,6 +8,10 @@ const PaintingProject = new mongoose.Schema(
         name: {type: String, required: true},
         dateCreated: Number,
         dateModified: Number,
+        canvas: {
+            width: Number,
+            height: Number
+        },
         layers: [
             {
                 name: String,
