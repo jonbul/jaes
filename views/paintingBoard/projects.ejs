@@ -1,9 +1,22 @@
 <% layout('layout') %>
 <span id="alerts"></span>
-<ul></ul>
-<% projects.forEach(project => { %>
-    <li>
-    <a href="/paintingBoard?id=<%= project._id %>"><%= project.name %></a>
-    </li>
+<a href="/paintingBoard" class="btn btn-primary mt-5">New</a>
+<div class="row mt-3">
+<% projects.forEach(project => { 
+    console.log(project.dateCreated);
+    const d1 = new Date(project.dateCreated);
+    const d1s = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()}`;
+    const d2 = new Date(project.dateModified);
+    const d2s = `${d2.getFullYear()}/${d2.getMonth() + 1}/${d2.getDate()}`;
+
+    
+    
+    
+    %>
+    <div class="col-3">
+    <h5><a href="/paintingBoard?id=<%= project._id %>"><%= project.name %></a></h5>
+    <label>Created: <%= d1s %></label>
+    <label>Modified: <%= d2s %></label>
+    </div>
 <% }) %>
-</ul>
+</div>

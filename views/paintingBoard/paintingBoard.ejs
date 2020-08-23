@@ -30,6 +30,8 @@
 <script type="module">
     import PaintingBoard from '/js/paintingBoard/paintingBoard.js';
     window.PaintingBoard = PaintingBoard;
-    const project = JSON.parse(`<%-JSON.stringify(project)%>`);
+    const json = `<%-JSON.stringify(project)%>`;
+    let project;
+    if(json) project = JSON.parse(json);
     new PaintingBoard(document.getElementById('canvas'), project);
 </script>

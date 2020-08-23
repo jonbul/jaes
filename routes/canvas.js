@@ -56,10 +56,12 @@ module.exports = (app) => {
         if (!project) {
             project = new PaintingProject();
         }
+        console.log(projectData.dateCreated)
         project.userId = req.session.passport.user._id;
         project.name = projectData.name;
         project.layers = projectData.layers;
-        
+        project.dateCreated = projectData.dateCreated;
+        project.dateModified = Date.now();
         const answer = await project.save();
         res.send({id: answer._id});
     });

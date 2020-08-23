@@ -31,10 +31,12 @@ class PaintingBoard {
             this.currentLayer = new Layer('Layer', this.currentLayer);
             this.layers.push(this.currentLayer);
             this.project = { layers: this.layers};
+            this.project.dateCreated = Date.now();
         } else {
             this.project = this.parseProject(project);
             this.layers = this.project.layers;
             this.currentLayer = project.layers[0];
+            this.dateCreated = project.dateCreated;
             document.getElementById('projectName').value = project.name;
         }
 
@@ -78,7 +80,8 @@ class PaintingBoard {
         return {
             _id: project._id,
             name: project.name,
-            layers: parsedLayers
+            layers: parsedLayers,
+            dateCreated: project.dateCreated
         };
     }
     clear() {
@@ -124,7 +127,6 @@ class PaintingBoard {
         this.canvas.width = this.menus.resolution.width.value;
         const style = getComputedStyle(this.canvas);
         this.canvas.style.height = (this.canvas.height * parseFloat(style.width) / this.canvas.width) + 'px';
-        console.log('YEEEE');
     }
     loadColorEvents() {
         this.menus.background.addEventListener('change', this.updateBgColor.bind(this));
@@ -631,9 +633,7 @@ class PaintingBoard {
             }
         });
         if (response.success) {
-            console.log(response.response);
             this.project._id = response.response.id;
-            console.log(this.project._id);
         }
     }
 }
