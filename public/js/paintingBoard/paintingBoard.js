@@ -23,7 +23,7 @@ class PaintingBoard {
         window._this = this;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
-
+        window.context = this.context;
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
 
         this.menus = {
@@ -44,7 +44,7 @@ class PaintingBoard {
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
         }
-        
+
         if (!project) {
             this.layers = [];
             this.currentLayer = new Layer('Layer', this.currentLayer);
@@ -94,7 +94,7 @@ class PaintingBoard {
     canvasInterval() {
         this.clear();
         this.layers.forEach(layer => {
-            layer.draw(this.context)
+            layer.draw(this.context);
         });
         if (this.drawingObj) {
             this.drawingObj.shape.draw(this.context);
@@ -104,15 +104,16 @@ class PaintingBoard {
                 });
             }
         }
-        const gridSize = this.menus.gridSize.value;
+        
+        const gridSize = parseInt(this.menus.gridSize.value);
         if (gridSize) {
             for(let i = 1; gridSize * i < this.canvas.width; i++) {
                 const pos = gridSize * i;
-                new Line(pos ,0 ,pos , this.canvas.height, 'rgba(0,0,0,0.5)', 1 ).draw(this.context);
+                new Line([{x: pos ,y: 0} ,{x: pos , y: this.canvas.height}], 'rgba(0,0,0,0.5)', 1 ).draw(this.context);
             }
             for(let i = 1; gridSize * i < this.canvas.height; i++) {
                 const pos = gridSize * i;
-                new Line(0, pos, this.canvas.width, pos, 'rgba(0,0,0,0.5)', 1).draw(this.context);
+                new Line([{x: 0, y: pos}, {x: this.canvas.width, y: pos}], 'rgba(0,0,0,0.5)', 1).draw(this.context);
             }
         }
     }
@@ -125,12 +126,26 @@ class PaintingBoard {
         this.loadLayerComponentsEvents();
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
+        this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
+
     }
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
         const style = getComputedStyle(this.canvas);
         this.canvas.style.height = (this.canvas.height * parseFloat(style.width) / this.canvas.width) + 'px';
+    }
+    onCanvasWheel(evt) {
+        evt.stopImmediatePropagation();
+        evt.preventDefault()
+        const currentPos = this.getCurrentPos(evt);
+        const res = this.menus.resolution;
+        if( evt.deltaY < 0) {
+            this.scale *= 2;
+        } else {
+            this.scale /= 2;
+        }
+        this.resolutionChangeEvent();
     }
     loadColorEvents() {
         this.menus.background.addEventListener('change', this.updateBgColor.bind(this));
@@ -287,11 +302,13 @@ class PaintingBoard {
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
     }
     getCurrentPos(evt) {let currentPos;
-        if(this.menus.followGrid.checked) {
+        if(this.menus.followGrid.checked && this.menus.gridSize.value) {
             currentPos = new ClickXY(evt, this.menus.gridSize.value);
         } else {
             currentPos = new ClickXY(evt);
         }
+        currentPos.x /= this.scale;
+        currentPos.y /= this.scale;
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {

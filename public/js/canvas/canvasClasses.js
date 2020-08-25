@@ -477,10 +477,10 @@ class Layer {
         this.desc = "desc";
         this.visible = true;
     }
-    draw(context) {
+    draw(context, plusX = 0, plusY = 0) {
         if (this.visible) {
             this.shapes.forEach(shape => {
-                shape.draw(context);
+                shape.draw(context, plusX = 0, plusY = 0);
             });
         }
     }
