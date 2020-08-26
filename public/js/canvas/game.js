@@ -73,7 +73,7 @@ class Game {
             username: this.username
         }*/
         let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
-        let speed = this.keys[KEYS.SHIFT] ? 2 : 1;
+        let speed = this.keys[KEYS.SHIFT] ? 4 : 2;
         if (this.keys[KEYS.CTRL]) speed = speed / 2;
         if (this.keys[KEYS.UP]) {
             character.y = character.y - speed;
