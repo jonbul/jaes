@@ -33,6 +33,7 @@ class Game {
 
             this.ships = (await asyncRequest({url: '/game/getShips', method: 'GET'})).response;
             this.character = new Character(this.username, this.ships[0], 50, 50);
+            this.character.ioId = this.io.id;
             this.io.emit('player movement', this.character);
 
             this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
@@ -65,13 +66,13 @@ class Game {
     }
     movement(){
         const character = this.character;
-        /*const tempPosition = {
+        const tempPosition = {
             x: character.x,
             y: character.y,
             h: character.height,
             w: character.width,
             username: this.username
-        }*/
+        }
         let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
         let speed = this.keys[KEYS.SHIFT] ? 4 : 2;
         if (this.keys[KEYS.CTRL]) speed = speed / 2;
@@ -108,11 +109,32 @@ class Game {
         }
         
         if (move) {
-            const collision = false;//this.checkCollisions();
-            this.io.emit('player movement', this.character);
+            if (!this.checkCollisions()) {
+                this.io.emit('player movement', this.character);
+            } else {
+                character.x = tempPosition.x;
+                character.y = tempPosition.y;
+            }
         }
-        //character.x = tempPosition.x;
-        //character.y = tempPosition.y;
+    }
+    checkCollisions(){
+        const rect1 = this.character;
+        let colision = false;
+        for(let id in this.characters) {
+            const rect2 = this.characters[id];
+            console.log('COOOOOOOOOOL')
+            console.log(rect1.x, rect1.y, rect1.width, rect1.height);
+            console.log(rect2.x, rect2.y, rect2.width, rect2.height);
+            if(rect2.ioId !== rect1.ioId) {
+                colision = rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.height + rect1.y > rect2.y;
+                if (colision) break;
+            }
+        }
+        console.log(colision);
+        return colision;
     }
     drawPlayers(plDetails) {
         console.log({plDetails});
@@ -120,6 +142,8 @@ class Game {
         const characters = this.characters;
         if (!characters[plDetails.socketId]) {
             characters[plDetails.socketId] = new Character(plDetails.name, plDetails.ship);
+            characters[plDetails.socketId].socketId = plDetails.socketId;
+            characters[plDetails.socketId].ioId = plDetails.ioId;
         }
         characters[plDetails.socketId].x = plDetails.x;
         characters[plDetails.socketId].y = plDetails.y;
