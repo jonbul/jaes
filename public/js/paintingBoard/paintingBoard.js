@@ -1,4 +1,4 @@
-import {asyncRequest, showAlert} from '../functions.js';
+import {asyncRequest, showAlert, parseLayers} from '../functions.js';
 import CONST from '../canvas/constants.js';
 import CanvasClasses from '../canvas/canvasClasses.js';
 import {
@@ -25,6 +25,7 @@ class PaintingBoard {
         this.context = canvas.getContext('2d');
         window.context = this.context;
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
+        this.scale = 1;
 
         this.menus = {
             background: document.getElementById('background-color'),
@@ -71,20 +72,10 @@ class PaintingBoard {
         this.interval = setInterval(this.canvasInterval.bind(this));
     }
     parseProject(project) {
-        const parsedLayers = [];
-        project.layers.forEach(layer => {
-            const newLayer = new Layer(layer.name);
-            layer.shapes.forEach(shape => {
-                const newShape = new CanvasClasses[shape.desc]();
-                for (const prop in shape) newShape[prop] = shape[prop]
-                newLayer.shapes.push(newShape);
-            });
-            parsedLayers.push(newLayer);
-        });
         return {
             _id: project._id,
             name: project.name,
-            layers: parsedLayers,
+            layers: parseLayers(project.layers),
             dateCreated: project.dateCreated
         };
     }
@@ -253,7 +244,7 @@ class PaintingBoard {
             shapeList.appendChild(block);
             const canvas = block.querySelector('canvas');
             const context = canvas.getContext('2d');
-            shape.draw100x100(context);
+            shape.drawResized(context);
 
             
             block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
@@ -453,8 +444,17 @@ class PaintingBoard {
             drawingObj.shape = new Pencil([drawingObj.startPosition], this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const point = this.getCurrentPos(evt);
-        if (!isNaN(point.x) && !isNaN(point.y)) {
+        if (isNaN(point.x) || isNaN(point.y)) return;
+        const points = drawingObj.shape.points;
+        const length = points.length;
+        if (length < 2) {
             drawingObj.shape.points.push(point);
+        } else {
+            if (point.x === points[length-1].x && point.x === points[length-2].x || point.y === points[length-1].y && point.y === points[length-2].y) {
+                drawingObj.shape.points[length-1] = point;
+            } else {
+                drawingObj.shape.points.push(point);
+            }
         }
     }
     drawingAbstract(evt, drawingObj) {
@@ -464,9 +464,17 @@ class PaintingBoard {
         }
         const point = this.getCurrentPos(evt);
         if (isNaN(point.x) || isNaN(point.y)) return;
-        const lastPoint = drawingObj.shape.points[drawingObj.shape.points.length-1];
-        if(lastPoint && lastPoint.x === point.x && lastPoint.y === point.y) return;
-        drawingObj.shape.points.push(point);
+        const points = drawingObj.shape.points;
+        const length = points.length;
+        if (length < 2) {
+            drawingObj.shape.points.push(point);
+        } else {
+            if (point.x === points[length-1].x && point.x === points[length-2].x || point.y === points[length-1].y && point.y === points[length-2].y) {
+                drawingObj.shape.points[length-1] = point;
+            } else {
+                drawingObj.shape.points.push(point);
+            }
+        }
     }
     drawingArc(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);

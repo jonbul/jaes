@@ -1,4 +1,5 @@
 "use strict";
+import CanvasClasses from './canvas/canvasClasses.js';
 function asyncRequest({url, method, data}) {
     return new Promise((resolve, reject) => {
         var xhttp = new XMLHttpRequest();
@@ -15,6 +16,7 @@ function asyncRequest({url, method, data}) {
                 });
             }
         };
+        xhttp.onerror = err => reject(err);
         xhttp.open(method || 'GET', url);
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         if (data && typeof data === "object") data = JSON.stringify(data);
@@ -61,4 +63,19 @@ function showAlert({type = 'danger', msg, title}) {
     alertBlock.classList.add('show');
 }
 
-export {asyncRequest, showAlert};
+function parseLayers(layers) {
+    const parsedLayers = [];
+    layers.forEach(layer => {
+        const newLayer = new CanvasClasses.Layer(layer.name);
+        layer.shapes.forEach(shape => {
+            const newShape = new CanvasClasses[shape.desc]();
+            for (const prop in shape) newShape[prop] = shape[prop]
+            newLayer.shapes.push(newShape);
+        });
+        parsedLayers.push(newLayer);
+    });
+    return parsedLayers
+}
+
+export default {asyncRequest, showAlert, parseLayers};
+export {asyncRequest, showAlert, parseLayers};

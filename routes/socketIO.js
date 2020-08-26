@@ -4,7 +4,8 @@ module.exports = io => {
         console.log("Connected from IP: ", socket.handshake.address)
         socket.on('player movement', (msg) => {
             players[socket.id] = msg;
-            io.emit('players updated', players);
+            msg.socketId = socket.id;
+            io.emit('players updated', msg);
         });
         socket.on('disconnect', () => {
             delete players[socket.id];

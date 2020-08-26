@@ -1,4 +1,5 @@
 import CONST from './constants.js';
+import {parseLayers} from '../functions.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
         this.canvas = function (cnvW, cnvH) {
@@ -34,10 +35,16 @@ class Rect {
         this.rorationInDegrees = rorationInDegrees;
     }
 
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0}) {
+        context.translate(options.x, options.y);
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
         let moveX = this.x;
         let moveY = this.y;
-        context.translate(moveX, moveY);
         if(this.rorationInDegrees>0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
@@ -45,42 +52,73 @@ class Rect {
         }
 
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.fillRect(plusX, plusY, this.width, this.height);
+        context.fillRect(moveX, moveY, this.width, this.height);
 
         if (this.borderWidth) {
             context.strokeStyle = this.borderColor;
             context.lineWidth = this.borderWidth;
-            context.strokeRect(plusX, plusY, this.width, this.height);
+            context.strokeRect(moveX, moveY, this.width, this.height);
         }
         
         context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
-        const minLength = boardSmallSideSize * 90 / 100;
-        const padding = boardSmallSideSize * 5 / 100;
 
-        let width, height;
-        if (this.width >= this.height) {
-            width = minLength;
-            height = this.height * minLength / this.width;
+    drawResized(context, resizeSize) {
+        let scale;
+        if(this.width >= this.height) {
+            scale = resizeSize / context.canvas.width;
         } else {
-            height = minLength;
-            width = this.width * minLength / this.height;
+            scale = resizeSize / context.canvas.height;
+        }
+        scale=1;
+
+        context.scale(scale, scale);
+        let moveX = this.x;
+        let moveY = this.y;
+        
+        if(this.rorationInDegrees>0) {
+            moveX = this.x + this.width / 2;
+            moveY = this.y + this.height / 2;
+            context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
+        }
+
+        context.fillStyle = this.backgroundColor;//BACKGROUND
+        context.fillRect(moveX, moveY, this.width, this.height);
+
+        if (this.borderWidth) {
+            context.strokeStyle = this.borderColor;
+            context.lineWidth = this.borderWidth;
+            context.strokeRect(moveX, moveY, this.width, this.height);
+        }
+        
+        context.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    /*drawResized(context, resizeSize = 100) {
+        let width, height, proportion;
+        if (this.width >= this.height) {
+            width = resizeSize;
+            proportion = resizeSize / this.width
+            height = this.height * proportion;
+        } else {
+            height = resizeSize;
+            proportion = resizeSize / this.height
+            width = this.width * proportion;
         }
         if(this.rorationInDegrees>0)
             context.rotate(this.rorationInDegrees*Math.PI/180);
 
         context.fillStyle = this.backgroundColor;
-        context.fillRect(padding, padding, width, height);
+        context.fillRect(this.x, this.y, width, height);
         
         if (this.borderWidth) {
             context.strokeStyle = this.borderColor;
             context.lineWidth = this.borderWidth;
-            context.strokeRect(padding, padding, width, height);
+            context.strokeRect(this.x, this.y, width, height);
         }
         
         context.setTransform(1, 0, 0, 1, 0, 0);
-    }
+    }*/
 }
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
@@ -94,21 +132,30 @@ class Arc {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0, rotate: 0}) {
+        context.translate(options.x, options.y);
+        
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.arc(this.x + plusX, this.y + plusY, this.radius, this.startAngle, this.endAngle);
+        context.arc(this.x, this.y, this.radius, this.startAngle, this.endAngle);
         if (this.borderWidth) {
             context.strokeStyle = this.borderColor;//BORDER
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
-
         context.fill();
+        
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
-        const radius = boardSmallSideSize / 2;
+    drawResized(context, resizeSize = 100) {
+        const radius = resizeSize / 2;
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
@@ -136,27 +183,36 @@ class Ellipse {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0, rotate: 0}) {
+        context.translate(options.x, options.y);
+        
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.ellipse(this.x + plusX, this.y + plusY, this.radiusX, this.radiusY, this.rotation, this.startAngle, this.endAngle);
+        context.ellipse(this.x , this.y, this.radiusX, this.radiusY, this.rotation, this.startAngle, this.endAngle);
         if (this.borderWidth > 0) {
             context.strokeStyle = this.borderColor;//BORDER
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
-
         context.fill();
+
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let rx, ry;
         if (this.radiusX >= this.radiusY) {
-            rx = boardSmallSideSize / 2;
-            ry = this.radiusY * boardSmallSideSize / this.radiusX;
+            rx = resizeSize / 2;
+            ry = this.radiusY * resizeSize / this.radiusX;
         } else {
-            ry = boardSmallSideSize / 2;
-            rx = this.radiusX * boardSmallSideSize / this.radiusY;
+            ry = resizeSize / 2;
+            rx = this.radiusX * resizeSize / this.radiusY;
         }
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
@@ -178,22 +234,30 @@ class Line {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0, rotate: 0}) {
+        context.translate(options.x, options.y);
+        
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
-        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
-        context.lineTo(this.points[1].x + plusX, this.points[1].y + plusY);
+        context.moveTo(this.points[0].x, this.points[0].y);
+        context.lineTo(this.points[1].x, this.points[1].y);
         context.lineWidth = this.borderWidth;
         context.stroke();
         context.fill();
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let x1, x2, y1, y2;
         let maxValue = Math.max(this.x1, this.x2, this.y1, this.y2);
-        x1 = this.points[0].x * boardSmallSideSize / maxValue;
-        x2 = this.points[1].x * boardSmallSideSize / maxValue;
-        y1 = this.points[0].y * boardSmallSideSize / maxValue;
-        y2 = this.points[1].y * boardSmallSideSize / maxValue;
+        x1 = this.points[0].x * resizeSize / maxValue;
+        x2 = this.points[1].x * resizeSize / maxValue;
+        y1 = this.points[0].y * resizeSize / maxValue;
+        y2 = this.points[1].y * resizeSize / maxValue;
         context.beginPath();
         context.strokeStyle = this.borderColor;//BORDER
         context.moveTo(x1, y1);
@@ -211,13 +275,21 @@ class Polygon {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0, rotate: 0}) {
+        context.translate(options.x, options.y);
+        
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        
         if (this.points.length > 0) {
             context.fillStyle = this.backgroundColor;
             context.beginPath();
-            context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
+            context.moveTo(this.points[0].x, this.points[0].y);
             for (var i = 1; i < this.points.length; i++) {
-                context.lineTo(this.points[i].x + plusX, this.points[i].y + plusY);
+                context.lineTo(this.points[i].x, this.points[i].y);
             }
             context.lineWidth = this.borderWidth;
             context.closePath();
@@ -228,8 +300,9 @@ class Polygon {
             }
             
         }
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let newPoints = [];
         this.points.forEach(p => {
             newPoints.push(p.x);
@@ -238,20 +311,20 @@ class Polygon {
         let maxValue = Math.max(...newPoints);
         let minValue = Math.min(...newPoints);
 
-        let x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        let y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        let x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
         context.fillStyle = this.backgroundColor;
         context.strokeStyle = this.borderColor;
         context.beginPath();
         context.moveTo(x, y);
         for (var i = 1; i < this.points.length; i++) {
-            let x = (this.points[i].x - minValue) * boardSmallSideSize / maxValue;
-            let y = (this.points[i].y - minValue) * boardSmallSideSize / maxValue;
+            let x = (this.points[i].x - minValue) * resizeSize / maxValue;
+            let y = (this.points[i].y - minValue) * resizeSize / maxValue;
             context.lineTo(x, y);
         }
-        x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        y = (this.points[0].y - minValue) * resizeSize / maxValue;
         context.lineTo(x, y);
         context.lineWidth = this.borderWidth;
         context.closePath();
@@ -268,17 +341,26 @@ class Pencil {
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0}) {
+        context.translate(options.x, options.y);
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        
         context.strokeStyle = this.color;
         context.beginPath();
-        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
+        context.moveTo(this.points[0].x, this.points[0].y);
         for (var i = 1; i < this.points.length; i++) {
-            context.lineTo(this.points[i].x + plusX, this.points[i].y + plusY);
+            context.lineTo(this.points[i].x, this.points[i].y);
         }
         context.lineWidth = this.borderWidth;
         context.stroke();
+
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let newPoints = [];
         this.points.forEach(p => {
             newPoints.push(p.x);
@@ -287,14 +369,14 @@ class Pencil {
         let maxValue = Math.max(...newPoints);
         let minValue = Math.min(...newPoints);
 
-        let x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        let y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        let x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        let y = (this.points[0].y - minValue) * resizeSize / maxValue;
         context.strokeStyle = this.color;
         context.beginPath();
         context.moveTo(x, y);
         for (var i = 1; i < this.points.length; i++) {
-            let x = (this.points[i].x - minValue) * boardSmallSideSize / maxValue;
-            let y = (this.points[i].y - minValue) * boardSmallSideSize / maxValue;
+            let x = (this.points[i].x - minValue) * resizeSize / maxValue;
+            let y = (this.points[i].y - minValue) * resizeSize / maxValue;
             context.lineTo(x, y);
         }
         context.lineWidth = this.borderWidth * 2;
@@ -313,14 +395,21 @@ class Abstract {
         this.backgroundColor = backgroundColor;
         this.borderWidth = borderWidth ? parseInt(borderWidth) : 0;
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0, rotate: 0}) {
+        context.translate(options.x, options.y);
+        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
         context.beginPath();
         context.fillStyle = this.backgroundColor;
-        context.moveTo(this.points[0].x + plusX, this.points[0].y + plusY);
+        context.moveTo(this.points[0].x, this.points[0].y);
         for (var i = 1; i < this.points.length; i++) {
-            context.lineTo(this.points[i].x + plusX, this.points[i].y + plusY);
+            context.lineTo(this.points[i].x, this.points[i].y);
         }
-        context.lineTo(this.points[0].x + plusX, this.points[0].y + plusY);
+        context.lineTo(this.points[0].x , this.points[0].y);
         context.closePath();
         context.fill();
         if (this.borderWidth) {
@@ -328,8 +417,9 @@ class Abstract {
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let newPoints = [];
         this.points.forEach(p => {
             newPoints.push(p.x);
@@ -338,20 +428,20 @@ class Abstract {
         let maxValue = Math.max(...newPoints);
         let minValue = Math.min(...newPoints);
 
-        let x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        let y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        let x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
         context.fillStyle = this.backgroundColor;
         context.strokeStyle = this.borderColor;
         context.beginPath();
         context.moveTo(x, y);
         for (var i = 1; i < this.points.length; i++) {
-            let x = (this.points[i].x - minValue) * boardSmallSideSize / maxValue;
-            let y = (this.points[i].y - minValue) * boardSmallSideSize / maxValue;
+            let x = (this.points[i].x - minValue) * resizeSize / maxValue;
+            let y = (this.points[i].y - minValue) * resizeSize / maxValue;
             context.lineTo(x, y);
         }
-        x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        y = (this.points[0].y - minValue) * resizeSize / maxValue;
         context.lineTo(x, y);
         context.lineWidth = this.borderWidth;
         context.closePath();
@@ -377,7 +467,7 @@ class Rubber {
         }
         context.stroke();
     }
-    draw100x100(context, boardSmallSideSize = 100) {
+    drawResized(context, resizeSize = 100) {
         let newPoints = [];
         this.points.forEach(p => {
             newPoints.push(p.x);
@@ -386,18 +476,19 @@ class Rubber {
         let maxValue = Math.max(...newPoints);
         let minValue = Math.min(...newPoints);
 
-        let x = (this.points[0].x - minValue) * boardSmallSideSize / maxValue;
-        let y = (this.points[0].y - minValue) * boardSmallSideSize / maxValue;
+        let x = (this.points[0].x - minValue) * resizeSize / maxValue;
+        let y = (this.points[0].y - minValue) * resizeSize / maxValue;
         context.strokeStyle = '#000000';
         context.beginPath();
         context.moveTo(x, y);
         for (var i = 1; i < this.points.length; i++) {
-            let x = (this.points[i].x - minValue) * boardSmallSideSize / maxValue;
-            let y = (this.points[i].y - minValue) * boardSmallSideSize / maxValue;
+            let x = (this.points[i].x - minValue) * resizeSize / maxValue;
+            let y = (this.points[i].y - minValue) * resizeSize / maxValue;
             context.lineTo(x, y);
         }
         context.lineWidth = this.borderWidth * 2;
         context.stroke();
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Picture {
@@ -419,9 +510,9 @@ class Picture {
 
         var elem = this;
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0}) {
         context.rotate(this.grad * Math.PI / 180);
-        context.drawImage(this.img, this.sx + plusX, this.sy + plusY, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.rotate((360 - this.grad) * Math.PI / 180);
     }
     getImageFromSrc(src) {
@@ -448,10 +539,10 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options = {x:0, y:0}) {
         context.font = `${this.fontSize} ${this.fontFamily}`;
         context.fillStyle = this.color;
-        context.fillText(this.text, this.x + plusX, this.y + plusY);
+        context.fillText(this.text, this.x, this.y);
     }
 }
 
@@ -477,25 +568,39 @@ class Layer {
         this.desc = "desc";
         this.visible = true;
     }
-    draw(context, plusX = 0, plusY = 0) {
+    draw(context, options) {
         if (this.visible) {
             this.shapes.forEach(shape => {
-                shape.draw(context, plusX = 0, plusY = 0);
+                shape.draw(context, options);
+            });
+        }
+    }
+    drawResized(context, scale) {
+        if (this.visible) {
+            this.shapes.forEach(shape => {
+                shape.drawResized(context, scale);
             });
         }
     }
 }
 class Character {
-    constructor(username, shapes = [], x = 0, y = 0) {
+    constructor(username, ship, x = 0, y = 0) {
         this.name = username;
-        this.shapes = shapes;
+        this.ship = ship;
+        this.layers = parseLayers(ship.layers);
         this.x = x;
         this.y = y;
-        this.nameShape = new Text(this.name, this.x, this.y - 10, 10, 'Helvetica', '#222222')
+        this.nameShape = new Text(this.name, this.x, this.y - 10, 10, 'Helvetica', '#222222');
+        this.width = this.ship.width;
+        this.height = this.ship.height;
+        this.rotate = 0;
     }
-    draw(context) {
-        this.shapes.forEach(shape => {
-            shape.draw(context, this.x, this.y);
+    draw(context, options) {
+        console.log(options)
+        options = options || {x: this.x, y: this.y, rotation: 0, rotate: this.rotate};
+        options.rotationCenter = {x: this.ship.width / 2, y: this.ship.height / 2};
+        this.layers.forEach(layer => {
+            layer.draw(context, options);
         });
         this.nameShape.draw(context, this.x, this.y);
     }
