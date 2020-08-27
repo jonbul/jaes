@@ -55,7 +55,7 @@ class Game {
 
 
             this.beginInterval();
-            setInterval(this.bulletInterval.bind(this),1);
+            setInterval(this.bulletInterval.bind(this),10);
         })();
     }
     socketIOEvents() {
@@ -133,6 +133,8 @@ class Game {
                 player.y = tempPosition.y;
             }
         }
+        
+        this.drawAll();
     }
     checkCollisions(){
         const rect1 = this.player;
@@ -147,7 +149,6 @@ class Game {
                 if (colision) break;
             }
         }
-        console.log(colision);
         return colision;
     }
     updateBullets(bulletDetails) {
@@ -163,12 +164,10 @@ class Game {
             bullet.x2 = bulletDetails.x2;
             bullet.y2 = bulletDetails.y2;
         }
-        this.drawAll();
     }
     updatePlayers(plDetails) {
         const players = this.players;
         if (plDetails) {
-            console.log({plDetails});
             if (!players[plDetails.socketId]) {
                 players[plDetails.socketId] = new Player(plDetails.name, plDetails.ship);
                 players[plDetails.socketId].socketId = plDetails.socketId;
@@ -179,7 +178,6 @@ class Game {
             players[plDetails.socketId].rotate = plDetails.rotate;
             players[plDetails.socketId].rotateGrad = plDetails.rotateGrad;
         }
-        this.drawAll();
     }
     drawAll() {
         this.clear();
@@ -196,7 +194,6 @@ class Game {
         window.addEventListener('blur', this.leaveWindow.bind(this));
     }
     keyDownEvent(event) {
-        console.log(event.key,':',event.keyCode)
         this.keys[event.keyCode] = true;
         event.preventDefault();
     }
@@ -266,25 +263,40 @@ class Game {
         this.player.bullets.push(bullet);
     }
     bulletInterval() {
-        const bulletSpeed = 2;
+        const bulletSpeed = 20;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.x = bullet.x + (bulletSpeed * bullet.dirX);
             bullet.y = bullet.y + (bulletSpeed * bullet.dirY);
             bullet.x2 = bullet.x2 + (bulletSpeed * bullet.dirX);
             bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
-            console.log(bullet.x,bullet.x2, bullet.y,bullet.y2)
             if (bullet.x < -bullet.length || bullet.y < -bullet.length || bullet.x > this.canvas.width + bullet.length || bullet.y > this.canvas.height + bullet.length) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
-                this.io.emit('bullet movement', bullet);
-                return true;
+                const killedPlayer = this.checkBulletColision(bullet);
+                if(killedPlayer) {
+                    this.io.emit('bullet remove', bullet.id);
+                    return false;
+                } else {
+                    this.io.emit('bullet movement', bullet);
+                    return true;
+                }
             }
             
         });
     }
     checkBulletColision(bullet) {
-        return false;
+        let collission = false;
+        let playerKilled;
+        for(const id in this.players) {
+            const player = this.players[id];
+            collission = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
+            if (collission) {
+                playerKilled = player;
+                break;
+            }
+        }
+        return playerKilled;
     }
 }
 export default Game;

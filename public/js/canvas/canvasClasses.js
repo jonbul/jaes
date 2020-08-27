@@ -37,7 +37,7 @@ class Rect {
 
     draw(context, options = {x:0, y:0}) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -135,7 +135,7 @@ class Arc {
     draw(context, options = {x:0, y:0, rotate: 0}) {
         context.translate(options.x, options.y);
         
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -186,7 +186,7 @@ class Ellipse {
     draw(context, options = {x:0, y:0, rotate: 0}) {
         context.translate(options.x, options.y);
         
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -237,7 +237,7 @@ class Line {
     draw(context, options = {x:0, y:0, rotate: 0}) {
         context.translate(options.x, options.y);
         
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -278,7 +278,7 @@ class Polygon {
     draw(context, options = {x:0, y:0, rotate: 0}) {
         context.translate(options.x, options.y);
         
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -343,7 +343,7 @@ class Pencil {
     }
     draw(context, options = {x:0, y:0}) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -397,7 +397,7 @@ class Abstract {
     }
     draw(context, options = {x:0, y:0, rotate: 0}) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {console.log(options.rotationCenter);
+        if(options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -598,7 +598,6 @@ class Player {
         this.bullets = [];
     }
     draw(context) {
-        console.log()
         const rotationCenter = {x: this.ship.width / 2, y: this.ship.height / 2};
         this.layers.forEach(layer => {
             layer.draw(context, {x: this.x, y: this.y, rotate: this.rotate, rotationCenter});
@@ -618,11 +617,15 @@ class Bullet {
         this.x2 = this.x + this.length * dirX;
         this.y2 = this.y + this.length * dirY;
         this.line = new Line([{x,y},{x: this.x2, y: this.y2}], '#ff0000', 10);
+        this.arc = new Arc(this.x, this.y, 5, '#ff0000');
         this.id = ioId + '-' + Date.now()
     }
     draw(context) {
-        this.line.points = [{x: this.x,y: this.y},{x: this.x2, y: this.y2}];
-        this.line.draw(context);
+        /*this.line.points = [{x: this.x,y: this.y},{x: this.x2, y: this.y2}];
+        this.line.draw(context);*/
+        this.arc.x = this.x;
+        this.arc.y = this.y;
+        this.arc.draw(context);
     }
 }
 export {
