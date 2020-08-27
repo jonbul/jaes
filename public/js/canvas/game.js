@@ -266,11 +266,12 @@ class Game {
         this.player.bullets.push(bullet);
     }
     bulletInterval() {
+        const bulletSpeed = 2;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
-            bullet.x = bullet.x + (1 * bullet.dirX);
-            bullet.y = bullet.y + (1 * bullet.dirY);
-            bullet.x2 = bullet.x2 + (1 * bullet.dirX);
-            bullet.y2 = bullet.y2 + (1 * bullet.dirY);
+            bullet.x = bullet.x + (bulletSpeed * bullet.dirX);
+            bullet.y = bullet.y + (bulletSpeed * bullet.dirY);
+            bullet.x2 = bullet.x2 + (bulletSpeed * bullet.dirX);
+            bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
             console.log(bullet.x,bullet.x2, bullet.y,bullet.y2)
             if (bullet.x < -bullet.length || bullet.y < -bullet.length || bullet.x > this.canvas.width + bullet.length || bullet.y > this.canvas.height + bullet.length) {
                 this.io.emit('bullet remove', bullet.id);
