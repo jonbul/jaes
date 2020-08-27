@@ -38,9 +38,12 @@ module.exports = (app, io) => {
             io.emit('player leave', socket.id);
         });
         socket.on('bullet movement', (msg) => {
+            msg.socketId = socket.id;
             io.emit('bullet movement', msg);
         });
-        socket.on('get all players', () => {})
+        socket.on('bullet remove', id => {
+            io.emit('bullet remove', id);
+        })
     });
 }
 /*

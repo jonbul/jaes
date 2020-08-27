@@ -57,6 +57,5 @@ app.use(bodyParser.json());
 require('./routes/user')(app);
 require('./routes/game')(app, io);
 require('./routes/paintingBoard')(app);
-//require('./routes/socketIO')(io);
 
 http.listen(port, () => {console.log('Hello from port ' + port)})

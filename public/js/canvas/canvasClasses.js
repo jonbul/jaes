@@ -590,18 +590,18 @@ class Player {
         this.layers = parseLayers(ship.layers);
         this.x = x;
         this.y = y;
-        this.nameShape = new Text(this.name, this.x, this.y - 10, 10, 'Helvetica', '#222222');
+        this.nameShape = new Text(this.name, this.x, this.y - 10, 100, 'Helvetica', '#222222');
         this.width = this.ship.width;
         this.height = this.ship.height;
         this.rotate = 0;
+        this.rotateGrad = 0
         this.bullets = [];
     }
-    draw(context, options) {
-        console.log(options)
-        options = options || {x: this.x, y: this.y, rotation: 0, rotate: this.rotate};
-        options.rotationCenter = {x: this.ship.width / 2, y: this.ship.height / 2};
+    draw(context) {
+        console.log()
+        const rotationCenter = {x: this.ship.width / 2, y: this.ship.height / 2};
         this.layers.forEach(layer => {
-            layer.draw(context, options);
+            layer.draw(context, {x: this.x, y: this.y, rotate: this.rotate, rotationCenter});
         });
         this.nameShape.draw(context, this.x, this.y);
     }
@@ -614,12 +614,14 @@ class Bullet {
         this.dirX = dirX;
         this.dirY = dirY;
         this.rotate = rotate;
-        this.x2 = this.x + 30 * dirX;
-        this.y2 = this.y + 30 * dirY;
+        this.length = 5;
+        this.x2 = this.x + this.length * dirX;
+        this.y2 = this.y + this.length * dirY;
         this.line = new Line([{x,y},{x: this.x2, y: this.y2}], '#ff0000', 10);
-
+        this.id = ioId + '-' + Date.now()
     }
     draw(context) {
+        this.line.points = [{x: this.x,y: this.y},{x: this.x2, y: this.y2}];
         this.line.draw(context);
     }
 }

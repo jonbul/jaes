@@ -36,7 +36,8 @@ class Game {
             this.context = canvas.getContext('2d');
             this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
 
-            this.players = {}
+            this.players = {};
+            this.bullets = {};
             this.keys = [];
 
             const tempPlayers = (await asyncRequest({url: '/game/getPlayers', method: 'GET'})).response;
@@ -54,14 +55,18 @@ class Game {
 
 
             this.beginInterval();
-            setInterval(this.bulletInterval.bind(this));
+            setInterval(this.bulletInterval.bind(this),1);
         })();
     }
     socketIOEvents() {
-        this.io.on('players updated',this.drawPlayers.bind(this));
+        this.io.on('players updated',this.updatePlayers.bind(this));
+        this.io.on('bullet movement', this.updateBullets.bind(this));
         this.io.on('player leave', id => {
             delete this.players[id];
             this.drawPlayers();
+        });
+        this.io.on('bullet remove', id => {
+            delete this.bullets[id];
         });
     }
     beginInterval() {
@@ -134,9 +139,6 @@ class Game {
         let colision = false;
         for(let id in this.players) {
             const rect2 = this.players[id];
-            console.log('COOOOOOOOOOL')
-            console.log(rect1.x, rect1.y, rect1.width, rect1.height);
-            console.log(rect2.x, rect2.y, rect2.width, rect2.height);
             if(rect2.ioId !== rect1.ioId) {
                 colision = rect1.x < rect2.x + rect2.width &&
                 rect1.x + rect1.width > rect2.x &&
@@ -148,7 +150,22 @@ class Game {
         console.log(colision);
         return colision;
     }
-    drawPlayers(plDetails) {
+    updateBullets(bulletDetails) {
+        let bullet = this.bullets[bulletDetails.id];
+        if(!bullet) {
+            bullet = new Bullet(bulletDetails.ioId, bulletDetails.x, bulletDetails.y, bulletDetails.dirX, bulletDetails.dirY, bulletDetails.rotate);
+
+            bullet.rotateGrad = bulletDetails.rotateGrad;
+            this.bullets[bulletDetails.id] = bullet;
+        } else {
+            bullet.x = bulletDetails.x;
+            bullet.y = bulletDetails.y;
+            bullet.x2 = bulletDetails.x2;
+            bullet.y2 = bulletDetails.y2;
+        }
+        this.drawAll();
+    }
+    updatePlayers(plDetails) {
         const players = this.players;
         if (plDetails) {
             console.log({plDetails});
@@ -162,9 +179,15 @@ class Game {
             players[plDetails.socketId].rotate = plDetails.rotate;
             players[plDetails.socketId].rotateGrad = plDetails.rotateGrad;
         }
+        this.drawAll();
+    }
+    drawAll() {
         this.clear();
-        for(const id in players) {
-            players[id].draw(this.context, {x: players[id].x, y: players[id].y, rotate: players[id].rotate});
+        for(const id in this.players) {
+            this.players[id].draw(this.context);
+        }
+        for(const id in this.bullets) {
+            this.bullets[id].draw(this.context);
         }
     }
     loadEvents(){
@@ -175,6 +198,7 @@ class Game {
     keyDownEvent(event) {
         console.log(event.key,':',event.keyCode)
         this.keys[event.keyCode] = true;
+        event.preventDefault();
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
@@ -242,14 +266,24 @@ class Game {
         this.player.bullets.push(bullet);
     }
     bulletInterval() {
-        /*if(!this.bullets.length) return;
-        this.clear();
-        this.drawPlayers()*/
-        this.player.bullets.forEach(bullet => {
+        this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.x = bullet.x + (1 * bullet.dirX);
             bullet.y = bullet.y + (1 * bullet.dirY);
-            this.io.emit('bullet movement', this.player);
+            bullet.x2 = bullet.x2 + (1 * bullet.dirX);
+            bullet.y2 = bullet.y2 + (1 * bullet.dirY);
+            console.log(bullet.x,bullet.x2, bullet.y,bullet.y2)
+            if (bullet.x < -bullet.length || bullet.y < -bullet.length || bullet.x > this.canvas.width + bullet.length || bullet.y > this.canvas.height + bullet.length) {
+                this.io.emit('bullet remove', bullet.id);
+                return false;
+            } else {
+                this.io.emit('bullet movement', bullet);
+                return true;
+            }
+            
         });
+    }
+    checkBulletColision(bullet) {
+        return false;
     }
 }
 export default Game;
