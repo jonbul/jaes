@@ -1,7 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt-nodejs');
-const Shape = require('./shape');
-const shape = new Shape();
 const Ship = new mongoose.Schema(
     {
         name: String,

@@ -9,7 +9,12 @@ module.exports = io => {
         });
         socket.on('disconnect', () => {
             delete players[socket.id];
+            console.log('bye');
             io.emit('player leave', socket.id);
-        })
+        });
+        socket.on('bullet movement', (msg) => {
+            io.emit('bullet movement', msg);
+        });
+        socket.on('get all players', () => {})
     });
 }

@@ -4,7 +4,6 @@ import CanvasClasses from '../canvas/canvasClasses.js';
 import {
     Abstract,
     Arc,
-    Character,
     ClickXY,
     Ellipse,
     Layer,

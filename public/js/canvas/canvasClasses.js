@@ -583,7 +583,7 @@ class Layer {
         }
     }
 }
-class Character {
+class Player {
     constructor(username, ship, x = 0, y = 0) {
         this.name = username;
         this.ship = ship;
@@ -594,6 +594,7 @@ class Character {
         this.width = this.ship.width;
         this.height = this.ship.height;
         this.rotate = 0;
+        this.bullets = [];
     }
     draw(context, options) {
         console.log(options)
@@ -605,10 +606,27 @@ class Character {
         this.nameShape.draw(context, this.x, this.y);
     }
 }
+class Bullet {
+    constructor(ioId,x ,y, dirX, dirY, rotate) {
+        this.ioId = ioId;
+        this.x = x;
+        this.y = y;
+        this.dirX = dirX;
+        this.dirY = dirY;
+        this.rotate = rotate;
+        this.x2 = this.x + 30 * dirX;
+        this.y2 = this.y + 30 * dirY;
+        this.line = new Line([{x,y},{x: this.x2, y: this.y2}], '#ff0000', 10);
+
+    }
+    draw(context) {
+        this.line.draw(context);
+    }
+}
 export {
     Abstract,
     Arc,
-    Character,
+    Bullet,
     ClickXY,
     Ellipse,
     Layer,
@@ -616,6 +634,7 @@ export {
     MasterJasonFile,
     Pencil,
     Picture,
+    Player,
     Polygon,
     Rect,
     Rubber,
@@ -625,7 +644,7 @@ export {
 export default {
     Abstract,
     Arc,
-    Character,
+    Bullet,
     ClickXY,
     Ellipse,
     Layer,
@@ -633,6 +652,7 @@ export default {
     MasterJasonFile,
     Pencil,
     Picture,
+    Player,
     Polygon,
     Rect,
     Rubber,

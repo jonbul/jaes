@@ -2,7 +2,8 @@ const PaintingProject = require('../model/paintingProject');
 const Ship = require('../model/ship');
 const { Schema } = require('mongoose');
 
-module.exports = (app) => {
+module.exports = (app, io) => {
+    const players = {};
     app.get('/game', (req, res) => {
         let user;
         if (req.session.passport && req.session.passport.user) {
@@ -16,7 +17,50 @@ module.exports = (app) => {
         }
     });
     app.get('/game/getShips', async (req, res) => {
-        const ships = Ship.find();
         res.send(await Ship.find());
     });
+
+    app.get('/game/getPlayers', async (req, res) => {
+        res.send(players);
+    });
+
+    //IO
+    io.on('connection', (socket) => {
+        console.log("Connected from IP: ", socket.handshake.address)
+        socket.on('player movement', (msg) => {
+            players[socket.id] = msg;
+            msg.socketId = socket.id;
+            io.emit('players updated', msg);
+        });
+        socket.on('disconnect', () => {
+            delete players[socket.id];
+            console.log('bye');
+            io.emit('player leave', socket.id);
+        });
+        socket.on('bullet movement', (msg) => {
+            io.emit('bullet movement', msg);
+        });
+        socket.on('get all players', () => {})
+    });
 }
+/*
+module.exports = io => {
+    const players = {};
+    io.on('connection', (socket) => {
+        console.log("Connected from IP: ", socket.handshake.address)
+        socket.on('player movement', (msg) => {
+            players[socket.id] = msg;
+            msg.socketId = socket.id;
+            io.emit('players updated', msg);
+        });
+        socket.on('disconnect', () => {
+            delete players[socket.id];
+            console.log('bye');
+            io.emit('player leave', socket.id);
+        });
+        socket.on('bullet movement', (msg) => {
+            io.emit('bullet movement', msg);
+        });
+        socket.on('get all players', () => {})
+    });
+}*/
