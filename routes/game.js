@@ -43,27 +43,15 @@ module.exports = (app, io) => {
         });
         socket.on('bullet remove', id => {
             io.emit('bullet remove', id);
-        })
+        });
+        socket.on('player hit', msg => {
+            io.emit('bullet remove', msg.bulletId);
+            console.log(msg)
+            io.to(msg.playerId).emit('player hit', msg);
+        });
+        socket.on('player died', msg => {
+            console.log(msg)
+            io.emit('player died', msg);
+        });
     });
 }
-/*
-module.exports = io => {
-    const players = {};
-    io.on('connection', (socket) => {
-        console.log("Connected from IP: ", socket.handshake.address)
-        socket.on('player movement', (msg) => {
-            players[socket.id] = msg;
-            msg.socketId = socket.id;
-            io.emit('players updated', msg);
-        });
-        socket.on('disconnect', () => {
-            delete players[socket.id];
-            console.log('bye');
-            io.emit('player leave', socket.id);
-        });
-        socket.on('bullet movement', (msg) => {
-            io.emit('bullet movement', msg);
-        });
-        socket.on('get all players', () => {})
-    });
-}*/

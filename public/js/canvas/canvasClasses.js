@@ -1,5 +1,5 @@
 import CONST from './constants.js';
-import {parseLayers} from '../functions.js';
+import { parseLayers } from '../functions.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
         this.canvas = function (cnvW, cnvH) {
@@ -35,9 +35,9 @@ class Rect {
         this.rorationInDegrees = rorationInDegrees;
     }
 
-    draw(context, options = {x:0, y:0}) {
+    draw(context, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -45,7 +45,7 @@ class Rect {
 
         let moveX = this.x;
         let moveY = this.y;
-        if(this.rorationInDegrees>0) {
+        if (this.rorationInDegrees > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
             context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
@@ -59,24 +59,24 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
-        
+
         context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawResized(context, resizeSize) {
         let scale;
-        if(this.width >= this.height) {
+        if (this.width >= this.height) {
             scale = resizeSize / context.canvas.width;
         } else {
             scale = resizeSize / context.canvas.height;
         }
-        scale=1;
+        scale = 1;
 
         context.scale(scale, scale);
         let moveX = this.x;
         let moveY = this.y;
-        
-        if(this.rorationInDegrees>0) {
+
+        if (this.rorationInDegrees > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
             context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
@@ -90,7 +90,7 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
-        
+
         context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
@@ -132,15 +132,15 @@ class Arc {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = {x:0, y:0, rotate: 0}) {
+    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-        
-        if(options.rotationCenter && options.rotate) {
+
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
-        
+
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
@@ -151,7 +151,7 @@ class Arc {
             context.stroke();
         }
         context.fill();
-        
+
         context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
@@ -183,10 +183,10 @@ class Ellipse {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = {x:0, y:0, rotate: 0}) {
+    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-        
-        if(options.rotationCenter && options.rotate) {
+
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -195,7 +195,7 @@ class Ellipse {
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.ellipse(this.x , this.y, this.radiusX, this.radiusY, this.rotation, this.startAngle, this.endAngle);
+        context.ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, this.startAngle, this.endAngle);
         if (this.borderWidth > 0) {
             context.strokeStyle = this.borderColor;//BORDER
             context.lineWidth = this.borderWidth;
@@ -228,16 +228,16 @@ class Ellipse {
     }
 }
 class Line {
-    constructor(points = [], borderColor='#ffffff', borderWidth=1) {
+    constructor(points = [], borderColor = '#ffffff', borderWidth = 1) {
         this.desc = CONST.LINE;
         this.points = points;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = {x:0, y:0, rotate: 0}) {
+    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-        
-        if(options.rotationCenter && options.rotate) {
+
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -275,15 +275,15 @@ class Polygon {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = {x:0, y:0, rotate: 0}) {
+    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-        
-        if(options.rotationCenter && options.rotate) {
+
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
-        
+
         if (this.points.length > 0) {
             context.fillStyle = this.backgroundColor;
             context.beginPath();
@@ -298,7 +298,7 @@ class Polygon {
                 context.strokeStyle = this.borderColor;
                 context.stroke();
             }
-            
+
         }
         context.setTransform(1, 0, 0, 1, 0, 0);
     }
@@ -341,14 +341,14 @@ class Pencil {
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = {x:0, y:0}) {
+    draw(context, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
-        
+
         context.strokeStyle = this.color;
         context.beginPath();
         context.moveTo(this.points[0].x, this.points[0].y);
@@ -395,9 +395,9 @@ class Abstract {
         this.backgroundColor = backgroundColor;
         this.borderWidth = borderWidth ? parseInt(borderWidth) : 0;
     }
-    draw(context, options = {x:0, y:0, rotate: 0}) {
+    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-        if(options.rotationCenter && options.rotate) {
+        if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
@@ -409,7 +409,7 @@ class Abstract {
         for (var i = 1; i < this.points.length; i++) {
             context.lineTo(this.points[i].x, this.points[i].y);
         }
-        context.lineTo(this.points[0].x , this.points[0].y);
+        context.lineTo(this.points[0].x, this.points[0].y);
         context.closePath();
         context.fill();
         if (this.borderWidth) {
@@ -510,7 +510,7 @@ class Picture {
 
         var elem = this;
     }
-    draw(context, options = {x:0, y:0}) {
+    draw(context, options = { x: 0, y: 0 }) {
         context.rotate(this.grad * Math.PI / 180);
         context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.rotate((360 - this.grad) * Math.PI / 180);
@@ -539,7 +539,7 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
     }
-    draw(context, options = {x:0, y:0}) {
+    draw(context, options = { x: 0, y: 0 }) {
         context.font = `${this.fontSize} ${this.fontFamily}`;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x, this.y);
@@ -554,7 +554,7 @@ class ClickXY {
         this.x = Math.round(this.x / round) * round;
         this.y = Math.round(this.y / round) * round;
     }
-    getSimple(){
+    getSimple() {
         return {
             x: this.x,
             y: this.y
@@ -596,17 +596,20 @@ class Player {
         this.rotate = 0;
         this.rotateGrad = 0
         this.bullets = [];
+        this.life = 10;
+        this.deaths = 0;
+        this.kills = 0;
     }
     draw(context) {
-        const rotationCenter = {x: this.ship.width / 2, y: this.ship.height / 2};
+        const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
         this.layers.forEach(layer => {
-            layer.draw(context, {x: this.x, y: this.y, rotate: this.rotate, rotationCenter});
+            layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
         });
         this.nameShape.draw(context, this.x, this.y);
     }
 }
 class Bullet {
-    constructor(ioId,x ,y, dirX, dirY, rotate) {
+    constructor(ioId, x, y, dirX, dirY, rotate) {
         this.ioId = ioId;
         this.x = x;
         this.y = y;
@@ -616,13 +619,11 @@ class Bullet {
         this.length = 5;
         this.x2 = this.x + this.length * dirX;
         this.y2 = this.y + this.length * dirY;
-        this.line = new Line([{x,y},{x: this.x2, y: this.y2}], '#ff0000', 10);
+        this.line = new Line([{ x, y }, { x: this.x2, y: this.y2 }], '#ff0000', 10);
         this.arc = new Arc(this.x, this.y, 5, '#ff0000');
         this.id = ioId + '-' + Date.now()
     }
     draw(context) {
-        /*this.line.points = [{x: this.x,y: this.y},{x: this.x2, y: this.y2}];
-        this.line.draw(context);*/
         this.arc.x = this.x;
         this.arc.y = this.y;
         this.arc.draw(context);

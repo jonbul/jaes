@@ -1,14 +1,14 @@
 "use strict";
 import CanvasClasses from './canvas/canvasClasses.js';
-function asyncRequest({url, method, data}) {
+function asyncRequest({ url, method, data }) {
     return new Promise((resolve, reject) => {
         var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
+        xhttp.onreadystatechange = function () {
             if (this.readyState === 4) {
                 let response = this.responseText;
                 try {
                     response = JSON.parse(this.responseText);
-                } catch(e) {
+                } catch (e) {
                 }
                 resolve({
                     response,
@@ -24,7 +24,7 @@ function asyncRequest({url, method, data}) {
     });
 }
 
-function showAlert({type = 'danger', msg, title}) {
+function showAlert({ type = 'danger', msg, title }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
     if (validTypes.indexOf(type) === -1) {
         console.warn('Valid types are:', validTypes);
@@ -32,7 +32,7 @@ function showAlert({type = 'danger', msg, title}) {
         return;
     }
     if (!msg) return;
-    
+
     const alertBlock = document.createElement('div');
     alertBlock.className = `alert alert-${type} alert-dismissible fade customAlert`;
     alertBlock.setAttribute('role', '');
@@ -48,7 +48,7 @@ function showAlert({type = 'danger', msg, title}) {
         window.alerts.appendChild(alertBlock);
     }
     const alertMessage = alertBlock.querySelector('#alertMessage');
-    
+
     if (msg instanceof Array) {
         const list = document.createElement('ul');
         msg.forEach(text => {
@@ -77,5 +77,5 @@ function parseLayers(layers) {
     return parsedLayers
 }
 
-export default {asyncRequest, showAlert, parseLayers};
-export {asyncRequest, showAlert, parseLayers};
+export default { asyncRequest, showAlert, parseLayers };
+export { asyncRequest, showAlert, parseLayers };

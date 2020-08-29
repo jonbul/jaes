@@ -18,7 +18,7 @@ import {
 } from './canvasClasses.js';
 import canvasClasses from './canvasClasses.js';
 import { KEYS } from './constants.js';
-import {asyncRequest} from '../functions.js';
+import { asyncRequest } from '../functions.js';
 
 class Game {
     constructor(canvas, username, io) {
@@ -40,13 +40,14 @@ class Game {
             this.bullets = {};
             this.keys = [];
 
-            const tempPlayers = (await asyncRequest({url: '/game/getPlayers', method: 'GET'})).response;
+            const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
-                this.drawPlayers(tempPlayers[id]);
+                this.updatePlayers(tempPlayers[id]);
             }
-            this.ships = (await asyncRequest({url: '/game/getShips', method: 'GET'})).response;
+            this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
             this.player = new Player(this.username, this.ships[0], 50, 50);
-            while(this.checkCollisions()) {
+            this.player.socketId = socket.id;
+            while (this.checkCollisions()) {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
             }
@@ -55,18 +56,31 @@ class Game {
 
 
             this.beginInterval();
-            setInterval(this.bulletInterval.bind(this),10);
+            setInterval(this.bulletInterval.bind(this), 10);
         })();
     }
     socketIOEvents() {
-        this.io.on('players updated',this.updatePlayers.bind(this));
+
+        this.io.on('players updated', this.updatePlayers.bind(this));
         this.io.on('bullet movement', this.updateBullets.bind(this));
         this.io.on('player leave', id => {
             delete this.players[id];
-            this.drawPlayers();
+            this.updatePlayers();
         });
         this.io.on('bullet remove', id => {
             delete this.bullets[id];
+        });
+        this.io.on('player hit', msg => {
+            this.player.life--;
+            console.log('HIT', msg);
+            if (!this.player.life) {
+                this.player.life = 10;
+                this.io.emit('player died', msg);
+            }
+        });
+        this.io.on('player died', msg => {
+            this.players[msg.playerId].deaths++;
+            this.players[msg.from].kills++;
         });
     }
     beginInterval() {
@@ -81,7 +95,7 @@ class Game {
     clear() {
         this.cleanBoard.draw(this.context);
     }
-    movement(){
+    movement() {
         const player = this.player;
         const tempPosition = {
             x: player.x,
@@ -107,21 +121,21 @@ class Game {
         }
 
         //direction
-        if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]){
+        if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]) {
             player.rotateGrad = 180;
         } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]) {
             player.rotateGrad = 0;
-        } else if (this.keys[KEYS.LEFT] === this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]){
+        } else if (this.keys[KEYS.LEFT] === this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
             player.rotateGrad = 270;
         } else if (this.keys[KEYS.LEFT] === this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
             player.rotateGrad = 90;
-        } else if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]){
+        } else if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
             player.rotateGrad = 225;
         } else if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
             player.rotateGrad = 135;
-        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]){
+        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
             player.rotateGrad = 315;
-        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]){
+        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
             player.rotateGrad = 45;
         }
         player.rotate = player.rotateGrad * Math.PI / 180;
@@ -133,19 +147,19 @@ class Game {
                 player.y = tempPosition.y;
             }
         }
-        
+
         this.drawAll();
     }
-    checkCollisions(){
+    checkCollisions() {
         const rect1 = this.player;
         let colision = false;
-        for(let id in this.players) {
+        for (let id in this.players) {
             const rect2 = this.players[id];
-            if(rect2.ioId !== rect1.ioId) {
+            if (rect2.ioId !== rect1.ioId) {
                 colision = rect1.x < rect2.x + rect2.width &&
-                rect1.x + rect1.width > rect2.x &&
-                rect1.y < rect2.y + rect2.height &&
-                rect1.height + rect1.y > rect2.y;
+                    rect1.x + rect1.width > rect2.x &&
+                    rect1.y < rect2.y + rect2.height &&
+                    rect1.height + rect1.y > rect2.y;
                 if (colision) break;
             }
         }
@@ -153,7 +167,7 @@ class Game {
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
-        if(!bullet) {
+        if (!bullet) {
             bullet = new Bullet(bulletDetails.ioId, bulletDetails.x, bulletDetails.y, bulletDetails.dirX, bulletDetails.dirY, bulletDetails.rotate);
 
             bullet.rotateGrad = bulletDetails.rotateGrad;
@@ -181,14 +195,14 @@ class Game {
     }
     drawAll() {
         this.clear();
-        for(const id in this.players) {
+        for (const id in this.players) {
             this.players[id].draw(this.context);
         }
-        for(const id in this.bullets) {
+        for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
     }
-    loadEvents(){
+    loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
         window.addEventListener('blur', this.leaveWindow.bind(this));
@@ -199,7 +213,7 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if(event.keyCode === KEYS.SPACE) this.createBullet();
+        if (event.keyCode === KEYS.SPACE) this.createBullet();
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
@@ -209,7 +223,7 @@ class Game {
     createBullet() {
         const player = this.player;
         let x, y, dirX, dirY;
-        switch(this.player.rotateGrad) {
+        switch (this.player.rotateGrad) {
             case 0:
                 x = player.x + player.width;
                 y = player.y + player.height / 2;
@@ -273,22 +287,26 @@ class Game {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
-                const killedPlayer = this.checkBulletColision(bullet);
-                if(killedPlayer) {
-                    this.io.emit('bullet remove', bullet.id);
+                const playerHit = this.checkBulletColision(bullet);
+                if (playerHit) {
+                    this.io.emit('player hit', {
+                        bulletId: bullet.id,
+                        playerId: playerHit.socketId,
+                        from: this.player.socketId
+                    });
                     return false;
                 } else {
                     this.io.emit('bullet movement', bullet);
                     return true;
                 }
             }
-            
+
         });
     }
     checkBulletColision(bullet) {
         let collission = false;
         let playerKilled;
-        for(const id in this.players) {
+        for (const id in this.players) {
             const player = this.players[id];
             collission = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
             if (collission) {
