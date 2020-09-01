@@ -101,7 +101,6 @@ class Game {
         this.movement();
     }
     clear() {
-        
         this.context.clearRect(this.player.x-this.canvas.width, this.player.y-this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
@@ -300,8 +299,8 @@ class Game {
             bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
             if (bullet.dirX > 0 && bullet.x > bullet.expX ||
                 bullet.dirX < 0 && bullet.x < bullet.expX ||
-                bullet.dirY > 0 && bullet.y > bullet.expX ||
-                bullet.dirY < 0 && bullet.y < bullet.expX) {
+                bullet.dirY > 0 && bullet.y > bullet.expY ||
+                bullet.dirY < 0 && bullet.y < bullet.expY) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {

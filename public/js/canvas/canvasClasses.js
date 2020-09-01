@@ -672,8 +672,8 @@ class Bullet {
         if(this.dirX && this.dirY) {
             distance = Math.sqrt(2 * Math.pow(this.range));
         }
-        this.expX = this.x + this.dirX * distance;
-        this.expY = this.y + this.dirY * distance;
+        this.expX = this.x + (this.dirX * distance);
+        this.expY = this.y + (this.dirY * distance);
     }
     draw(context) {
         this.arc.x = this.x;
