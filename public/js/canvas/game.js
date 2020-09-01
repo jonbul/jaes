@@ -56,7 +56,13 @@ class Game {
             this.player.ioId = this.io.id;
             this.io.emit('player movement', this.player);
 
-
+            const bg = new Rect(-10000, -10000, 20000, 20000, '#1c2773');
+            this.background = new Layer('background', [bg]);
+            for(let i = 0; i < 2000; i++) {
+                const x = parseInt(Math.random() * 20000) - 10000;
+                const y = parseInt(Math.random() * 20000) - 10000;
+                this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
+            }
             this.beginInterval();
             setInterval(this.bulletInterval.bind(this), 10);
         })();
@@ -203,6 +209,7 @@ class Game {
     }
     drawAll() {
         this.clear();
+        this.background.draw(this.context);
         for (const id in this.players) {
             this.players[id].draw(this.context);
         }
