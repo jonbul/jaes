@@ -644,6 +644,7 @@ class Player {
         this.life = 10;
         this.deaths = 0;
         this.kills = 0;
+        this.speed = 0;
     }
     draw(context) {
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };

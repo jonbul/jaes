@@ -44,21 +44,21 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, this.ships[0],0,0);
+            this.player = new Player(this.username, this.ships[0], 0, 0);
             this.player.socketId = socket.id;
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
             } while (this.checkCollisions());
-            const tX = this.canvas.width/2 - this.player.width/2 - this.player.x;
-            const tY = this.canvas.height/2 - this.player.height/2 - this.player.y;
+            const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
+            const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
             this.io.emit('player movement', this.player);
 
             const bg = new Rect(-10000, -10000, 20000, 20000, '#1c2773');
             this.background = new Layer('background', [bg]);
-            for(let i = 0; i < 2000; i++) {
+            for (let i = 0; i < 2000; i++) {
                 const x = parseInt(Math.random() * 20000) - 10000;
                 const y = parseInt(Math.random() * 20000) - 10000;
                 this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
@@ -101,16 +101,65 @@ class Game {
         this.movement();
     }
     clear() {
-        this.context.clearRect(this.player.x-this.canvas.width, this.player.y-this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
+        this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
         const player = this.player;
+        let speedX = 0;
+        let speedY = 0;
         const tempPosition = {
             x: player.x,
-            y: player.y,
-            h: player.height,
-            w: player.width,
-            username: this.username
+            y: player.y
+        }
+
+        if (this.keys[KEYS.UP]) {
+            player.speed += 0.5;
+        }
+        if (this.keys[KEYS.DOWN] && player.speed) {
+            player.speed -= 0.5;
+        }
+
+        if (this.keys[KEYS.LEFT]) {
+            player.rotate -= 0.02;
+        }
+        if (this.keys[KEYS.RIGHT]) {
+            player.rotate += 0.02;
+        }
+        if (player.rotate >= 360) player.rotate -= 360;
+        if (player.rotate < 0) player.rotate = 360 + player.rotate;
+        let rotate90 = player.rotate;
+        while (rotate90 > 90) rotate90 -= 90;
+
+        let moveX = player.speed ? Math.cos(rotate90) * player.speed : 0;
+        let moveY = player.speed ? Math.sin(rotate90) * player.speed : 0;
+        if (player.rotate >= 90 && player.rotate < 180) {
+            moveX *= -1;
+        } else if (player.rotate >= 180 && player.rotate < 270) {
+            moveX *= -1;
+            moveY *= -1;
+        } else if (player.rotate >= 270 && player.rotate < 360) {
+            moveY *= -1;
+        }
+        player.x += moveX;
+        player.y += moveY;
+        console.log('Speed', player.speed);
+        console.log('XY', player.x, player.y);
+        console.log('Move', moveX, moveY);
+
+
+        this.context.translate(-moveX, -moveY);
+
+        if(player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
+            this.io.emit('player movement', this.player);
+        }
+
+        this.drawAll();
+    }
+    movement_old() {
+        const player = this.player;
+        const tempPosition = {
+            x: player.x,
+            y: player.y
         }
         let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
         let speed = this.keys[KEYS.SHIFT] ? 8 : 4;
@@ -118,7 +167,6 @@ class Game {
         let speedX = 0;
         let speedY = 0;
         if (this.keys[KEYS.UP]) {
-            //player.y = player.y - speed;
             speedY -= speed;
         }
         if (this.keys[KEYS.DOWN]) {
