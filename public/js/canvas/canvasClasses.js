@@ -585,7 +585,7 @@ class Text {
         this.color = color;
     }
     draw(context, options = {x: 0, y:0}) {
-        context.font = `${this.fontSize} ${this.fontFamily}`;
+        context.font = `${this.fontSize}px ${this.fontFamily}`;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x + options.x, this.y + options.y);
     }
@@ -635,7 +635,7 @@ class Player {
         this.layers = parseLayers(ship.layers);
         this.x = x;
         this.y = y;
-        this.nameShape = new Text(this.name, this.x, this.y - 10, 300, 'Helvetica', '#222222');
+        this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
         this.width = this.ship.width;
         this.height = this.ship.height;
         this.rotate = 0;
