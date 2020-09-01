@@ -203,16 +203,12 @@ class Game {
     }
     drawAll() {
         this.clear();
-        /*const tX = this.player.x - (this.canvas.width - this.player.width) / 2;
-        const tY = this.player.y - (this.canvas.height - this.player.height) / 2;
-        this.context.translate(tX, tY);*/
         for (const id in this.players) {
             this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
-        //this.context.translate(-tX, -tY);
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
