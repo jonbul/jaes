@@ -59,8 +59,14 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
-
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawResized(context, resizeSize) {
@@ -91,7 +97,8 @@ class Rect {
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     /*drawResized(context, resizeSize = 100) {
@@ -152,7 +159,13 @@ class Arc {
         }
         context.fill();
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         const radius = resizeSize / 2;
@@ -203,7 +216,13 @@ class Ellipse {
         }
         context.fill();
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let rx, ry;
@@ -250,6 +269,13 @@ class Line {
         context.lineWidth = this.borderWidth;
         context.stroke();
         context.fill();
+        
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
         let x1, x2, y1, y2;
@@ -298,9 +324,14 @@ class Polygon {
                 context.strokeStyle = this.borderColor;
                 context.stroke();
             }
-
         }
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -357,8 +388,14 @@ class Pencil {
         }
         context.lineWidth = this.borderWidth;
         context.stroke();
-
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -417,7 +454,14 @@ class Abstract {
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -488,7 +532,8 @@ class Rubber {
         }
         context.lineWidth = this.borderWidth * 2;
         context.stroke();
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.translate(-options.x, -options.y);
+        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Picture {
@@ -539,10 +584,10 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
     }
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = {x: 0, y:0}) {
         context.font = `${this.fontSize} ${this.fontFamily}`;
         context.fillStyle = this.color;
-        context.fillText(this.text, this.x, this.y);
+        context.fillText(this.text, this.x + options.x, this.y + options.y);
     }
 }
 
@@ -590,7 +635,7 @@ class Player {
         this.layers = parseLayers(ship.layers);
         this.x = x;
         this.y = y;
-        this.nameShape = new Text(this.name, this.x, this.y - 10, 100, 'Helvetica', '#222222');
+        this.nameShape = new Text(this.name, this.x, this.y - 10, 300, 'Helvetica', '#222222');
         this.width = this.ship.width;
         this.height = this.ship.height;
         this.rotate = 0;
@@ -605,7 +650,7 @@ class Player {
         this.layers.forEach(layer => {
             layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
         });
-        this.nameShape.draw(context, this.x, this.y);
+        this.nameShape.draw(context, {x: this.x, y: this.y});
     }
 }
 class Bullet {

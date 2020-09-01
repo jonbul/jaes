@@ -45,12 +45,15 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, this.ships[0], 50, 50);
+            this.player = new Player(this.username, this.ships[0],0,0);
             this.player.socketId = socket.id;
-            while (this.checkCollisions()) {
+            do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
-            }
+            } while (this.checkCollisions());
+            const tX = this.canvas.width/2 - this.player.width/2 - this.player.x;
+            const tY = this.canvas.height/2 - this.player.height/2 - this.player.y;
+            this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
             this.io.emit('player movement', this.player);
 
@@ -107,18 +110,23 @@ class Game {
         let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
         let speed = this.keys[KEYS.SHIFT] ? 4 : 2;
         if (this.keys[KEYS.CTRL]) speed = speed / 2;
+        let speedX = 0;
+        let speedY = 0;
         if (this.keys[KEYS.UP]) {
-            player.y = player.y - speed;
+            //player.y = player.y - speed;
+            speedY -= speed;
         }
         if (this.keys[KEYS.DOWN]) {
-            player.y = player.y + speed;
+            speedY += speed;
         }
         if (this.keys[KEYS.LEFT]) {
-            player.x = player.x - speed;
+            speedX -= speed;
         }
         if (this.keys[KEYS.RIGHT]) {
-            player.x = player.x + speed;
+            speedX += speed;
         }
+        player.x += speedX;
+        player.y += speedY;
 
         //direction
         if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]) {
@@ -141,13 +149,13 @@ class Game {
         player.rotate = player.rotateGrad * Math.PI / 180;
         if (move) {
             if (!this.checkCollisions()) {
+                this.context.translate(-speedX, -speedY);
                 this.io.emit('player movement', this.player);
             } else {
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
             }
         }
-
         this.drawAll();
     }
     checkCollisions() {
@@ -195,12 +203,16 @@ class Game {
     }
     drawAll() {
         this.clear();
+        /*const tX = this.player.x - (this.canvas.width - this.player.width) / 2;
+        const tY = this.player.y - (this.canvas.height - this.player.height) / 2;
+        this.context.translate(tX, tY);*/
         for (const id in this.players) {
             this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
+        //this.context.translate(-tX, -tY);
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
@@ -209,7 +221,7 @@ class Game {
     }
     keyDownEvent(event) {
         this.keys[event.keyCode] = true;
-        event.preventDefault();
+        //event.preventDefault();
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
