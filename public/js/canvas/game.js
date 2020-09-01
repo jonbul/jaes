@@ -34,7 +34,6 @@ class Game {
 
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
-            this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
 
             this.players = {};
             this.bullets = {};
@@ -96,7 +95,8 @@ class Game {
         this.movement();
     }
     clear() {
-        this.cleanBoard.draw(this.context);
+        
+        this.context.clearRect(this.player.x-this.canvas.width, this.player.y-this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
         const player = this.player;
