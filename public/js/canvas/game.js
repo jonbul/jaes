@@ -297,10 +297,7 @@ class Game {
             bullet.y = bullet.y + (bulletSpeed * bullet.dirY);
             bullet.x2 = bullet.x2 + (bulletSpeed * bullet.dirX);
             bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
-            if (bullet.dirX > 0 && bullet.x > bullet.expX ||
-                bullet.dirX < 0 && bullet.x < bullet.expX ||
-                bullet.dirY > 0 && bullet.y > bullet.expY ||
-                bullet.dirY < 0 && bullet.y < bullet.expY) {
+            if (bullet.isExpired()) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {

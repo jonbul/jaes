@@ -680,6 +680,12 @@ class Bullet {
         this.arc.y = this.y;
         this.arc.draw(context);
     }
+    isExpired() {
+        return this.dirX > 0 && this.x > this.expX ||
+        this.dirX < 0 && this.x < this.expX ||
+        this.dirY > 0 && this.y > this.expY ||
+        this.dirY < 0 && this.y < this.expY
+    }
 }
 export {
     Abstract,
