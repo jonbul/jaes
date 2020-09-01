@@ -39,6 +39,13 @@ class Game {
             this.bullets = {};
             this.keys = [];
 
+            this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
+            for (let i = 0; i < 2000; i++) {
+                const x = parseInt(Math.random() * 20000) - 10000;
+                const y = parseInt(Math.random() * 20000) - 10000;
+                this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
+            }
+
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -56,8 +63,7 @@ class Game {
             this.player.ioId = this.io.id;
             this.io.emit('player movement', this.player);
 
-            const bg = new Rect(-10000, -10000, 20000, 20000, '#1c2773');
-            this.background = new Layer('background', [bg]);
+            this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
             for (let i = 0; i < 2000; i++) {
                 const x = parseInt(Math.random() * 20000) - 10000;
                 const y = parseInt(Math.random() * 20000) - 10000;
@@ -92,13 +98,15 @@ class Game {
         });
     }
     beginInterval() {
-        this.intervaId = setInterval(this.intervalMethod.bind(this), 20);
+        this.intervalMethod()
     }
     stopInterval() {
         clearInterval(this.intervalId);
     }
     intervalMethod() {
         this.movement();
+        this.drawAll();
+        requestAnimationFrame(this.intervalMethod.bind(this));
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -118,6 +126,8 @@ class Game {
         if (this.keys[KEYS.DOWN] && player.speed) {
             player.speed -= 0.5;
         }
+        if (player.speed >= 20) player.speed = 20;
+        if (player.speed < 0) player.speed = 0;
 
         if (this.keys[KEYS.LEFT]) {
             player.rotate -= 0.02;
@@ -125,26 +135,39 @@ class Game {
         if (this.keys[KEYS.RIGHT]) {
             player.rotate += 0.02;
         }
-        if (player.rotate >= 360) player.rotate -= 360;
-        if (player.rotate < 0) player.rotate = 360 + player.rotate;
-        let rotate90 = player.rotate;
-        while (rotate90 > 90) rotate90 -= 90;
+        if (player.rotate >= 2*Math.PI) player.rotate -= 2*Math.PI;
+        if (player.rotate < 0) player.rotate = 2*Math.PI + player.rotate;
 
-        let moveX = player.speed ? Math.cos(rotate90) * player.speed : 0;
-        let moveY = player.speed ? Math.sin(rotate90) * player.speed : 0;
-        if (player.rotate >= 90 && player.rotate < 180) {
-            moveX *= -1;
-        } else if (player.rotate >= 180 && player.rotate < 270) {
-            moveX *= -1;
-            moveY *= -1;
-        } else if (player.rotate >= 270 && player.rotate < 360) {
-            moveY *= -1;
+        const quad = parseInt(player.rotate / (Math.PI/2));
+        const angle = player.rotate - Math.PI/2 * quad;
+        let moveX = 0;
+        let moveY = 0;
+        moveX = player.speed ? Math.cos(angle) * player.speed : 0;
+        moveY = player.speed ? Math.sin(angle) * player.speed : 0;
+        console.log(moveX, moveY);
+        //////////////////////
+        switch(quad) {
+            case 0:
+                break;
+            case 1:
+                moveX = player.speed ? Math.sin(angle) * player.speed : 0;
+                moveY = player.speed ? Math.cos(angle) * player.speed : 0;
+                moveX *= -1;
+                break;
+            case 2:
+                moveY *= -1;
+                moveX *= -1;
+                break;
+            case 3:
+                moveX = player.speed ? Math.sin(angle) * player.speed : 0;
+                moveY = player.speed ? Math.cos(angle) * player.speed : 0;
+                moveY *= -1;
+                break;
         }
+        /////////////////////////
         player.x += moveX;
         player.y += moveY;
-        console.log('Speed', player.speed);
-        console.log('XY', player.x, player.y);
-        console.log('Move', moveX, moveY);
+        //console.log('Rot', quad, moveX, moveY);
 
 
         this.context.translate(-moveX, -moveY);
@@ -153,7 +176,6 @@ class Game {
             this.io.emit('player movement', this.player);
         }
 
-        this.drawAll();
     }
     movement_old() {
         const player = this.player;

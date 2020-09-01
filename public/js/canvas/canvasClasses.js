@@ -665,7 +665,6 @@ class Bullet {
         this.length = 5;
         this.x2 = this.x + this.length * dirX;
         this.y2 = this.y + this.length * dirY;
-        this.line = new Line([{ x, y }, { x: this.x2, y: this.y2 }], '#ff0000', 10);
         this.arc = new Arc(this.x, this.y, 5, '#ff0000');
         this.id = ioId + '-' + Date.now();
         this.range = 2000;
