@@ -298,7 +298,10 @@ class Game {
             bullet.y = bullet.y + (bulletSpeed * bullet.dirY);
             bullet.x2 = bullet.x2 + (bulletSpeed * bullet.dirX);
             bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
-            if (bullet.x < -bullet.length || bullet.y < -bullet.length || bullet.x > this.canvas.width + bullet.length || bullet.y > this.canvas.height + bullet.length) {
+            if (bullet.dirX > 0 && bullet.x > bullet.expX ||
+                bullet.dirX < 0 && bullet.x < bullet.expX ||
+                bullet.dirY > 0 && bullet.y > bullet.expX ||
+                bullet.dirY < 0 && bullet.y < bullet.expX) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {

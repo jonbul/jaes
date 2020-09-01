@@ -666,7 +666,14 @@ class Bullet {
         this.y2 = this.y + this.length * dirY;
         this.line = new Line([{ x, y }, { x: this.x2, y: this.y2 }], '#ff0000', 10);
         this.arc = new Arc(this.x, this.y, 5, '#ff0000');
-        this.id = ioId + '-' + Date.now()
+        this.id = ioId + '-' + Date.now();
+        this.range = 2000;
+        let distance = this.range;
+        if(this.dirX && this.dirY) {
+            distance = Math.sqrt(2 * Math.pow(this.range));
+        }
+        this.expX = this.x + this.dirX * distance;
+        this.expY = this.y + this.dirY * distance;
     }
     draw(context) {
         this.arc.x = this.x;
