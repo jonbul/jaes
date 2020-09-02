@@ -165,10 +165,11 @@ class Game {
         player.x += moveX;
         player.y += moveY;
 
-        this.context.translate(-moveX, -moveY);
+        
 
         if(player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
             if(!this.checkCollisions()) {
+                this.context.translate(-moveX, -moveY);
                 this.io.emit('player movement', this.player);
             } else{
                 player.x = tempPosition.x;
@@ -229,7 +230,14 @@ class Game {
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
-        new Text(`${this.player.x}x${this.player.y}`, this.player.x - this.canvas.width / 2 + this.player.width, this.player.y - this.canvas.height / 2 + this.player.height,40, 'Helvetica', '#13ff03').draw(this.context);
+        const text1 = `${this.player.x}x${this.player.y}`;
+        const text2 = `Speed: ${this.player.speed}`;
+        const text3 = `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`;
+        const textX = this.player.x - this.canvas.width / 2 + this.player.width;
+        const textY = this.player.y - this.canvas.height / 2 + this.player.height;
+        new Text(text1, textX, textY,40, 'Helvetica', '#13ff03').draw(this.context);
+        new Text(text2, textX, textY + 50,40, 'Helvetica', '#13ff03').draw(this.context);
+        new Text(text3, textX, textY + 100,40, 'Helvetica', '#13ff03').draw(this.context);
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
