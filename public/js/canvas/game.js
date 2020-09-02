@@ -98,7 +98,7 @@ class Game {
         });
     }
     beginInterval() {
-        this.intervalMethod()
+        setInterval(this.intervalMethod.bind(this), 1000/60);
     }
     stopInterval() {
         clearInterval(this.intervalId);
@@ -106,15 +106,12 @@ class Game {
     intervalMethod() {
         this.movement();
         this.drawAll();
-        requestAnimationFrame(this.intervalMethod.bind(this));
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
         const player = this.player;
-        let speedX = 0;
-        let speedY = 0;
         const tempPosition = {
             x: player.x,
             y: player.y
@@ -144,8 +141,7 @@ class Game {
         let moveY = 0;
         moveX = player.speed ? Math.cos(angle) * player.speed : 0;
         moveY = player.speed ? Math.sin(angle) * player.speed : 0;
-        console.log(moveX, moveY);
-        //////////////////////
+        
         switch(quad) {
             case 0:
                 break;
@@ -164,74 +160,22 @@ class Game {
                 moveY *= -1;
                 break;
         }
-        /////////////////////////
+        moveX = parseInt(moveX);
+        moveY = parseInt(moveY);
         player.x += moveX;
         player.y += moveY;
-        //console.log('Rot', quad, moveX, moveY);
-
 
         this.context.translate(-moveX, -moveY);
 
         if(player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
-            this.io.emit('player movement', this.player);
-        }
-
-    }
-    movement_old() {
-        const player = this.player;
-        const tempPosition = {
-            x: player.x,
-            y: player.y
-        }
-        let move = this.keys[KEYS.UP] !== this.keys[KEYS.DOWN] || this.keys[KEYS.LEFT] !== this.keys[KEYS.RIGHT];
-        let speed = this.keys[KEYS.SHIFT] ? 8 : 4;
-        if (this.keys[KEYS.CTRL]) speed = speed / 2;
-        let speedX = 0;
-        let speedY = 0;
-        if (this.keys[KEYS.UP]) {
-            speedY -= speed;
-        }
-        if (this.keys[KEYS.DOWN]) {
-            speedY += speed;
-        }
-        if (this.keys[KEYS.LEFT]) {
-            speedX -= speed;
-        }
-        if (this.keys[KEYS.RIGHT]) {
-            speedX += speed;
-        }
-        player.x += speedX;
-        player.y += speedY;
-
-        //direction
-        if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 180;
-        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] === this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 0;
-        } else if (this.keys[KEYS.LEFT] === this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 270;
-        } else if (this.keys[KEYS.LEFT] === this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 90;
-        } else if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 225;
-        } else if (this.keys[KEYS.LEFT] && !this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 135;
-        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && this.keys[KEYS.UP] && !this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 315;
-        } else if (!this.keys[KEYS.LEFT] && this.keys[KEYS.RIGHT] && !this.keys[KEYS.UP] && this.keys[KEYS.DOWN]) {
-            player.rotateGrad = 45;
-        }
-        player.rotate = player.rotateGrad * Math.PI / 180;
-        if (move) {
-            if (!this.checkCollisions()) {
-                this.context.translate(-speedX, -speedY);
+            if(!this.checkCollisions()) {
                 this.io.emit('player movement', this.player);
-            } else {
+            } else{
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
             }
         }
-        this.drawAll();
+
     }
     checkCollisions() {
         const rect1 = this.player;
@@ -285,6 +229,7 @@ class Game {
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
+        new Text(`${this.player.x}x${this.player.y}`, this.player.x - this.canvas.width / 2 + this.player.width, this.player.y - this.canvas.height / 2 + this.player.height,40, 'Helvetica', '#13ff03').draw(this.context);
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
