@@ -63,12 +63,6 @@ class Game {
             this.player.ioId = this.io.id;
             this.io.emit('player movement', this.player);
 
-            this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-            for (let i = 0; i < 2000; i++) {
-                const x = parseInt(Math.random() * 20000) - 10000;
-                const y = parseInt(Math.random() * 20000) - 10000;
-                this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
-            }
             this.beginInterval();
             setInterval(this.bulletInterval.bind(this), 10);
         })();
@@ -98,7 +92,7 @@ class Game {
         });
     }
     beginInterval() {
-        setInterval(this.intervalMethod.bind(this), 1000/60);
+        setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     stopInterval() {
         clearInterval(this.intervalId);
@@ -132,17 +126,17 @@ class Game {
         if (this.keys[KEYS.RIGHT]) {
             player.rotate += 0.02;
         }
-        if (player.rotate >= 2*Math.PI) player.rotate -= 2*Math.PI;
-        if (player.rotate < 0) player.rotate = 2*Math.PI + player.rotate;
+        if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
+        if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
-        const quad = parseInt(player.rotate / (Math.PI/2));
-        const angle = player.rotate - Math.PI/2 * quad;
+        const quad = parseInt(player.rotate / (Math.PI / 2));
+        const angle = player.rotate - Math.PI / 2 * quad;
         let moveX = 0;
         let moveY = 0;
         moveX = player.speed ? Math.cos(angle) * player.speed : 0;
         moveY = player.speed ? Math.sin(angle) * player.speed : 0;
-        
-        switch(quad) {
+
+        switch (quad) {
             case 0:
                 break;
             case 1:
@@ -165,13 +159,11 @@ class Game {
         player.x += moveX;
         player.y += moveY;
 
-        
-
-        if(player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
-            if(!this.checkCollisions()) {
+        if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
+            if (!this.checkCollisions()) {
                 this.context.translate(-moveX, -moveY);
                 this.io.emit('player movement', this.player);
-            } else{
+            } else {
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
             }
@@ -196,9 +188,7 @@ class Game {
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
         if (!bullet) {
-            bullet = new Bullet(bulletDetails.ioId, bulletDetails.x, bulletDetails.y, bulletDetails.dirX, bulletDetails.dirY, bulletDetails.rotate);
-
-            bullet.rotateGrad = bulletDetails.rotateGrad;
+            bullet = new Bullet(bulletDetails.ioId, bulletDetails.x, bulletDetails.y, bulletDetails.rotate);
             this.bullets[bulletDetails.id] = bullet;
         } else {
             bullet.x = bulletDetails.x;
@@ -235,9 +225,9 @@ class Game {
         const text3 = `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`;
         const textX = this.player.x - this.canvas.width / 2 + this.player.width;
         const textY = this.player.y - this.canvas.height / 2 + this.player.height;
-        new Text(text1, textX, textY,40, 'Helvetica', '#13ff03').draw(this.context);
-        new Text(text2, textX, textY + 50,40, 'Helvetica', '#13ff03').draw(this.context);
-        new Text(text3, textX, textY + 100,40, 'Helvetica', '#13ff03').draw(this.context);
+        new Text(text1, textX, textY, 40, 'Helvetica', '#13ff03').draw(this.context);
+        new Text(text2, textX, textY + 50, 40, 'Helvetica', '#13ff03').draw(this.context);
+        new Text(text3, textX, textY + 100, 40, 'Helvetica', '#13ff03').draw(this.context);
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
@@ -250,76 +240,18 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (event.keyCode === KEYS.SPACE) this.createBullet();
+        if (event.keyCode === KEYS.SPACE) this.player.createBullet();
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
             this.keys[keyCode] = false;
         }
     }
-    createBullet() {
-        const player = this.player;
-        let x, y, dirX, dirY;
-        switch (this.player.rotateGrad) {
-            case 0:
-                x = player.x + player.width;
-                y = player.y + player.height / 2;
-                dirX = 1;
-                dirY = 0;
-                break;
-            case 45:
-                x = player.x + player.width;
-                y = player.y + player.height;
-                dirX = 1;
-                dirY = 1;
-                break;
-            case 90:
-                x = player.x + player.width / 2;
-                y = player.y + player.height;
-                dirX = 0;
-                dirY = 1;
-                break;
-            case 135:
-                x = player.x;
-                y = player.y + player.height;
-                dirX = -1;
-                dirY = 1;
-                break;
-            case 180:
-                x = player.x;
-                y = player.y + player.height / 2;
-                dirX = -1;
-                dirY = 0;
-                break;
-            case 225:
-                x = player.x;
-                y = player.y;
-                dirX = -1;
-                dirY = -1;
-                break;
-            case 270:
-                x = player.x + player.width / 2;
-                y = player.y;
-                dirX = 0;
-                dirY = -1;
-                break;
-            case 315:
-                x = player.x + player.width;
-                y = player.y;
-                dirX = 1;
-                dirY = -1;
-                break;
-        }
-        const bullet = new Bullet(this.io.id, x, y, dirX, dirY, this.player.rotateGrad);
-        this.player.bullets.push(bullet);
-    }
     bulletInterval() {
-        const bulletSpeed = 20;
+        const bulletSpeed = 25;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
-            bullet.x = bullet.x + (bulletSpeed * bullet.dirX);
-            bullet.y = bullet.y + (bulletSpeed * bullet.dirY);
-            bullet.x2 = bullet.x2 + (bulletSpeed * bullet.dirX);
-            bullet.y2 = bullet.y2 + (bulletSpeed * bullet.dirY);
+            bullet.x += (bulletSpeed * bullet.moveX);
+            bullet.y += (bulletSpeed * bullet.moveY);
             if (bullet.isExpired()) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
@@ -345,10 +277,12 @@ class Game {
         let playerKilled;
         for (const id in this.players) {
             const player = this.players[id];
-            collission = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
-            if (collission) {
-                playerKilled = player;
-                break;
+            if (player.socketId !== bullet.socketId) {
+                collission = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
+                if (collission) {
+                    playerKilled = player;
+                    break;
+                }
             }
         }
         return playerKilled;

@@ -653,27 +653,45 @@ class Player {
         });
         this.nameShape.draw(context, {x: this.x, y: this.y});
     }
+    createBullet() {
+        let bPosX = this.x + this.width / 2;
+        let bPosY = this.y + this.height / 2;
+        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate));
+    }
 }
 class Bullet {
-    constructor(ioId, x, y, dirX, dirY, rotate) {
-        this.ioId = ioId;
+    constructor(socketId, x, y, angle) {
+        this.socketId = socketId;
         this.x = x;
         this.y = y;
-        this.dirX = dirX;
-        this.dirY = dirY;
-        this.rotate = rotate;
-        this.length = 5;
-        this.x2 = this.x + this.length * dirX;
-        this.y2 = this.y + this.length * dirY;
-        this.arc = new Arc(this.x, this.y, 5, '#ff0000');
-        this.id = ioId + '-' + Date.now();
+        this.angle = angle;
+        this.id = socketId + '-' + Date.now();
         this.range = 2000;
-        let distance = this.range;
-        if(this.dirX && this.dirY) {
-            distance = Math.sqrt(2 * Math.pow(this.range));
+
+
+        const quad = parseInt(this.angle / (Math.PI / 2));
+        
+        this.moveX = Math.abs(Math.cos(angle));
+        this.moveY = Math.abs(Math.sin(angle));
+        switch (quad) {
+            case 0:
+                break;
+            case 1:
+                this.moveX *= -1;
+                break;
+            case 2:
+                this.moveY *= -1;
+                this.moveX *= -1;
+                break;
+            case 3:
+                this.moveY *= -1;
+                break;
         }
-        this.expX = this.x + (this.dirX * distance);
-        this.expY = this.y + (this.dirY * distance);
+        this.expX = this.moveX * this.range + this.x;
+        this.expY = this.moveY * this.range + this.y;
+        
+        this.arc = new Arc(this.x, this.y, 5, '#ff0000');
+        console.log(this.moveX, this.moveY)
     }
     draw(context) {
         this.arc.x = this.x;
@@ -681,10 +699,10 @@ class Bullet {
         this.arc.draw(context);
     }
     isExpired() {
-        return this.dirX > 0 && this.x > this.expX ||
-        this.dirX < 0 && this.x < this.expX ||
-        this.dirY > 0 && this.y > this.expY ||
-        this.dirY < 0 && this.y < this.expY
+        return this.moveX > 0 && this.x > this.expX ||
+        this.moveX < 0 && this.x < this.expX ||
+        this.moveY > 0 && this.y > this.expY ||
+        this.moveY < 0 && this.y < this.expY
     }
 }
 export {
