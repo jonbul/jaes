@@ -35,17 +35,11 @@ class Game {
 
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
-
+            
             this.players = {};
             this.bullets = {};
             this.keys = [];
-
-            this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-            for (let i = 0; i < 2000; i++) {
-                const x = parseInt(Math.random() * 20000) - 10000;
-                const y = parseInt(Math.random() * 20000) - 10000;
-                this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
-            }
+            this.createStaticCanvas();
 
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
@@ -113,10 +107,10 @@ class Game {
         }
 
         if (this.keys[KEYS.UP]) {
-            player.speed += 0.5;
+            player.speed += 0.1;
         }
         if (this.keys[KEYS.DOWN] && player.speed) {
-            player.speed -= 0.5;
+            player.speed -= 0.1;
         }
         if (player.speed >= 20) player.speed = 20;
         if (player.speed < 0) player.speed = 0;
@@ -226,9 +220,36 @@ class Game {
         const text3 = `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`;
         const textX = this.player.x - this.canvas.width / 2 + this.player.width;
         const textY = this.player.y - this.canvas.height / 2 + this.player.height;
-        new Text(text1, textX, textY, 40, 'Helvetica', '#13ff03').draw(this.context);
-        new Text(text2, textX, textY + 50, 40, 'Helvetica', '#13ff03').draw(this.context);
-        new Text(text3, textX, textY + 100, 40, 'Helvetica', '#13ff03').draw(this.context);
+        this.drawTexts();
+
+    }
+    drawTexts() {
+        const texts = [
+            `${this.player.x}x${this.player.y}`,
+            `Speed: ${parseInt(this.player.speed * 100) / 100}`,
+            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`];
+        const textX = this.player.x - this.canvas.width / 2 + this.player.width;
+        const textY = this.player.y - this.canvas.height / 2 + this.player.height;
+        texts.forEach((text,i) => {
+            this.playerInfo.shapes[i].text = text;
+            this.playerInfo.shapes[i].x = textX;
+            this.playerInfo.shapes[i].y = textY + i * 50;
+        });
+        this.playerInfo.draw(this.context)
+    }
+    createStaticCanvas() {
+        this.playerInfo = new Layer('Player Info', [
+            new Text('', 0, 0, 40, 'Helvetica', '#13ff03'),
+            new Text('', 0, 0 + 50, 40, 'Helvetica', '#13ff03'),
+            new Text('', 0, 0 + 100, 40, 'Helvetica', '#13ff03')
+        ]);
+        
+        this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
+        for (let i = 0; i < 2000; i++) {
+            const x = parseInt(Math.random() * 20000) - 10000;
+            const y = parseInt(Math.random() * 20000) - 10000;
+            this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
+        }
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
@@ -237,7 +258,6 @@ class Game {
     }
     keyDownEvent(event) {
         this.keys[event.keyCode] = true;
-        //event.preventDefault();
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
