@@ -38,7 +38,7 @@ class Player {
         this.layers.forEach(layer => {
             layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
         });
-        this.nameShape.draw(context, {x: this.x, y: this.y});
+        this.nameShape.draw(context, { x: this.x, y: this.y });
     }
     createBullet() {
         let bPosX = this.x + this.width / 2;
@@ -57,7 +57,7 @@ class Bullet {
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
-        
+
         this.moveX = Math.abs(Math.cos(angle));
         this.moveY = Math.abs(Math.sin(angle));
         switch (quad) {
@@ -76,7 +76,7 @@ class Bullet {
         }
         this.expX = this.moveX * this.range + this.x;
         this.expY = this.moveY * this.range + this.y;
-        
+
         this.arc = new Arc(this.x, this.y, 5, '#ff0000');
         console.log(this.moveX, this.moveY)
     }
@@ -87,11 +87,11 @@ class Bullet {
     }
     isExpired() {
         return this.moveX > 0 && this.x > this.expX ||
-        this.moveX < 0 && this.x < this.expX ||
-        this.moveY > 0 && this.y > this.expY ||
-        this.moveY < 0 && this.y < this.expY
+            this.moveX < 0 && this.x < this.expX ||
+            this.moveY > 0 && this.y > this.expY ||
+            this.moveY < 0 && this.y < this.expY
     }
 }
 
-export {Bullet, Player}
-export default {Bullet, Player}
+export { Bullet, Player }
+export default { Bullet, Player }

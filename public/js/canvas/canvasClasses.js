@@ -58,7 +58,7 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
-        
+
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
@@ -268,7 +268,7 @@ class Line {
         context.lineWidth = this.borderWidth;
         context.stroke();
         context.fill();
-        
+
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
@@ -387,7 +387,7 @@ class Pencil {
         }
         context.lineWidth = this.borderWidth;
         context.stroke();
-        
+
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
@@ -453,7 +453,7 @@ class Abstract {
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
-        
+
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
@@ -583,7 +583,7 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
     }
-    draw(context, options = {x: 0, y:0}) {
+    draw(context, options = { x: 0, y: 0 }) {
         context.font = `${this.fontSize}px ${this.fontFamily}`;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x + options.x, this.y + options.y);
