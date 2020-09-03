@@ -1,7 +1,6 @@
 'use strict';
 import {
     Arc,
-    Bullet,
     ClickXY,
     Abstract,
     Ellipse,
@@ -13,10 +12,12 @@ import {
     Polygon,
     Rect,
     Rubber,
-    Player,
     Text
 } from './canvasClasses.js';
-import canvasClasses from './canvasClasses.js';
+import {
+    Bullet,
+    Player
+} from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 
