@@ -59,7 +59,6 @@ class Game {
             this.io.emit('player movement', this.player);
 
             this.beginInterval();
-            setInterval(this.bulletInterval.bind(this), 10);
         })();
     }
     socketIOEvents() {
@@ -88,9 +87,7 @@ class Game {
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
-    }
-    stopInterval() {
-        clearInterval(this.intervalId);
+        setInterval(this.bulletInterval.bind(this), 10);
     }
     intervalMethod() {
         this.movement();
