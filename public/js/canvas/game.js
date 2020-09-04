@@ -173,7 +173,7 @@ class Game {
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
         if (!bullet) {
-            bullet = new Bullet(bulletDetails.ioId, bulletDetails.x, bulletDetails.y, bulletDetails.rotate);
+            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle);
             this.bullets[bulletDetails.id] = bullet;
         } else {
             bullet.x = bulletDetails.x;
