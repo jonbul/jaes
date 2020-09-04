@@ -123,17 +123,13 @@ class Game {
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
         const angle = player.rotate - Math.PI / 2 * quad;
-        let moveX = 0;
-        let moveY = 0;
-        moveX = player.speed ? Math.cos(angle) * player.speed : 0;
-        moveY = player.speed ? Math.sin(angle) * player.speed : 0;
 
+        let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
+        let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
         switch (quad) {
             case 0:
                 break;
             case 1:
-                moveX = player.speed ? Math.sin(angle) * player.speed : 0;
-                moveY = player.speed ? Math.cos(angle) * player.speed : 0;
                 moveX *= -1;
                 break;
             case 2:
@@ -141,13 +137,10 @@ class Game {
                 moveX *= -1;
                 break;
             case 3:
-                moveX = player.speed ? Math.sin(angle) * player.speed : 0;
-                moveY = player.speed ? Math.cos(angle) * player.speed : 0;
                 moveY *= -1;
                 break;
         }
-        moveX = parseInt(moveX);
-        moveY = parseInt(moveY);
+
         player.x += moveX;
         player.y += moveY;
 
@@ -222,9 +215,9 @@ class Game {
     }
     drawTexts() {
         const texts = [
-            `${this.player.x}x${this.player.y}`,
+            `${parseInt(this.player.x * 100) / 100}x${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
-            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`];
+            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`,];
         const textX = this.player.x - this.canvas.width / 2 + this.player.width;
         const textY = this.player.y - this.canvas.height / 2 + this.player.height;
         texts.forEach((text,i) => {
@@ -238,7 +231,8 @@ class Game {
         this.playerInfo = new Layer('Player Info', [
             new Text('', 0, 0, 40, 'Helvetica', '#13ff03'),
             new Text('', 0, 0 + 50, 40, 'Helvetica', '#13ff03'),
-            new Text('', 0, 0 + 100, 40, 'Helvetica', '#13ff03')
+            new Text('', 0, 0 + 100, 40, 'Helvetica', '#13ff03'),
+            new Text('', 0, 0 + 150, 40, 'Helvetica', '#13ff03')
         ]);
         
         this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
