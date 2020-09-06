@@ -16,14 +16,15 @@ import {
 } from './canvasClasses.js';
 import {
     Bullet,
-    Player
+    _player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
-
+let Player;
 class Game {
     constructor(canvas, username, io) {
         (async () => {
+            Player = await _player;
             window.game = this;
             this.username = username
             this.io = io;
@@ -48,8 +49,9 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, this.ships[0], 0, 0);
+            this.player = new Player(this.username, 0, 0, 0);
             this.player.socketId = socket.id;
+            this.players[socket.id] = this.player;
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
@@ -58,7 +60,7 @@ class Game {
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
-            this.io.emit('player movement', this.player);
+            this.io.emit('player movement', this.player.getSortDetails());
 
             this.beginInterval();
         })();
@@ -89,11 +91,13 @@ class Game {
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
-        setInterval(this.bulletInterval.bind(this), 10);
     }
     intervalMethod() {
         this.movement();
-        this.drawAll();
+        this.bulletInterval();
+        
+        //this.drawAll();
+        requestAnimationFrame(this.drawAll.bind(this));
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -146,10 +150,13 @@ class Game {
         player.x += moveX;
         player.y += moveY;
 
+        player.x = Math.round(player.x * 100) / 100;
+        player.y = Math.round(player.y * 100) / 100;
+
         if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
             if (!this.checkCollisions()) {
                 this.context.translate(-moveX, -moveY);
-                this.io.emit('player movement', this.player);
+                this.io.emit('player movement', this.player.getSortDetails());
             } else {
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
@@ -188,14 +195,13 @@ class Game {
         const players = this.players;
         if (plDetails) {
             if (!players[plDetails.socketId]) {
-                players[plDetails.socketId] = new Player(plDetails.name, plDetails.ship);
+                players[plDetails.socketId] = new Player(plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
                 players[plDetails.socketId].ioId = plDetails.ioId;
             }
             players[plDetails.socketId].x = plDetails.x;
             players[plDetails.socketId].y = plDetails.y;
             players[plDetails.socketId].rotate = plDetails.rotate;
-            players[plDetails.socketId].rotateGrad = plDetails.rotateGrad;
         }
     }
     drawAll() {
@@ -203,10 +209,12 @@ class Game {
         this.background.draw(this.context);
         for (const id in this.players) {
             this.players[id].draw(this.context);
+            console.log(this.players[id].x, this.players[id].y)
         }
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
+        this.player.draw(this.context);
         this.drawTexts();
 
     }

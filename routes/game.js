@@ -30,7 +30,8 @@ module.exports = (app, io) => {
         socket.on('player movement', (msg) => {
             players[socket.id] = msg;
             msg.socketId = socket.id;
-            io.emit('players updated', msg);
+            console.log(Date.now(),msg.x, msg.y);
+            socket.broadcast.emit('players updated', msg);
         });
         socket.on('disconnect', () => {
             delete players[socket.id];

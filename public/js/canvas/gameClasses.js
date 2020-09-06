@@ -13,20 +13,21 @@ import {
     Rubber,
     Text
 } from './canvasClasses.js';
-import { parseLayers } from '../functions.js';
+import { parseLayers, asyncRequest } from '../functions.js';
+let ships;
 
 class Player {
-    constructor(username, ship, x = 0, y = 0) {
+    constructor(username, shipId, x = 0, y = 0) {
         this.name = username;
-        this.ship = ship;
-        this.layers = parseLayers(ship.layers);
+        this.shipId = shipId;
+        this.ship = ships[shipId];
+        this.layers = parseLayers(this.ship.layers);
         this.x = x;
         this.y = y;
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
         this.width = this.ship.width;
         this.height = this.ship.height;
         this.rotate = 0;
-        this.rotateGrad = 0
         this.bullets = [];
         this.life = 10;
         this.deaths = 0;
@@ -44,6 +45,18 @@ class Player {
         let bPosX = this.x + this.width / 2;
         let bPosY = this.y + this.height / 2;
         this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate));
+    }
+    getSortDetails() {
+        return {
+            x: this.x,
+            y: this.y,
+            name: this.name,
+            rotate: this.rotate,
+            life: this.life,
+            kills: this.kills,
+            deaths: this.deaths,
+            shipId: this.shipId
+        }
     }
 }
 class Bullet {
@@ -93,5 +106,10 @@ class Bullet {
     }
 }
 
-export { Bullet, Player }
-export default { Bullet, Player }
+const _player = new Promise(async function (resolve) {
+    ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
+    resolve(Player);
+});
+
+export { Bullet, _player }
+export default { Bullet, _player }
