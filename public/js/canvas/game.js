@@ -33,9 +33,11 @@ class Game {
             this.loadEvents();
             this.socketIOEvents();
 
+            //await new FontFace('retro', 'url(/fonts/Arcade.ttf)').load();
+
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
-            
+
             this.players = {};
             this.bullets = {};
             this.keys = [];
@@ -213,30 +215,62 @@ class Game {
             `${parseInt(this.player.x * 100) / 100}x${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`,];
-        const textX = this.player.x - this.canvas.width / 2 + this.player.width;
-        const textY = this.player.y - this.canvas.height / 2 + this.player.height;
-        texts.forEach((text,i) => {
+        const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
+        const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
+        const textX = cornerX + 20;
+        const textY = cornerY + 50;
+        texts.forEach((text, i) => {
             this.playerInfo.shapes[i].text = text;
             this.playerInfo.shapes[i].x = textX;
             this.playerInfo.shapes[i].y = textY + i * 50;
         });
-        this.playerInfo.draw(this.context)
+        this.playerInfo.draw(this.context);
+
+        this.lifeText.text = `Health: ${this.player.life}`;
+        this.lifeText.x = cornerX + this.canvas.width - 300;
+        this.lifeText.y = cornerY + 50;
+        this.lifeText.draw(this.context);
+
+        if (this.keys[KEYS.TAB]) {
+            this.shadowBackground.x = cornerX;
+            this.shadowBackground.y = cornerY;
+            this.shadowBackground.draw(this.context);
+            const plList = [];
+            const textRows = [['Name', 'Kills', 'Deaths']];
+            for (const id in this.players) {
+                const player = this.players[id];
+                plList.push(player);
+                textRows.push([player.name,player.kills,player.deaths]);
+            }
+            const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
+            textRows.forEach((row, i) => {
+                row.forEach((column, j) => {
+                    text.text = column;
+                    text.x = cornerX + 500 + 300 * j;
+                    text.y = cornerY + 50 + 50 * (i + 1);
+                    text.draw(this.context);
+                });
+            });
+        }
     }
     createStaticCanvas() {
         this.playerInfo = new Layer('Player Info', [
-            new Text('', 0, 0, 40, 'Helvetica', '#13ff03'),
-            new Text('', 0, 0 + 50, 40, 'Helvetica', '#13ff03'),
-            new Text('', 0, 0 + 100, 40, 'Helvetica', '#13ff03'),
-            new Text('', 0, 0 + 150, 40, 'Helvetica', '#13ff03')
+            new Text('', 0, 0, 40, 'Arcade', '#13ff03'),
+            new Text('', 0, 0 + 50, 40, 'Arcade', '#13ff03'),
+            new Text('', 0, 0 + 100, 40, 'Arcade', '#13ff03'),
+            new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03')
         ]);
-        
+
+        this.lifeText = new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03');
+
         this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-        for (let i = 0; i < 8000; i++) {
+        for (let i = 0; i < 2000; i++) {
             const x = parseInt(Math.random() * 20000) - 10000;
             const y = parseInt(Math.random() * 20000) - 10000;
-            const starWidth = parseInt(Math.random() * 4) + 1;console.log(starWidth)
+            const starWidth = parseInt(Math.random() * 4) + 1;
             this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
         }
+        this.shadowBackground = new Rect(0,0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
@@ -245,6 +279,9 @@ class Game {
     }
     keyDownEvent(event) {
         this.keys[event.keyCode] = true;
+        if (this.keys[KEYS.TAB]) {
+            event.preventDefault();
+        }
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;

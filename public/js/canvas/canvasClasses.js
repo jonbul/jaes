@@ -575,18 +575,19 @@ class Picture {
 }
 
 class Text {
-    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000') {
+    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000', width) {
         this.text = text;
         this.x = x;
         this.y = y;
         this.fontSize = fontSize;
         this.fontFamily = fontFamily;
         this.color = color;
+        this.width = width;
     }
     draw(context, options = { x: 0, y: 0 }) {
         context.font = `${this.fontSize}px ${this.fontFamily}`;
         context.fillStyle = this.color;
-        context.fillText(this.text, this.x + options.x, this.y + options.y);
+        context.fillText(this.text, this.x + options.x, this.y + options.y, this.width);
     }
 }
 
