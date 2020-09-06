@@ -12,6 +12,7 @@ const LAYER = 'Layer';
 const POLYFORM = 'Polyform';
 const COLORPICKER = 'ColorPicker';
 const KEYS = {
+    TAB: 9,
     SHIFT: 16,
     CTRL: 17,
     SPACE: 32,

@@ -205,11 +205,6 @@ class Game {
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
         }
-        const text1 = `${this.player.x}x${this.player.y}`;
-        const text2 = `Speed: ${this.player.speed}`;
-        const text3 = `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`;
-        const textX = this.player.x - this.canvas.width / 2 + this.player.width;
-        const textY = this.player.y - this.canvas.height / 2 + this.player.height;
         this.drawTexts();
 
     }
@@ -236,10 +231,11 @@ class Game {
         ]);
         
         this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-        for (let i = 0; i < 2000; i++) {
+        for (let i = 0; i < 8000; i++) {
             const x = parseInt(Math.random() * 20000) - 10000;
             const y = parseInt(Math.random() * 20000) - 10000;
-            this.background.shapes.push(new Arc(x, y, 2, '#ffffff'))
+            const starWidth = parseInt(Math.random() * 4) + 1;console.log(starWidth)
+            this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
         }
     }
     loadEvents() {
