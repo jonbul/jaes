@@ -95,7 +95,7 @@ class Game {
     intervalMethod() {
         this.movement();
         this.bulletInterval();
-        
+
         //this.drawAll();
         requestAnimationFrame(this.drawAll.bind(this));
     }
@@ -209,7 +209,6 @@ class Game {
         this.background.draw(this.context);
         for (const id in this.players) {
             this.players[id].draw(this.context);
-            console.log(this.players[id].x, this.players[id].y)
         }
         for (const id in this.bullets) {
             this.bullets[id].draw(this.context);
@@ -248,7 +247,7 @@ class Game {
             for (const id in this.players) {
                 const player = this.players[id];
                 plList.push(player);
-                textRows.push([player.name,player.kills,player.deaths]);
+                textRows.push([player.name, player.kills, player.deaths]);
             }
             const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
             textRows.forEach((row, i) => {
@@ -278,7 +277,7 @@ class Game {
             const starWidth = parseInt(Math.random() * 4) + 1;
             this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
         }
-        this.shadowBackground = new Rect(0,0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
+        this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
