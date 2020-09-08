@@ -6,7 +6,7 @@ const io = require('socket.io').listen(http);;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const validator = require('express-validator');
-const port = 3001;
+const PORT = process.env.PORT || 3000;
 
 const passport = require('passport');
 
@@ -58,4 +58,4 @@ require('./routes/user')(app);
 require('./routes/game')(app, io);
 require('./routes/paintingBoard')(app);
 
-http.listen(port, () => { console.log('Hello from port ' + port) })
+http.listen(PORT, () => { console.log('Hello from port ' + PORT) });
