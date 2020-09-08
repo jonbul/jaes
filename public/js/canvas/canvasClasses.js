@@ -95,9 +95,6 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
-
-        context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     /*drawResized(context, resizeSize = 100) {
