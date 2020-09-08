@@ -1,0 +1,15 @@
+@font-face {
+    font-family: 'Arcade';
+    src: url('/fonts/Arcade.ttf');
+}
+@font-face {
+    font-family: 'Digitek';
+    src: url('/fonts/Digitek.ttf');
+}
+
+#canvas{
+    border: solid 1px #000000;
+    left: 0;
+    margin: 0 auto;
+    width: 100%;
+}

@@ -26,7 +26,6 @@ module.exports = (app) => {
     });
     
     app.post('/register', passport.authenticate('local.signup'), (req, res) => {
-        console.log('registering');
         const errors = req.flash('error');
         if (errors && errors.length) {
             res.status(500).json({errors});
@@ -68,6 +67,19 @@ module.exports = (app) => {
 
         req.session.destroy(err => {
             res.redirect('/');
+        });
+    });
+
+    app.get('/profile', (req, res) => {
+        let user;
+        if (req.session.passport && req.session.passport.user) {
+            user = req.session.passport.user;
+        }
+        console.log(!!req.user);
+        res.render('user/profile', {
+            title: 'Profile',
+            username: user.username,
+            user: user
         });
     });
 }

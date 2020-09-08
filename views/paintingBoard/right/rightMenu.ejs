@@ -1,0 +1,24 @@
+<div class="row">
+    <div class="col-12">
+        <div class="list-group list-group-horizontal" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action list-group-item-light active" id="list-layers-list" data-toggle="list"
+                href="#list-layers" role="tab" aria-controls="layers">Layers</a>
+            <a class="list-group-item list-group-item-action list-group-item-light" id="list-shapes-list" data-toggle="list"
+                href="#list-shapes" role="tab" aria-controls="shapes">Shapes</a>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="tab-content" id="nav-tabContent">
+            <div class="mt-2">
+                <label>Active Layer</label>
+                <select id="layerList" class="custom-select"></select>
+            </div>
+            <div class="tab-pane fade show active" id="list-layers" role="tabpanel" aria-labelledby="list-layers-list">
+                 <% include layers %>
+            </div>
+            <div class="tab-pane fade" id="list-shapes" role="tabpanel" aria-labelledby="list-shapes-list">
+                <% include shapes %>
+            </div>
+        </div>
+    </div>
+</div>
