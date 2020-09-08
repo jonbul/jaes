@@ -23,5 +23,5 @@ steps:
     targetType: 'inline'
     script: |
       git checkout $(Build.SourceBranchName)
-      git remote add heroku https://heroku:$(pat)@git.heroku.com/test_app.git
+      git remote add heroku https://heroku:$(pat)@git.heroku.com/jaes-website.git
       git push heroku $(Build.SourceBranchName)
