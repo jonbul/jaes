@@ -166,18 +166,18 @@ class Game {
     }
     checkCollisions() {
         const rect1 = this.player;
-        let colision = false;
+        let collision = false;
         for (let id in this.players) {
             const rect2 = this.players[id];
             if (rect2.ioId !== rect1.ioId) {
-                colision = rect1.x < rect2.x + rect2.width &&
+                collision = rect1.x < rect2.x + rect2.width &&
                     rect1.x + rect1.width > rect2.x &&
                     rect1.y < rect2.y + rect2.height &&
                     rect1.height + rect1.y > rect2.y;
-                if (colision) break;
+                if (collision) break;
             }
         }
-        return colision;
+        return collision;
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
@@ -205,13 +205,25 @@ class Game {
         }
     }
     drawAll() {
+        const viewRect = {
+            x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
+            y: this.player.y - (this.canvas.height / 2 - this.player.height / 2),
+            width: this.canvas.width,
+            height: this.canvas.height
+        }
         this.clear();
-        this.background.draw(this.context);
+        //this.background.draw(this.context);
+        this.background.shapes.forEach((shape, i) => {
+            if (!i || this.checkArcRectCollision(shape, viewRect))
+                shape.draw(this.context);
+        });
         for (const id in this.players) {
-            this.players[id].draw(this.context);
+            if (this.checkRectsCollision(this.players[id], viewRect))
+                this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
-            this.bullets[id].draw(this.context);
+            if (this.checkArcRectCollision(this.bullets[id].arc, viewRect))
+                this.bullets[id].draw(this.context);
         }
         this.player.draw(this.context);
         this.drawTexts();
@@ -271,7 +283,7 @@ class Game {
         this.lifeText = new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03');
 
         this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-        for (let i = 0; i < 2000; i++) {
+        for (let i = 0; i < 20000; i++) {
             const x = parseInt(Math.random() * 20000) - 10000;
             const y = parseInt(Math.random() * 20000) - 10000;
             const starWidth = parseInt(Math.random() * 4) + 1;
@@ -308,7 +320,7 @@ class Game {
                 this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
-                const playerHit = this.checkBulletColision(bullet);
+                const playerHit = this.checkBulletCollision(bullet);
                 if (playerHit) {
                     this.io.emit('player hit', {
                         bulletId: bullet.id,
@@ -324,7 +336,7 @@ class Game {
 
         });
     }
-    checkBulletColision(bullet) {
+    checkBulletCollision(bullet) {
         let collission = false;
         let playerKilled;
         for (const id in this.players) {
@@ -338,6 +350,32 @@ class Game {
             }
         }
         return playerKilled;
+    }
+    checkRectsCollision(rect1, rect2) {
+        return (rect1.x < rect2.x + rect2.width &&
+            rect1.x + rect1.width > rect2.x &&
+            rect1.y < rect2.y + rect2.height &&
+            rect1.height + rect1.y > rect2.y);
+    }
+    checkArcRectCollision(arc, rect) {
+        return this.checkRectsCollision(rect, {
+            x: arc.x - arc.radius,
+            y: arc.y - arc.radius,
+            width: arc.radius * 2,
+            height: arc.radius * 2
+        });
+        /*const rectCenter = {
+            x: rect.x + rect.width / 2,
+            y: rect.y + rect.height / 2,
+        }
+        const bc1 = rectCenter.x - arc.x;
+        const bc2 = rectCenter.y - arc.y;
+        const bh = Math.sqrt(Math.pow(bc1,2) + Math.pow(bc2,2), 2);
+        const rectAlphaSen = bc2 / bh;
+        const inRectAngle = Math.PI - Math.asin(rectAlphaSen);
+        const inRectC1 = rect.height / 2;
+        const inRectH = inRectC1 / Math.cos(inRectAngle);
+        return inRectH + arc.radius > bh;*/
     }
 }
 export default Game;
