@@ -20,6 +20,7 @@ import {
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
+import { Animation, explossionFrames } from './animationClass.js'
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -87,6 +88,16 @@ class Game {
         this.io.on('player died', msg => {
             this.players[msg.playerId].deaths++;
             this.players[msg.from].kills++;
+            const explossion = new Animation({
+                frames: explossionFrames.frames,
+                layer: explossionFrames.layer,
+                x: this.players[msg.playerId].x,
+                y: this.players[msg.playerId].y,
+                width: 100,
+                height: 100
+            });
+            this.animations.push(explossion);
+            explossion.play();
         });
     }
     beginInterval() {
@@ -226,6 +237,11 @@ class Game {
                 this.bullets[id].draw(this.context);
         }
         this.player.draw(this.context);
+        this.animations.forEach(anim => {
+            if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
+                anim.drawFrame(this.context);
+            }
+        });
         this.drawTexts();
 
     }
@@ -290,6 +306,7 @@ class Game {
             this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
         }
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
+        this.animations = [];
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
