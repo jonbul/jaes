@@ -62,6 +62,7 @@ function getExplossionFrames() {
         arc2.radius = 0;
         arc3.radius = 0;
         arc4.radius = 0;
+        arc5.radius = 0;
     }
     const frames = [[restart]];
 
@@ -88,6 +89,5 @@ function getExplossionFrames() {
         frames[frame].push(action);
     }
 }
-const explossionFrames = getExplossionFrames();
 
-export { Animation, explossionFrames };
+export { Animation, getExplossionFrames };

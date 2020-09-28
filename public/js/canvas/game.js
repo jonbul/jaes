@@ -20,7 +20,7 @@ import {
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
-import { Animation, explossionFrames } from './animationClass.js'
+import { Animation, getExplossionFrames } from './animationClass.js'
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -90,6 +90,7 @@ class Game {
             delete this.bullets[id];
         });
         this.io.on('player hit', msg => {
+            if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
             console.log('HIT', msg);
             if (!this.player.life) {
@@ -102,6 +103,7 @@ class Game {
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
+                        this.player.isDead = false;
                         this.io.emit('player movement', this.player.getSortDetails());
                     },10000);
                  }, 2000);
@@ -110,6 +112,7 @@ class Game {
         this.io.on('player died', msg => {
             this.players[msg.playerId].deaths++;
             this.players[msg.from].kills++;
+            const explossionFrames = getExplossionFrames();
             const explossion = new Animation({
                 frames: explossionFrames.frames,
                 layer: explossionFrames.layer,
@@ -221,6 +224,7 @@ class Game {
             players[plDetails.socketId].x = plDetails.x;
             players[plDetails.socketId].y = plDetails.y;
             players[plDetails.socketId].rotate = plDetails.rotate;
+            players[plDetails.socketId].hide = plDetails.hide;
         }
     }
     drawAll() {
@@ -238,7 +242,7 @@ class Game {
         });
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], viewRect))
-                this.players[id].draw(this.context);
+                if (!this.players[id].hide) this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
             if (this.checkArcRectCollision(this.bullets[id].arc, viewRect))
