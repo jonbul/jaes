@@ -33,8 +33,10 @@ class Player {
         this.deaths = 0;
         this.kills = 0;
         this.speed = 0;
+        this.hide = false;
     }
     draw(context) {
+        if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
         this.layers.forEach(layer => {
             layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
@@ -46,6 +48,10 @@ class Player {
         let bPosY = this.y + this.height / 2;
         this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate));
     }
+    dead() {
+        this.isDead = true;
+        this.speed = 0;
+    }
     getSortDetails() {
         return {
             x: this.x,
@@ -55,7 +61,8 @@ class Player {
             life: this.life,
             kills: this.kills,
             deaths: this.deaths,
-            shipId: this.shipId
+            shipId: this.shipId,
+            hide: this.hide
         }
     }
 }

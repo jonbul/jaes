@@ -20,6 +20,7 @@ import {
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
+import { Animation, getExplossionFrames } from './animationClass.js'
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -55,7 +56,7 @@ class Game {
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
-            } while (this.checkCollisions());
+            } while (this.checkCollisionsWithPlayers());
             const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
@@ -64,6 +65,18 @@ class Game {
 
             this.beginInterval();
         })();
+    }
+    reloadPlayer() {
+        const x = this.player.x;
+        const y = this.player.y;
+
+        do {
+            this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
+            this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
+        } while (this.checkCollisionsWithPlayers());
+
+        this.context.translate(x - this.player.x, y - this.player.y);
+        this.io.emit('player movement', this.player.getSortDetails());
     }
     socketIOEvents() {
 
@@ -77,16 +90,39 @@ class Game {
             delete this.bullets[id];
         });
         this.io.on('player hit', msg => {
-            this.player.life--;
+            if (this.player.isDead) return;
+            if (this.player.life > 0) this.player.life--;
             console.log('HIT', msg);
             if (!this.player.life) {
-                this.player.life = 10;
                 this.io.emit('player died', msg);
+                this.player.dead();
+                setTimeout(() => { 
+                    this.player.hide = true;
+                    this.io.emit('player movement', this.player.getSortDetails());
+                    setTimeout(() => { 
+                        this.reloadPlayer();
+                        this.player.hide = false;
+                        this.player.life = 10;
+                        this.player.isDead = false;
+                        this.io.emit('player movement', this.player.getSortDetails());
+                    },10000);
+                 }, 2000);
             }
         });
         this.io.on('player died', msg => {
             this.players[msg.playerId].deaths++;
             this.players[msg.from].kills++;
+            const explossionFrames = getExplossionFrames();
+            const explossion = new Animation({
+                frames: explossionFrames.frames,
+                layer: explossionFrames.layer,
+                x: this.players[msg.playerId].x,
+                y: this.players[msg.playerId].y,
+                width: 100,
+                height: 100
+            });
+            this.animations.push(explossion);
+            explossion.play();
         });
     }
     beginInterval() {
@@ -103,6 +139,7 @@ class Game {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
+        if (this.player.isDead) return;
         const player = this.player;
         const tempPosition = {
             x: player.x,
@@ -154,7 +191,7 @@ class Game {
         player.y = Math.round(player.y * 100) / 100;
 
         if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
-            if (!this.checkCollisions()) {
+            if (!this.checkCollisionsWithPlayers()) {
                 this.context.translate(-moveX, -moveY);
                 this.io.emit('player movement', this.player.getSortDetails());
             } else {
@@ -163,21 +200,6 @@ class Game {
             }
         }
 
-    }
-    checkCollisions() {
-        const rect1 = this.player;
-        let collision = false;
-        for (let id in this.players) {
-            const rect2 = this.players[id];
-            if (rect2.ioId !== rect1.ioId) {
-                collision = rect1.x < rect2.x + rect2.width &&
-                    rect1.x + rect1.width > rect2.x &&
-                    rect1.y < rect2.y + rect2.height &&
-                    rect1.height + rect1.y > rect2.y;
-                if (collision) break;
-            }
-        }
-        return collision;
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
@@ -202,6 +224,7 @@ class Game {
             players[plDetails.socketId].x = plDetails.x;
             players[plDetails.socketId].y = plDetails.y;
             players[plDetails.socketId].rotate = plDetails.rotate;
+            players[plDetails.socketId].hide = plDetails.hide;
         }
     }
     drawAll() {
@@ -219,13 +242,18 @@ class Game {
         });
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], viewRect))
-                this.players[id].draw(this.context);
+                if (!this.players[id].hide) this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
             if (this.checkArcRectCollision(this.bullets[id].arc, viewRect))
                 this.bullets[id].draw(this.context);
         }
         this.player.draw(this.context);
+        this.animations.forEach(anim => {
+            if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
+                anim.drawFrame(this.context);
+            }
+        });
         this.drawTexts();
 
     }
@@ -290,6 +318,7 @@ class Game {
             this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
         }
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
+        this.animations = [];
     }
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
@@ -350,6 +379,18 @@ class Game {
             }
         }
         return playerKilled;
+    }
+    checkCollisionsWithPlayers() {
+        const rect1 = this.player;
+        let collision = false;
+        for (let id in this.players) {
+            const rect2 = this.players[id];
+            if (rect2.ioId !== rect1.ioId) {
+                collision = this.checkRectsCollision(rect1, rect2);
+                if (collision) break;
+            }
+        }
+        return collision;
     }
     checkRectsCollision(rect1, rect2) {
         return (rect1.x < rect2.x + rect2.width &&
