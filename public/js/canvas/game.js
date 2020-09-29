@@ -278,7 +278,7 @@ class Game {
         this.lifeText.y = cornerY + 50;
         this.lifeText.draw(this.context);
 
-        if (this.keys[KEYS.TAB]) {
+        if (this.keys[KEYS.TAB] || this.player.isDead) {
             this.shadowBackground.x = cornerX;
             this.shadowBackground.y = cornerY;
             this.shadowBackground.draw(this.context);
