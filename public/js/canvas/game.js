@@ -385,7 +385,7 @@ class Game {
         let collision = false;
         for (let id in this.players) {
             const rect2 = this.players[id];
-            if (rect2.ioId !== rect1.ioId) {
+            if (rect2.socketId !== rect1.socketId) {
                 collision = this.checkRectsCollision(rect1, rect2);
                 if (collision) break;
             }
