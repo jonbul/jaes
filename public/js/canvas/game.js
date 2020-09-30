@@ -96,6 +96,7 @@ class Game {
             if (!this.player.life) {
                 this.io.emit('player died', msg);
                 this.player.dead();
+                this.io.emit('player movement', this.player.getSortDetails());
                 setTimeout(() => { 
                     this.player.hide = true;
                     this.io.emit('player movement', this.player.getSortDetails());
@@ -225,6 +226,7 @@ class Game {
             players[plDetails.socketId].y = plDetails.y;
             players[plDetails.socketId].rotate = plDetails.rotate;
             players[plDetails.socketId].hide = plDetails.hide;
+            players[plDetails.socketId].isDead = plDetails.isDead;
         }
     }
     drawAll() {
@@ -366,13 +368,13 @@ class Game {
         });
     }
     checkBulletCollision(bullet) {
-        let collission = false;
+        let collision = false;
         let playerKilled;
         for (const id in this.players) {
             const player = this.players[id];
             if (player.socketId !== bullet.socketId) {
-                collission = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
-                if (collission) {
+                collision = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
+                if (collision) {
                     playerKilled = player;
                     break;
                 }
@@ -385,7 +387,7 @@ class Game {
         let collision = false;
         for (let id in this.players) {
             const rect2 = this.players[id];
-            if (rect2.socketId !== rect1.socketId) {
+            if (!rect2.isDead && rect2.socketId !== rect1.socketId) {
                 collision = this.checkRectsCollision(rect1, rect2);
                 if (collision) break;
             }

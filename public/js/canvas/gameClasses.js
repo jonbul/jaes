@@ -34,6 +34,7 @@ class Player {
         this.kills = 0;
         this.speed = 0;
         this.hide = false;
+        this.isDead = false;
     }
     draw(context) {
         if (this.hide) return;
@@ -62,7 +63,8 @@ class Player {
             kills: this.kills,
             deaths: this.deaths,
             shipId: this.shipId,
-            hide: this.hide
+            hide: this.hide,
+            isDead: this.isDead
         }
     }
 }
