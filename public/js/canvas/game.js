@@ -335,7 +335,7 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (event.keyCode === KEYS.SPACE) this.player.createBullet();
+        if (!this.player.isDead && event.keyCode === KEYS.SPACE) this.player.createBullet();
     }
     leaveWindow() {
         for (const keyCode in this.keys) {

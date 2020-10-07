@@ -113,6 +113,18 @@ class Bullet {
             this.moveY > 0 && this.y > this.expY ||
             this.moveY < 0 && this.y < this.expY
     }
+    getSortDetails() {
+        return {
+            x: this.x,
+            y: this.y,
+            angle: this.angle,
+            expx: this.expX,
+            expY: this.expY,
+            moveX: this.moveX,
+            moveY: this.moveY,
+            id: this.id
+        }
+    }
 }
 
 const _player = new Promise(async function (resolve) {
