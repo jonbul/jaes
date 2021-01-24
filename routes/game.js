@@ -53,5 +53,8 @@ module.exports = (app, io) => {
             console.log(msg)
             io.emit('player died', msg);
         });
+        socket.on('sound', msg => {
+            io.emit('sound', msg);
+        })
     });
 }

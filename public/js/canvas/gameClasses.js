@@ -67,6 +67,12 @@ class Player {
             isDead: this.isDead
         }
     }
+    getCenteredPosition() {
+        return {
+            x: this.x + (this.width / 2),
+            y: this.y + (this.height / 2)
+        }
+    }
 }
 class Bullet {
     constructor(socketId, x, y, angle) {

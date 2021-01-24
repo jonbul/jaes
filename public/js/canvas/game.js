@@ -20,7 +20,8 @@ import {
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
-import { Animation, getExplossionFrames } from './animationClass.js'
+import { Animation, getExplossionFrames } from './animationClass.js';
+import gameSounds from './gameSounds.js';
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -124,7 +125,11 @@ class Game {
             });
             this.animations.push(explossion);
             explossion.play();
+            gameSounds.explosion();
         });
+        this.io.on('sound', msg => {
+            gameSounds[msg.sound]();
+        })
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
@@ -335,7 +340,12 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (!this.player.isDead && event.keyCode === KEYS.SPACE) this.player.createBullet();
+        if (!this.player.isDead && event.keyCode === KEYS.SPACE) {
+            this.player.createBullet();
+            const msg = this.player.getCenteredPosition();
+            msg.sound = 'shot';
+            this.io.emit('sound', msg);
+        }
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
