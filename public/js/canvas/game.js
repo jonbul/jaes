@@ -259,6 +259,8 @@ class Game {
         this.animations.forEach(anim => {
             if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
                 anim.drawFrame(this.context);
+            } else if (anim.playing) {
+                anim.skipFrame();
             }
         });
         this.drawTexts();
