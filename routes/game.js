@@ -17,6 +17,16 @@ module.exports = (app, io) => {
             res.redirect('/');
         }
     });
+    app.get('/game/data', (req, res) => {
+        if (!req.session.passport ||
+            !req.session.passport.user ||
+            !(/^jonbul$/i).test(req.session.passport.user.username)) return;
+
+        res.send({
+            players,
+            backgroundCards
+        });
+    });
     app.get('/game/getShips', async (req, res) => {
         if (!req.session.passport || !req.session.passport.user) return;
         res.send(await Ship.find());
