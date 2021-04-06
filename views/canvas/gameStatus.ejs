@@ -1,0 +1,11 @@
+<% layout('layout') %>
+
+<div class="container">
+    <canvas class="mt-2" id="canvas" width="1920" height="1080"></canvas>
+</div>
+
+<link rel="stylesheet" href="/css/game.css" type="text/css">
+<script type="module">
+    import GameStatus from '/js/canvas/gameStatus.js';
+    new GameStatus(document.getElementById('canvas'));
+</script>

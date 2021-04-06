@@ -4,11 +4,10 @@ const { Schema } = require('mongoose');
 
 module.exports = (app, io) => {
     const players = {};
-    const backgroundCards = [];
+    const backgroundCards = {};
     app.get('/game', (req, res) => {
-        let user;
         if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
+            const user = req.session.passport.user;
             res.render('canvas/game', {
                 title: 'Game',
                 username: user.username
@@ -17,10 +16,25 @@ module.exports = (app, io) => {
             res.redirect('/');
         }
     });
-    app.get('/game/data', (req, res) => {
+    app.get('/gameStatus', (req, res) => {
+        let user;
+        
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !(/^jonbul$/i).test(req.session.passport.user.username)) return;
+            !(/^jonbul$/i).test(req.session.passport.user.username)) {
+                res.redirect('/');
+        } else {
+            user = req.session.passport.user;
+            res.render('canvas/gameStatus', {
+                title: 'Game Preview',
+                username: user.username
+            });
+        }
+    });
+    app.get('/gameData', (req, res) => {
+        if (!req.session.passport ||
+            !req.session.passport.user ||
+            !(/^jonbul$/i).test(req.session.passport.user.username)) res.redirect('/');
 
         res.send({
             players,
@@ -56,7 +70,7 @@ module.exports = (app, io) => {
                         parseInt(Math.random() * 4) + 1
                     ]);
                 }
-                backgroundCards[card[0]] = backgroundCards[card[0]] || [];
+                backgroundCards[card[0]] = backgroundCards[card[0]] || {};
                 backgroundCards[card[0]][card[1]] = newCard;
                 cards.push(newCard);
             }
