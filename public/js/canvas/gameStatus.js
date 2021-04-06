@@ -14,24 +14,28 @@ import {
     Rubber,
     Text
 } from './canvasClasses.js';
-/*import {
-    Bullet,
+import {
+    //Bullet,
     _player
-} from './gameClasses.js';*/
+} from './gameClasses.js';
 import { asyncRequest } from '../functions.js';
 class GameStatus {
     constructor(canvas) {
+        const _this = this;
+        (async function () {
+            _this.Player = await _player;
+            _this.drawMapInterval();
+        })();
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         window.canvas = this.canvas;
         window.context = this.context;
         window.drawMap = this.drawMap.bind(this);
-        this.drawMapInterval();
         this.mouseEvent();
     }
     drawMapInterval() {
         const func = async () => {
-            const data = (await asyncRequest({url: '/gameData', method: 'GET'})).response;
+            const data = (await asyncRequest({ url: '/gameData', method: 'GET' })).response;
             this.backgroundCards = data.backgroundCards;
             this.players = data.players;
             this.drawMap();
@@ -39,12 +43,12 @@ class GameStatus {
         setInterval(func, 1000);
     }
     drawMap() {
-        new Rect(0,0,1920,1080,'#ffffff').draw(this.context)
+        new Rect(0, 0, 1920, 1080, '#ffffff').draw(this.context)
         const absoluteValues = {
-            x1:0,
-            x2:0,
-            y1:0,
-            y2:0
+            x1: 0,
+            x2: 0,
+            y1: 0,
+            y2: 0
         };
 
         for (const propX in this.backgroundCards) {
@@ -70,7 +74,9 @@ class GameStatus {
         const realWidth = (absoluteValues.x2 - absoluteValues.x1) * 1920 + 1920;
         const realHeight = (absoluteValues.y2 - absoluteValues.y1) * 1080 + 1080;
 
-        const biggerRelation = realHeight > realWidth ? realHeight / this.canvas.height : realWidth / this.canvas.width;
+        const yScale = realHeight / this.canvas.height;
+        const xScale = realWidth / this.canvas.width;
+        const biggerRelation = xScale > yScale ? xScale : yScale;
 
 
         for (const propX in this.backgroundCards) {
@@ -95,16 +101,15 @@ class GameStatus {
         }
 
         const length = (this.canvas.width < this.canvas.height ? this.canvas.width : this.canvas.height) / 100;
-
-        for(const sessionId in this.players) {
+        for (const sessionId in this.players) {
             const player = this.players[sessionId];
-            const x = (player.x - absoluteValues.x1 * 1920) / biggerRelation;
-            const y = (player.y - absoluteValues.y1 * 1080) / biggerRelation;
-            const shapes = [
-                new Arc(x, y, 10, '#ff0000'),
-                new Text(player.name,x,y, length * 5, 'Arial', '#00FF00')
-            ]
-            new Layer('', shapes).draw(this.context);
+            if (!player.isDead) {
+                const x = (player.x - absoluteValues.x1 * 1920) / biggerRelation;
+                const y = (player.y - absoluteValues.y1 * 1080) / biggerRelation;
+                const pl = new this.Player(player.name, player.shipId, x, y);
+                pl.draw(this.context);
+                console.log(pl);
+            }
         }
     }
     mouseEvent() {
@@ -118,7 +123,7 @@ class GameStatus {
             block.style.display = 'block';
             const x = parseInt(evt.layerX * evt.target.width / evt.target.clientWidth);
             const y = parseInt(evt.layerY * evt.target.height / evt.target.clientHeight);
-            
+
             block.innerText = `x: ${x}, y: ${y}`;
             block.style.top = evt.clientY + 'px';
             block.style.left = (evt.clientX + 20) + 'px';
