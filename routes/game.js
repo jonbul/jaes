@@ -4,6 +4,7 @@ const { Schema } = require('mongoose');
 
 module.exports = (app, io) => {
     const players = {};
+    const backgroundCards = [];
     app.get('/game', (req, res) => {
         let user;
         if (req.session.passport && req.session.passport.user) {
@@ -17,11 +18,41 @@ module.exports = (app, io) => {
         }
     });
     app.get('/game/getShips', async (req, res) => {
+        if (!req.session.passport || !req.session.passport.user) return;
         res.send(await Ship.find());
     });
 
     app.get('/game/getPlayers', async (req, res) => {
+        if (!req.session.passport || !req.session.passport.user) return;
         res.send(players);
+    });
+
+    app.post('/game/getBackgroundCards', async (req, res) => {
+        if (!req.session.passport || !req.session.passport.user) return;
+        console.log(req.body)
+        const cards = [];
+        req.body.forEach(card => {
+            if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
+                cards.push(backgroundCards[card[0]][card[1]]);
+            } else {
+                const newCard = [
+                    card[0],//x
+                    card[1],//y
+                    []//start
+                ]
+                for(let i = 0; i < 500; i++) {
+                    newCard[2].push([
+                        parseInt(Math.random() * 1920),
+                        parseInt(Math.random() * 1080),
+                        parseInt(Math.random() * 4) + 1
+                    ]);
+                }
+                backgroundCards[card[0]] = backgroundCards[card[0]] || [];
+                backgroundCards[card[0]][card[1]] = newCard;
+                cards.push(newCard);
+            }
+        });
+        res.send(cards);
     });
 
     //IO

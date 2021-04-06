@@ -41,6 +41,7 @@ class Game {
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
 
+            this.backgroundCards = [];
             this.players = {};
             this.bullets = {};
             this.keys = [];
@@ -98,17 +99,17 @@ class Game {
                 this.io.emit('player died', msg);
                 this.player.dead();
                 this.io.emit('player movement', this.player.getSortDetails());
-                setTimeout(() => { 
+                setTimeout(() => {
                     this.player.hide = true;
                     this.io.emit('player movement', this.player.getSortDetails());
-                    setTimeout(() => { 
+                    setTimeout(() => {
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
                         this.player.isDead = false;
                         this.io.emit('player movement', this.player.getSortDetails());
-                    },10000);
-                 }, 2000);
+                    }, 10000);
+                }, 2000);
             }
         });
         this.io.on('player died', msg => {
@@ -242,11 +243,7 @@ class Game {
             height: this.canvas.height
         }
         this.clear();
-        //this.background.draw(this.context);
-        this.background.shapes.forEach((shape, i) => {
-            if (!i || this.checkArcRectCollision(shape, viewRect))
-                shape.draw(this.context);
-        });
+        this.drawBackground(viewRect);
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], viewRect))
                 if (!this.players[id].hide) this.players[id].draw(this.context);
@@ -264,7 +261,84 @@ class Game {
             }
         });
         this.drawTexts();
+    }
+    drawBackground(viewRect) {
+        const currentCard = {
+            x: parseInt(this.player.x / this.canvas.width),
+            y: parseInt(this.player.y / this.canvas.height)
+        }
+        if (this.player.x < 0) currentCard.x -= 1;
+        if (this.player.y < 0) currentCard.y -= 1;
+        const tempCardList = [
+            [currentCard.x - 1, currentCard.y - 1],
+            [currentCard.x - 1, currentCard.y],
+            [currentCard.x - 1, currentCard.y + 1],
+            [currentCard.x, currentCard.y - 1],
+            [currentCard.x, currentCard.y],
+            [currentCard.x, currentCard.y + 1],
+            [currentCard.x + 1, currentCard.y - 1],
+            [currentCard.x + 1, currentCard.y],
+            [currentCard.x + 1, currentCard.y + 1]
+        ]
+        const data = [];
+        tempCardList.forEach(card => {
+            if (!this.backgroundCards[card[0]] || this.backgroundCards[card[0]][card[1]] === undefined) {
+                data.push(card);
+                this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
+                this.backgroundCards[card[0]][card[1]] = false;
+            }
+        });
+        if (data.length) {
 
+            console.log("Player", this.player, data);
+            asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
+                console.log(newBgCards);
+                newBgCards.response.forEach(card => {
+                    const shapes = [/*new Rect(
+                        this.canvas.width * card[0] + 10,
+                        this.canvas.height * card[1] + 10,
+                        this.canvas.width,
+                        this.canvas.height,
+                        '#1c2773'
+                    )*/];
+                    card[2].forEach(point => {
+                        shapes.push(new Arc(
+                            point[0] + card[0] * this.canvas.width,
+                            point[1] + card[1] * this.canvas.height,
+                            point[2],
+                            '#ffffff'
+                        ))
+                    })
+                    this.backgroundCards[card[0]][card[1]] = new Layer(
+                        `${card[0]},${card[1]}`,
+                        shapes
+                    )
+                })
+            });
+        }
+        window.backgroundCards = this.backgroundCards;
+        window.currentCard = currentCard;
+
+        new Rect(
+            this.canvas.width * (currentCard.x - 1),
+            this.canvas.height * (currentCard.y - 1),
+            this.canvas.width * 3,
+            this.canvas.height * 3,
+            '#1c2773'
+        ).draw(this.context);
+
+        const cords = [-1,0,1];
+        cords.forEach(i => {
+            cords.forEach(j => {
+                const x = currentCard.x + i;
+                const y = currentCard.y + j;
+                if (this.backgroundCards[x] &&
+                    this.backgroundCards[x][y] &&
+                    this.backgroundCards[x][y].draw) {
+                    this.backgroundCards[x][y].draw(this.context)
+                }
+            })
+        });
     }
     drawTexts() {
         const texts = [
