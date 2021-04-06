@@ -107,6 +107,7 @@ class GameStatus {
                 const x = (player.x - absoluteValues.x1 * 1920) / biggerRelation;
                 const y = (player.y - absoluteValues.y1 * 1080) / biggerRelation;
                 const pl = new this.Player(player.name, player.shipId, x, y);
+                pl.rotate = player.rotate;
                 pl.draw(this.context);
                 console.log(pl);
             }
