@@ -289,18 +289,9 @@ class Game {
             }
         });
         if (data.length) {
-
-            console.log("Player", this.player, data);
             asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
-                console.log(newBgCards);
                 newBgCards.response.forEach(card => {
-                    const shapes = [/*new Rect(
-                        this.canvas.width * card[0] + 10,
-                        this.canvas.height * card[1] + 10,
-                        this.canvas.width,
-                        this.canvas.height,
-                        '#1c2773'
-                    )*/];
+                    const shapes = [];
                     card[2].forEach(point => {
                         shapes.push(new Arc(
                             point[0] + card[0] * this.canvas.width,
@@ -316,8 +307,6 @@ class Game {
                 })
             });
         }
-        window.backgroundCards = this.backgroundCards;
-        window.currentCard = currentCard;
 
         new Rect(
             this.canvas.width * (currentCard.x - 1),
@@ -392,14 +381,6 @@ class Game {
         ]);
 
         this.lifeText = new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03');
-
-        this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-        for (let i = 0; i < 20000; i++) {
-            const x = parseInt(Math.random() * 20000) - 10000;
-            const y = parseInt(Math.random() * 20000) - 10000;
-            const starWidth = parseInt(Math.random() * 4) + 1;
-            this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
-        }
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }

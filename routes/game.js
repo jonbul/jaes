@@ -29,7 +29,6 @@ module.exports = (app, io) => {
 
     app.post('/game/getBackgroundCards', async (req, res) => {
         if (!req.session.passport || !req.session.passport.user) return;
-        console.log(req.body)
         const cards = [];
         req.body.forEach(card => {
             if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
