@@ -30,10 +30,8 @@ class GameStatus {
         this.mouseEvent();
     }
     drawMapInterval() {
-        
         const func = async () => {
             const data = (await asyncRequest({url: '/gameData', method: 'GET'})).response;
-            console.log("data", data);
             this.backgroundCards = data.backgroundCards;
             this.players = data.players;
             this.drawMap();
@@ -72,9 +70,7 @@ class GameStatus {
         const realWidth = (absoluteValues.x2 - absoluteValues.x1) * 1920 + 1920;
         const realHeight = (absoluteValues.y2 - absoluteValues.y1) * 1080 + 1080;
 
-        const xRelation = realWidth / this.canvas.width;
-        const yRelation = realHeight / this.canvas.height;
-        const biggerRelation = yRelation > xRelation ? yRelation : xRelation;
+        const biggerRelation = realHeight > realWidth ? realHeight / this.canvas.height : realWidth / this.canvas.width;
 
 
         for (const propX in this.backgroundCards) {
@@ -84,16 +80,16 @@ class GameStatus {
                 const x = (card[0] - absoluteValues.x1) * 1920;
                 const y = (card[1] - absoluteValues.y1) * 1080;
                 new Rect(
-                    x / xRelation,
-                    y / yRelation,
-                    1920 / xRelation,
-                    1080 / yRelation,
+                    x / biggerRelation,
+                    y / biggerRelation,
+                    1920 / biggerRelation,
+                    1080 / biggerRelation,
                     '#1c2773'
                 ).draw(this.context);
                 card[2].forEach(point => {
                     new Arc(
-                        (point[0] + x) / xRelation,
-                        (point[1] + y) / yRelation, point[2] / biggerRelation, '#ffffff').draw(this.context);
+                        (point[0] + x) / biggerRelation,
+                        (point[1] + y) / biggerRelation, point[2] / biggerRelation, '#ffffff').draw(this.context);
                 });
             }
         }
@@ -102,9 +98,8 @@ class GameStatus {
 
         for(const sessionId in this.players) {
             const player = this.players[sessionId];
-            console.log('Hey hey', player.x - absoluteValues.x1 * 1920, player.y - absoluteValues.y1 * 1080);
-            const x = (player.x - absoluteValues.x1 * 1920) / xRelation;
-            const y = (player.y - absoluteValues.y1 * 1080) / yRelation;
+            const x = (player.x - absoluteValues.x1 * 1920) / biggerRelation;
+            const y = (player.y - absoluteValues.y1 * 1080) / biggerRelation;
             const shapes = [
                 new Arc(x, y, 10, '#ff0000'),
                 new Text(player.name,x,y, length * 5, 'Arial', '#00FF00')
