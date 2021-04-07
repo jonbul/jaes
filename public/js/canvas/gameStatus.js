@@ -118,7 +118,6 @@ class GameStatus {
         }
     }
     mouseEvent() {
-        if (!this.absoluteValues) return
         const block = document.createElement('div');
         block.style.position = 'absolute';
         block.style.display = 'none';
@@ -126,9 +125,10 @@ class GameStatus {
         block.style.border = 'solid 1px #000';
         document.body.appendChild(block);
         this.canvas.addEventListener('mousemove', evt => {
+            if (!this.absoluteValues) return
             block.style.display = 'block';
             const x = parseInt(evt.layerX * this.realWidth / evt.target.clientWidth) + this.absoluteValues.x1 * this.canvasWidth;
-            const y = parseInt(evt.layerY * this.realHeight / evt.target.clientHeight) + this.absoluteValues.y1 * canvasHeight;
+            const y = parseInt(evt.layerY * this.realHeight / evt.target.clientHeight) + this.absoluteValues.y1 * this.canvasHeight;
 
             block.innerText = `x: ${x}, y: ${y}`;
             block.style.top = evt.clientY + 'px';
