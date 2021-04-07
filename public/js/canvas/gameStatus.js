@@ -50,6 +50,7 @@ class GameStatus {
             y1: 0,
             y2: 0
         };
+        this.absoluteValues = absoluteValues;
 
         for (const propX in this.backgroundCards) {
             const row = this.backgroundCards[propX];
@@ -71,13 +72,13 @@ class GameStatus {
                 }
             }
         }
-        const realWidth = (absoluteValues.x2 - absoluteValues.x1) * 1920 + 1920;
-        const realHeight = (absoluteValues.y2 - absoluteValues.y1) * 1080 + 1080;
+        this.realWidth = (absoluteValues.x2 - absoluteValues.x1) * 1920 + 1920;
+        this.realHeight = (absoluteValues.y2 - absoluteValues.y1) * 1080 + 1080;
 
-        const yScale = realHeight / this.canvas.height;
-        const xScale = realWidth / this.canvas.width;
+        const yScale = this.realHeight / this.canvas.height;
+        const xScale = this.realWidth / this.canvas.width;
         const biggerRelation = xScale > yScale ? xScale : yScale;
-
+        this.biggerRelation = biggerRelation;
 
         for (const propX in this.backgroundCards) {
             const row = this.backgroundCards[propX];
@@ -122,8 +123,8 @@ class GameStatus {
         document.body.appendChild(block);
         this.canvas.addEventListener('mousemove', evt => {
             block.style.display = 'block';
-            const x = parseInt(evt.layerX * evt.target.width / evt.target.clientWidth);
-            const y = parseInt(evt.layerY * evt.target.height / evt.target.clientHeight);
+            const x = parseInt(evt.layerX * this.realWidth / evt.target.clientWidth) + this.absoluteValues.x1 * 1920;
+            const y = parseInt(evt.layerY * this.realHeight / evt.target.clientHeight) + this.absoluteValues.y1 * 1080;
 
             block.innerText = `x: ${x}, y: ${y}`;
             block.style.top = evt.clientY + 'px';
