@@ -83,7 +83,7 @@ class Bullet {
         this.y = y;
         this.angle = angle;
         this.id = socketId + '-' + Date.now();
-        this.range = 20000;
+        this.range = 10000;
         this.speed = 25 + (shootingSpeed || 0);
 
 
