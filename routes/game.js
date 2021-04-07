@@ -12,7 +12,6 @@ module.exports = (app, io) => {
     app.get('/game', (req, res) => {
         if (req.session.passport && req.session.passport.user) {
             const user = req.session.passport.user;
-            console.log(resolution)
             res.render('canvas/game', {
                 title: 'Game',
                 username: user.username,
@@ -97,7 +96,7 @@ module.exports = (app, io) => {
         });
         socket.on('disconnect', () => {
             delete players[socket.id];
-            console.log('bye');
+            console.log('bye', socket.id, socket);
             io.emit('player leave', socket.id);
         });
         socket.on('bullet movement', (msg) => {

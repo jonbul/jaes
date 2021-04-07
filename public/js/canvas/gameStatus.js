@@ -114,7 +114,6 @@ class GameStatus {
                 this.context.scale(2,2);
                 pl.draw(this.context);
                 this.context.scale(1/2,1/2);
-                console.log(pl);
             }
         }
     }

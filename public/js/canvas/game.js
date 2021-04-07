@@ -94,7 +94,6 @@ class Game {
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
-            console.log('HIT', msg);
             if (!this.player.life) {
                 this.io.emit('player died', msg);
                 this.player.dead();
@@ -404,7 +403,7 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (!this.player.isDead && event.keyCode === KEYS.SPACE) {
+        if (!this.player?.isDead && event.keyCode === KEYS.SPACE) {
             this.player.createBullet();
             const msg = this.player.getCenteredPosition();
             msg.sound = 'shot';
