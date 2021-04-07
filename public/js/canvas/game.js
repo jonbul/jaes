@@ -217,7 +217,7 @@ class Game {
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
         if (!bullet) {
-            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle);
+            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed);
             this.bullets[bulletDetails.id] = bullet;
         } else {
             bullet.x = bulletDetails.x;
@@ -418,8 +418,7 @@ class Game {
     bulletInterval() {
         const bulletSpeed = 25;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
-            bullet.x += (bulletSpeed * bullet.moveX);
-            bullet.y += (bulletSpeed * bullet.moveY);
+            bullet.moveStep();
             if (bullet.isExpired()) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;

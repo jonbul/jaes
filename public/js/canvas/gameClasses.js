@@ -49,7 +49,7 @@ class Player {
     createBullet() {
         let bPosX = this.x + this.width / 2;
         let bPosY = this.y + this.height / 2;
-        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate));
+        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate, this.speed));
     }
     dead() {
         this.isDead = true;
@@ -77,13 +77,14 @@ class Player {
     }
 }
 class Bullet {
-    constructor(socketId, x, y, angle) {
+    constructor(socketId, x, y, angle, shootingSpeed) {
         this.socketId = socketId;
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.id = socketId + '-' + Date.now();
-        this.range = 2000;
+        this.range = 20000;
+        this.speed = 25 + (shootingSpeed || 0);
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
@@ -120,6 +121,10 @@ class Bullet {
             this.moveX < 0 && this.x < this.expX ||
             this.moveY > 0 && this.y > this.expY ||
             this.moveY < 0 && this.y < this.expY
+    }
+    moveStep() {
+        this.x += (this.speed * this.moveX);
+        this.y += (this.speed * this.moveY);
     }
     getSortDetails() {
         return {
