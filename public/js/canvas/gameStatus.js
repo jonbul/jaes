@@ -115,6 +115,7 @@ class GameStatus {
         }
     }
     mouseEvent() {
+        if (!this.absoluteValues) return
         const block = document.createElement('div');
         block.style.position = 'absolute';
         block.style.display = 'none';

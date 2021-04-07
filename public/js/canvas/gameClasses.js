@@ -42,7 +42,9 @@ class Player {
         this.layers.forEach(layer => {
             layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
         });
-        this.nameShape.draw(context, { x: this.x, y: this.y });
+        this.nameShape.x = this.x;
+        this.nameShape.y = this.y;
+        this.nameShape.draw(context, {x: 0, y: -(this.width / 4)});
     }
     createBullet() {
         let bPosX = this.x + this.width / 2;
