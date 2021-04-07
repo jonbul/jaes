@@ -30,6 +30,9 @@ class GameStatus {
         this.canvasHeight = canvasHeight
         this.canvas = document.getElementById('canvas');
         this.context = canvas.getContext('2d');
+        this.backgroundCards = {};
+        window.backgroundCards = this.backgroundCards;
+        this.backgroundCardsSorted = {};
         window.canvas = this.canvas;
         window.context = this.context;
         window.drawMap = this.drawMap.bind(this);
@@ -37,14 +40,14 @@ class GameStatus {
     }
     drawMapInterval() {
         const func = async () => {
-            const data = (await asyncRequest({ url: '/gameData', method: 'GET' })).response;
-            this.backgroundCards = data.backgroundCards;
+            
+            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted })).response;
             this.players = data.players;
-            this.drawMap();
+            this.drawMap(data.resultCards);
         };
         setInterval(func, 1000);
     }
-    drawMap() {
+    drawMap(resultCards) {
         new Rect(0, 0, this.canvasWidth, this.canvasHeight, '#ffffff').draw(this.context)
         const absoluteValues = {
             x1: 0,
@@ -54,6 +57,16 @@ class GameStatus {
         };
         this.absoluteValues = absoluteValues;
 
+        for (const propX in resultCards) {
+            const row = resultCards[propX];
+            for (const propY in row) {
+                const card = row[propY];
+                this.backgroundCards[propX] = this.backgroundCards[propX] || {};
+                this.backgroundCards[propX][propY] = card;
+                this.backgroundCardsSorted[propX] = this.backgroundCardsSorted[propX] || {};
+                this.backgroundCardsSorted[propX][propY] = true;
+            }
+        }
         for (const propX in this.backgroundCards) {
             const row = this.backgroundCards[propX];
             for (const propY in row) {
@@ -111,9 +124,7 @@ class GameStatus {
                 const y = (player.y - absoluteValues.y1 * this.canvasHeight) / biggerRelation;
                 const pl = new this.Player(player.name, player.shipId, x, y);
                 pl.rotate = player.rotate;
-                this.context.scale(2,2);
                 pl.draw(this.context);
-                this.context.scale(1/2,1/2);
             }
         }
     }

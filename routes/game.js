@@ -39,14 +39,22 @@ module.exports = (app, io) => {
             });
         }
     });
-    app.get('/gameData', (req, res) => {
+    app.post('/gameData', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
             !(/^jonbul$/i).test(req.session.passport.user.username)) res.redirect('/');
-
+        const resultCards = {};
+        for (const propX in backgroundCards) {
+            for (const propY in backgroundCards[propX]) {
+                if (!req.body[propX] || !req.body[propX][propY]) {
+                    resultCards[propX] = resultCards[propX] || {};
+                    resultCards[propX][propY] = backgroundCards[propX][propY];
+                }
+            }
+        }
         res.send({
             players,
-            backgroundCards
+            resultCards
         });
     });
     app.get('/game/getShips', async (req, res) => {
