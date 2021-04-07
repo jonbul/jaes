@@ -52,6 +52,5 @@ module.exports = (app) => {
         project.dateModified = Date.now();
         const answer = await project.save();
         res.send({id: answer._id});
-        console.log(projectData)
     });
 }

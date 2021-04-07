@@ -20,7 +20,8 @@ import {
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
-import { Animation, getExplossionFrames } from './animationClass.js'
+import { Animation, getExplossionFrames } from './animationClass.js';
+import gameSounds from './gameSounds.js';
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -40,6 +41,7 @@ class Game {
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
 
+            this.backgroundCards = [];
             this.players = {};
             this.bullets = {};
             this.keys = [];
@@ -92,22 +94,21 @@ class Game {
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
-            console.log('HIT', msg);
             if (!this.player.life) {
                 this.io.emit('player died', msg);
                 this.player.dead();
                 this.io.emit('player movement', this.player.getSortDetails());
-                setTimeout(() => { 
+                setTimeout(() => {
                     this.player.hide = true;
                     this.io.emit('player movement', this.player.getSortDetails());
-                    setTimeout(() => { 
+                    setTimeout(() => {
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
                         this.player.isDead = false;
                         this.io.emit('player movement', this.player.getSortDetails());
-                    },10000);
-                 }, 2000);
+                    }, 10000);
+                }, 2000);
             }
         });
         this.io.on('player died', msg => {
@@ -124,12 +125,23 @@ class Game {
             });
             this.animations.push(explossion);
             explossion.play();
+            gameSounds.explosion();
         });
+        this.io.on('sound', msg => {
+            gameSounds[msg.sound]();
+        })
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     intervalMethod() {
+        
+        this.fullScreen = window.innerHeight === screen.height;
+        if (this.fullScreen) {
+            document.body.classList.add('fullscreen');
+        } else {
+            document.body.classList.remove('fullscreen');
+        }
         this.movement();
         this.bulletInterval();
 
@@ -205,7 +217,7 @@ class Game {
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
         if (!bullet) {
-            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle);
+            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed);
             this.bullets[bulletDetails.id] = bullet;
         } else {
             bullet.x = bulletDetails.x;
@@ -237,11 +249,7 @@ class Game {
             height: this.canvas.height
         }
         this.clear();
-        //this.background.draw(this.context);
-        this.background.shapes.forEach((shape, i) => {
-            if (!i || this.checkArcRectCollision(shape, viewRect))
-                shape.draw(this.context);
-        });
+        this.drawBackground(viewRect);
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], viewRect))
                 if (!this.players[id].hide) this.players[id].draw(this.context);
@@ -254,14 +262,83 @@ class Game {
         this.animations.forEach(anim => {
             if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
                 anim.drawFrame(this.context);
+            } else if (anim.playing) {
+                anim.skipFrame();
             }
         });
         this.drawTexts();
+    }
+    drawBackground(viewRect) {
+        const currentCard = {
+            x: parseInt(this.player.x / this.canvas.width),
+            y: parseInt(this.player.y / this.canvas.height)
+        }
+        if (this.player.x < 0) currentCard.x -= 1;
+        if (this.player.y < 0) currentCard.y -= 1;
+        const tempCardList = [
+            [currentCard.x - 1, currentCard.y - 1],
+            [currentCard.x - 1, currentCard.y],
+            [currentCard.x - 1, currentCard.y + 1],
+            [currentCard.x, currentCard.y - 1],
+            [currentCard.x, currentCard.y],
+            [currentCard.x, currentCard.y + 1],
+            [currentCard.x + 1, currentCard.y - 1],
+            [currentCard.x + 1, currentCard.y],
+            [currentCard.x + 1, currentCard.y + 1]
+        ]
+        const data = [];
+        tempCardList.forEach(card => {
+            if (!this.backgroundCards[card[0]] || this.backgroundCards[card[0]][card[1]] === undefined) {
+                data.push(card);
+                this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
+                this.backgroundCards[card[0]][card[1]] = false;
+            }
+        });
+        if (data.length) {
+            asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
+                newBgCards.response.forEach(card => {
+                    const shapes = [];
+                    card[2].forEach(point => {
+                        shapes.push(new Arc(
+                            point[0] + card[0] * this.canvas.width,
+                            point[1] + card[1] * this.canvas.height,
+                            point[2],
+                            '#ffffff'
+                        ))
+                    })
+                    this.backgroundCards[card[0]][card[1]] = new Layer(
+                        `${card[0]},${card[1]}`,
+                        shapes
+                    )
+                })
+            });
+        }
 
+        new Rect(
+            this.canvas.width * (currentCard.x - 1),
+            this.canvas.height * (currentCard.y - 1),
+            this.canvas.width * 3,
+            this.canvas.height * 3,
+            '#1c2773'
+        ).draw(this.context);
+
+        const cords = [-1,0,1];
+        cords.forEach(i => {
+            cords.forEach(j => {
+                const x = currentCard.x + i;
+                const y = currentCard.y + j;
+                if (this.backgroundCards[x] &&
+                    this.backgroundCards[x][y] &&
+                    this.backgroundCards[x][y].draw) {
+                    this.backgroundCards[x][y].draw(this.context)
+                }
+            })
+        });
     }
     drawTexts() {
         const texts = [
-            `${parseInt(this.player.x * 100) / 100}x${parseInt(this.player.y * 100) / 100}`,
+            `X: ${parseInt(this.player.x * 100) / 100}`,
+            `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`,];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
@@ -311,14 +388,6 @@ class Game {
         ]);
 
         this.lifeText = new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03');
-
-        this.background = new Layer('background', [new Rect(-10000, -10000, 20000, 20000, '#1c2773')]);
-        for (let i = 0; i < 20000; i++) {
-            const x = parseInt(Math.random() * 20000) - 10000;
-            const y = parseInt(Math.random() * 20000) - 10000;
-            const starWidth = parseInt(Math.random() * 4) + 1;
-            this.background.shapes.push(new Arc(x, y, starWidth, '#ffffff'))
-        }
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }
@@ -335,7 +404,12 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (event.keyCode === KEYS.SPACE) this.player.createBullet();
+        if (!this.player?.isDead && event.keyCode === KEYS.SPACE) {
+            this.player.createBullet();
+            const msg = this.player.getCenteredPosition();
+            msg.sound = 'shot';
+            this.io.emit('sound', msg);
+        }
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
@@ -345,8 +419,7 @@ class Game {
     bulletInterval() {
         const bulletSpeed = 25;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
-            bullet.x += (bulletSpeed * bullet.moveX);
-            bullet.y += (bulletSpeed * bullet.moveY);
+            bullet.moveStep();
             if (bullet.isExpired()) {
                 this.io.emit('bullet remove', bullet.id);
                 return false;

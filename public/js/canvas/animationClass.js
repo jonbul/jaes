@@ -35,6 +35,9 @@ class Animation {
         if (this.onEnd && !this.repeat && this.currentFrame >= this.frames.length-1)
          this.onEnd();
     }
+    skipFrame() {
+        this.currentFrame += this.speed;
+    }
 }
 
 
