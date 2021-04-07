@@ -337,7 +337,8 @@ class Game {
     }
     drawTexts() {
         const texts = [
-            `${parseInt(this.player.x * 100) / 100}x${parseInt(this.player.y * 100) / 100}`,
+            `X: ${parseInt(this.player.x * 100) / 100}`,
+            `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`,];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
