@@ -136,6 +136,13 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     intervalMethod() {
+        
+        this.fullScreen = window.innerHeight === screen.height;
+        if (this.fullScreen) {
+            document.body.classList.add('fullscreen');
+        } else {
+            document.body.classList.remove('fullscreen');
+        }
         this.movement();
         this.bulletInterval();
 

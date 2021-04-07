@@ -13,3 +13,12 @@
     margin: 0 auto;
     width: 100%;
 }
+body.fullscreen {
+    overflow: hidden;
+}
+body.fullscreen #canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
