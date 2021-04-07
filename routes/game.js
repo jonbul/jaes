@@ -5,12 +5,19 @@ const { Schema } = require('mongoose');
 module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
+    const resolution = {
+        width: 1920,
+        height: 1080
+    }
     app.get('/game', (req, res) => {
         if (req.session.passport && req.session.passport.user) {
             const user = req.session.passport.user;
+            console.log(resolution)
             res.render('canvas/game', {
                 title: 'Game',
-                username: user.username
+                username: user.username,
+                canvasWidth:  resolution.width,
+                canvasHeight: resolution.height
             });
         } else {
             res.redirect('/');
@@ -27,7 +34,9 @@ module.exports = (app, io) => {
             user = req.session.passport.user;
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
-                username: user.username
+                username: user.username,
+                canvasWidth:  resolution.width,
+                canvasHeight: resolution.height
             });
         }
     });
@@ -65,8 +74,8 @@ module.exports = (app, io) => {
                 ]
                 for(let i = 0; i < 500; i++) {
                     newCard[2].push([
-                        parseInt(Math.random() * 1920),
-                        parseInt(Math.random() * 1080),
+                        parseInt(Math.random() * resolution.width),
+                        parseInt(Math.random() * resolution.height),
                         parseInt(Math.random() * 4) + 1
                     ]);
                 }
