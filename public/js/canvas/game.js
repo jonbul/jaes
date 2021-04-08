@@ -136,7 +136,7 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     intervalMethod() {
-        
+
         this.fullScreen = window.innerHeight === screen.height;
         if (this.fullScreen) {
             document.body.classList.add('fullscreen');
@@ -324,7 +324,7 @@ class Game {
             '#1c2773'
         ).draw(this.context);
 
-        const cords = [-1,0,1];
+        const cords = [-1, 0, 1];
         cords.forEach(i => {
             cords.forEach(j => {
                 const x = currentCard.x + i;
@@ -338,9 +338,31 @@ class Game {
         });
     }
     drawArrows() {
-        for(const id in this.players) {
-            if (this.players[id] !== this.player)
+        /****************************** */
+        const rotationAxis = {}
+        if (window.debug) {
+            rotationAxis.x = this.player.x + this.player.width / 2;
+            rotationAxis.y = this.player.y + this.player.width / 2;
+            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#ff0000').draw(this.context)
+        }
+
+        /****************************** */
+        for (const id in this.players) {
+            if (this.players[id] !== this.player) {
+                if (window.debug) {
+                    /****************************** */
+                    const rotationAxis2 = {
+                        x: this.players[id].x + this.players[id].width / 2,
+                        y: this.players[id].y + this.players[id].width / 2
+                    }
+                    new Line([
+                        { x: rotationAxis.x, y: rotationAxis.y },
+                        { x: rotationAxis2.x, y: rotationAxis2.y },
+                    ], '#ff0000').draw(this.context)
+                    /****************************** */
+                }
                 new RadarArrow(this.player, this.players[id], this.canvas).draw(this.context);
+            }
         };
     }
     drawTexts() {

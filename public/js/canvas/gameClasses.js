@@ -12,10 +12,10 @@ import {
     Rect,
     Rubber,
     Text
-} from './canvasClasses.js';
+} from './canvasClasses.js';import Forms from './canvasClasses.js';
 import { parseLayers, asyncRequest } from '../functions.js';
 let ships;
-
+window.forms = Forms;
 class Player {
     constructor(username, shipId, x = 0, y = 0) {
         this.name = username;
@@ -149,21 +149,23 @@ class RadarArrow {
     getDistance() {
         const target = this.target;
         const player = this.player;
-        const xLength = target.x - player.x;
-        const yLength = target.y - player.y;
+        const xLength = (target.x + target.width / 2) - (player.x + player.width / 2);
+        const yLength = (target.y + target.width / 2) - (player.y + player.width / 2);
 
         const distance = Math.sqrt(xLength^2 + yLength^2);
 
-        this.angleRadian = Math.abs(Math.atan(yLength/xLength));
-
         if (xLength > 0 && yLength > 0) {
             this.angleRadian = Math.abs(Math.atan(yLength/xLength));
+            this.arrowDir = {x:1,y:1};
         } else if (xLength < 0 && yLength > 0) {
             this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI / 2;
+            this.arrowDir = {x:-1,y:1};
         } else if (xLength < 0 && yLength < 0) {
             this.angleRadian = Math.abs(Math.atan(yLength/xLength)) + Math.PI;
-        } else if (xLength > 0 && yLength < 0) {
+            this.arrowDir = {x:-1,y:-1};
+        } else {
             this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI * 1.5;
+            this.arrowDir = {x:1,y:-1};
         }
     }
     draw(context) {
@@ -178,12 +180,12 @@ class RadarArrow {
         ];
 
         points.forEach(point => {
-            point.x += this.player.x;
-            point.y += this.player.y;
+            point.x += this.player.x + this.player.width / 2 + canvas.width*0.04;
+            point.y += this.player.y + this.player.width / 2 - canvas.width*0.01;
         })
         const rotationAxis = {
-            x: this.player.x + this.player.width / 2 + canvas.width*0.02,
-            y: this.player.y + this.player.width / 2 + canvas.width*0.01,
+            x: this.player.x + this.player.width / 2,
+            y: this.player.y + this.player.width / 2
         }
         new Polygon(points, '#ff0000').draw(context, {rotationCenter: {x: rotationAxis.x, y: rotationAxis.y}, rotate: this.angleRadian});
     }
