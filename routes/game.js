@@ -104,7 +104,7 @@ module.exports = (app, io) => {
         });
         socket.on('disconnect', () => {
             delete players[socket.id];
-            console.log('bye', socket.id, socket);
+            console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
         socket.on('bullet movement', (msg) => {

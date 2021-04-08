@@ -16,6 +16,7 @@ import {
 } from './canvasClasses.js';
 import {
     Bullet,
+    RadarArrow,
     _player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
@@ -266,6 +267,7 @@ class Game {
                 anim.skipFrame();
             }
         });
+        this.drawArrows();
         this.drawTexts();
     }
     drawBackground(viewRect) {
@@ -334,6 +336,12 @@ class Game {
                 }
             })
         });
+    }
+    drawArrows() {
+        for(const id in this.players) {
+            if (this.players[id] !== this.player)
+                new RadarArrow(this.player, this.players[id], this.canvas).draw(this.context);
+        };
     }
     drawTexts() {
         const texts = [

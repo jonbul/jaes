@@ -96,32 +96,6 @@ class Rect {
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
     }
-
-    /*drawResized(context, resizeSize = 100) {
-        let width, height, proportion;
-        if (this.width >= this.height) {
-            width = resizeSize;
-            proportion = resizeSize / this.width
-            height = this.height * proportion;
-        } else {
-            height = resizeSize;
-            proportion = resizeSize / this.height
-            width = this.width * proportion;
-        }
-        if(this.rorationInDegrees>0)
-            context.rotate(this.rorationInDegrees*Math.PI/180);
-
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(this.x, this.y, width, height);
-        
-        if (this.borderWidth) {
-            context.strokeStyle = this.borderColor;
-            context.lineWidth = this.borderWidth;
-            context.strokeRect(this.x, this.y, width, height);
-        }
-        
-        context.setTransform(1, 0, 0, 1, 0, 0);
-    }*/
 }
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {

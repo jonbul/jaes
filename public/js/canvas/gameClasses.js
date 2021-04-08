@@ -140,10 +140,59 @@ class Bullet {
     }
 }
 
+class RadarArrow {
+    constructor(player, target, canvas) {
+        this.player = player;
+        this.target = target;
+        this.canvas = canvas;
+    }
+    getDistance() {
+        const target = this.target;
+        const player = this.player;
+        const xLength = target.x - player.x;
+        const yLength = target.y - player.y;
+
+        const distance = Math.sqrt(xLength^2 + yLength^2);
+
+        this.angleRadian = Math.abs(Math.atan(yLength/xLength));
+
+        if (xLength > 0 && yLength > 0) {
+            this.angleRadian = Math.abs(Math.atan(yLength/xLength));
+        } else if (xLength < 0 && yLength > 0) {
+            this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI / 2;
+        } else if (xLength < 0 && yLength < 0) {
+            this.angleRadian = Math.abs(Math.atan(yLength/xLength)) + Math.PI;
+        } else if (xLength > 0 && yLength < 0) {
+            this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI * 1.5;
+        }
+    }
+    draw(context) {
+        this.getDistance();
+
+
+        const points = [
+            {x: 0, y:0},
+            {x: canvas.width*0.04,y: canvas.width*0.01},
+            {x: 0, y:canvas.width*0.02},
+            {x: canvas.width*0.01, y: canvas.width*0.01}
+        ];
+
+        points.forEach(point => {
+            point.x += this.player.x;
+            point.y += this.player.y;
+        })
+        const rotationAxis = {
+            x: this.player.x + this.player.width / 2 + canvas.width*0.02,
+            y: this.player.y + this.player.width / 2 + canvas.width*0.01,
+        }
+        new Polygon(points, '#ff0000').draw(context, {rotationCenter: {x: rotationAxis.x, y: rotationAxis.y}, rotate: this.angleRadian});
+    }
+}
+
 const _player = new Promise(async function (resolve) {
     ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
     resolve(Player);
 });
 
-export { Bullet, _player }
-export default { Bullet, _player }
+export { Bullet, RadarArrow, _player }
+export default { Bullet, RadarArrow, _player }
