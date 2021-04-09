@@ -152,7 +152,7 @@ class RadarArrow {
         const xLength = (target.x + target.width / 2) - (player.x + player.width / 2);
         const yLength = (target.y + target.width / 2) - (player.y + player.width / 2);
 
-        const distance = Math.sqrt(xLength^2 + yLength^2);
+        this.totalDistance = Math.sqrt(xLength^2 + yLength^2);
 
         if (xLength > 0 && yLength > 0) {
             this.angleRadian = Math.abs(Math.atan(yLength/xLength));
@@ -179,15 +179,18 @@ class RadarArrow {
             {x: canvas.width*0.01, y: canvas.width*0.01}
         ];
 
+        const arrowDistanceX = this.player.width / 2
+        const arrowDistanceY = this.player.width / 2
+
         points.forEach(point => {
-            point.x += this.player.x + this.player.width / 2 + canvas.width*0.04;
-            point.y += this.player.y + this.player.width / 2 - canvas.width*0.01;
+            point.x += this.player.x + arrowDistanceX + canvas.width*0.04;
+            point.y += this.player.y + arrowDistanceY - canvas.width*0.01;
         })
-        const rotationAxis = {
+        const rotationCenter = {
             x: this.player.x + this.player.width / 2,
             y: this.player.y + this.player.width / 2
         }
-        new Polygon(points, '#ff0000').draw(context, {rotationCenter: {x: rotationAxis.x, y: rotationAxis.y}, rotate: this.angleRadian});
+        new Polygon(points, '#ff0000').draw(context, {rotationCenter, rotate: this.angleRadian});
     }
 }
 

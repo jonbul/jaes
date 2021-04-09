@@ -340,28 +340,33 @@ class Game {
     drawArrows() {
         /****************************** */
         const rotationAxis = {}
+        const player = this.player;
         if (window.debug) {
-            rotationAxis.x = this.player.x + this.player.width / 2;
-            rotationAxis.y = this.player.y + this.player.width / 2;
-            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#ff0000').draw(this.context)
+            rotationAxis.x = player.x + player.width / 2;
+            rotationAxis.y = player.y + player.width / 2;
+            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
+            new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
 
         /****************************** */
         for (const id in this.players) {
-            if (this.players[id] !== this.player) {
+            if (this.players[id] !== player) {
+                const target = this.players[id];
                 if (window.debug) {
                     /****************************** */
                     const rotationAxis2 = {
-                        x: this.players[id].x + this.players[id].width / 2,
-                        y: this.players[id].y + this.players[id].width / 2
+                        x: target.x + target.width / 2,
+                        y: target.y + target.width / 2
                     }
                     new Line([
                         { x: rotationAxis.x, y: rotationAxis.y },
                         { x: rotationAxis2.x, y: rotationAxis2.y },
                     ], '#ff0000').draw(this.context)
+                    new Arc(rotationAxis2.x, rotationAxis2.y, canvas.width * 0.01, '#ff0000').draw(this.context);
+                    new Rect(target.x, target.y,target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
-                new RadarArrow(this.player, this.players[id], this.canvas).draw(this.context);
+                new RadarArrow(this.player, target, this.canvas).draw(this.context);
             }
         };
     }
