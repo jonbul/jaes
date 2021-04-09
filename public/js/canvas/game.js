@@ -249,6 +249,7 @@ class Game {
             width: this.canvas.width,
             height: this.canvas.height
         }
+        this.viewRect = viewRect;
         this.clear();
         this.drawBackground(viewRect);
         for (const id in this.players) {
@@ -351,7 +352,7 @@ class Game {
         /****************************** */
         for (const id in this.players) {
             const target = this.players[id];
-            if (target !== player && !target.isDead) {
+            if (target !== player && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
                     const rotationAxis2 = {
