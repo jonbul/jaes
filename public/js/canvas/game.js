@@ -269,6 +269,7 @@ class Game {
             }
         });
         this.drawArrows();
+        this.drawRadar();
         this.drawTexts();
     }
     drawBackground(viewRect) {
@@ -364,10 +365,40 @@ class Game {
                         { x: rotationAxis2.x, y: rotationAxis2.y },
                     ], '#ff0000').draw(this.context)
                     new Arc(rotationAxis2.x, rotationAxis2.y, canvas.width * 0.01, '#ff0000').draw(this.context);
-                    new Rect(target.x, target.y,target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
+                    new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
                 new RadarArrow(this.player, target, this.canvas).draw(this.context);
+            }
+        };
+    }
+    drawRadar() {
+        const player = this.player;
+        const r = this.canvas.width / 10;
+        const x = player.x + (this.canvas.width / 2) - r;
+        const y = player.y + (this.canvas.height / 2) - r;
+        new Arc(x, y, r, 'rgba(0,0,0,0.5)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 4, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 3, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 2, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 1, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2).draw(this.context);
+        new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2).draw(this.context);
+
+        const radarLength = this.canvas.width * 5;
+
+        for (const id in this.players) {
+            const target = this.players[id];
+            if (this.player !== target) {
+                const xLength = target.x - player.x;
+                const yLength = target.y - player.y;
+                const distance = Math.sqrt(Math.pow(xLength,2) + Math.pow(yLength,2));
+
+                if (distance < radarLength) {
+                    const radarX = (xLength * r / radarLength) + x;
+                    const radarY = (yLength * r / radarLength) + y;
+                    new Arc(radarX, radarY, canvas.width/300, 'rgba(255,0,0,0.7)').draw(this.context)
+                }
             }
         };
     }
