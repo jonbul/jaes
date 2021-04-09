@@ -350,8 +350,8 @@ class Game {
 
         /****************************** */
         for (const id in this.players) {
-            if (this.players[id] !== player) {
-                const target = this.players[id];
+            const target = this.players[id];
+            if (target !== player && !target.isDead) {
                 if (window.debug) {
                     /****************************** */
                     const rotationAxis2 = {
