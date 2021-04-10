@@ -27,6 +27,7 @@ let Player;
 class Game {
     constructor(canvas, username, io) {
         (async () => {
+            this.radarZoom = 1;
             Player = await _player;
             window.game = this;
             this.username = username
@@ -385,11 +386,11 @@ class Game {
         new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2).draw(this.context);
         new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2).draw(this.context);
 
-        const radarLength = this.canvas.width * 5;
+        const radarLength = this.canvas.width * (5 / this.radarZoom);
 
         for (const id in this.players) {
             const target = this.players[id];
-            if (this.player !== target) {
+            if (this.player !== target && !target.isDead) {
                 const xLength = target.x - player.x;
                 const yLength = target.y - player.y;
                 const distance = Math.sqrt(Math.pow(xLength,2) + Math.pow(yLength,2));
@@ -476,6 +477,11 @@ class Game {
             const msg = this.player.getCenteredPosition();
             msg.sound = 'shot';
             this.io.emit('sound', msg);
+        }
+        if (event.keyCode === 107 && this.radarZoom > 1) {
+            this.radarZoom--;
+        } else if (event.keyCode === 109 && this.radarZoom < 5) {
+            this.radarZoom++;
         }
     }
     leaveWindow() {
