@@ -131,11 +131,9 @@ module.exports = (app, io) => {
         });
         socket.on('player hit', msg => {
             io.emit('bullet remove', msg.bulletId);
-            console.log(msg)
             io.to(msg.playerId).emit('player hit', msg);
         });
         socket.on('player died', msg => {
-            console.log(msg)
             io.emit('player died', msg);
         });
         socket.on('sound', msg => {
