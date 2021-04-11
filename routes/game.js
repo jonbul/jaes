@@ -1,30 +1,14 @@
-const PaintingProject = require('../model/paintingProject');
 const Ship = require('../model/ship');
-const { Schema } = require('mongoose');
+const resolutions = require('./constants').resolutions;
 
 module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
-    const resolutions = [
-        {
-            name: "FullHD (1920x1080)",
-            width: 1920,
-            height: 1080
-        },
-        {
-            name: "2K (2560x1440)",
-            width: 2560,
-            height: 1440
-        },
-        {
-            name: "4K (2560x1440)",
-            width: 3840,
-            height: 2160
-        }
-    ];
+    
     const resolution = resolutions[1];
     
     app.get('/game', (req, res) => {
+        req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
         if (req.session.passport && req.session.passport.user) {
             const user = req.session.passport.user;
             res.render('canvas/game', {
@@ -39,10 +23,9 @@ module.exports = (app, io) => {
     });
     app.get('/gameStatus', (req, res) => {
         let user;
-        
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !(/^jonbul$/i).test(req.session.passport.user.username)) {
+            !req.session.passport.user.admin) {
                 res.redirect('/');
         } else {
             user = req.session.passport.user;
@@ -57,7 +40,7 @@ module.exports = (app, io) => {
     app.post('/gameData', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !(/^jonbul$/i).test(req.session.passport.user.username)) res.redirect('/');
+            !req.session.passport.user.admin) res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
