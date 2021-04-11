@@ -77,14 +77,17 @@ class Player {
     }
 }
 class Bullet {
-    constructor(socketId, x, y, angle, shootingSpeed) {
+    constructor(socketId, x, y, angle, shootingSpeed = 0, radiusX = 5, radiusY = 5) {
         this.socketId = socketId;
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.id = socketId + '-' + Date.now();
         this.range = 10000;
-        this.speed = 25 + (shootingSpeed || 0);
+        this.speed = 25 + shootingSpeed;
+        this.radiusX = radiusX;
+        this.radiusY = radiusY;
+        this.rotation;
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
@@ -108,12 +111,17 @@ class Bullet {
         this.expX = this.moveX * this.range + this.x;
         this.expY = this.moveY * this.range + this.y;
 
-        this.arc = new Arc(this.x, this.y, 5, '#ff0000');
-        console.log(this.moveX, this.moveY)
+        //this.arc = new Arc(this.x, this.y, 5, '#ff0000');
+        //this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.angle, '#ff0000')
+        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, 0, '#ff0000', '', '')
+    }
+    updatePosition(x,y) {
+        this.x = x;
+        this.y = y;
+        this.arc.x = x;
+        this.arc.y = y;
     }
     draw(context) {
-        this.arc.x = this.x;
-        this.arc.y = this.y;
         this.arc.draw(context);
     }
     isExpired() {

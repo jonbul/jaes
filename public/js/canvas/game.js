@@ -222,10 +222,7 @@ class Game {
             bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed);
             this.bullets[bulletDetails.id] = bullet;
         } else {
-            bullet.x = bulletDetails.x;
-            bullet.y = bulletDetails.y;
-            bullet.x2 = bulletDetails.x2;
-            bullet.y2 = bulletDetails.y2;
+            bullet.updatePosition(bulletDetails.x, bulletDetails.y);
         }
     }
     updatePlayers(plDetails) {
@@ -258,8 +255,9 @@ class Game {
                 if (!this.players[id].hide) this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
-            if (this.checkArcRectCollision(this.bullets[id].arc, viewRect))
+            if (this.checkArcRectCollision(this.bullets[id], viewRect)) {
                 this.bullets[id].draw(this.context);
+            }
         }
         this.player.draw(this.context);
         this.animations.forEach(anim => {
@@ -546,10 +544,10 @@ class Game {
     }
     checkArcRectCollision(arc, rect) {
         return this.checkRectsCollision(rect, {
-            x: arc.x - arc.radius,
-            y: arc.y - arc.radius,
-            width: arc.radius * 2,
-            height: arc.radius * 2
+            x: arc.x - (arc.radiusX || arc.radius),
+            y: arc.y - (arc.radiusY || arc.radius),
+            width: arc.radiusX * 2,
+            height: arc.radiusY * 2
         });
         /*const rectCenter = {
             x: rect.x + rect.width / 2,
