@@ -433,14 +433,40 @@ class Game {
                 textRows.push([player.name, player.kills, player.deaths]);
             }
             const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
+            const topY = cornerY + 50;
+            const topXL = cornerX + (this.canvas.width/7) * 2 - 25;
+            const topXR = cornerX + ((this.canvas.width/7) * 5) + 25;
+            let minY;
+            const bgColors = ['rgba(0,0,0,0)', 'rgba(19,255,3,0.3)'];
             textRows.forEach((row, i) => {
                 row.forEach((column, j) => {
                     text.text = column;
-                    text.x = cornerX + 500 + 300 * j;
+                    text.x = cornerX + (this.canvas.width/7) * (j + 2);
                     text.y = cornerY + 50 + 50 * (i + 1);
                     text.draw(this.context);
+                    minY = text.y;        
                 });
+                new Rect(cornerX + (this.canvas.width/7) * 2 - 25, text.y - 25, (this.canvas.width/7)*3 + 50,50, bgColors[i%2],'#13ff03',2).draw(this.context)
             });
+            
+            new Line([
+                {
+                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    y: topY + 25
+                },
+                {
+                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    y: minY + 25
+                }],'#13ff03', 3).draw(this.context);
+            new Line([
+                {
+                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    y: topY + 25
+                },
+                {
+                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    y: minY + 25
+                }],'#13ff03', 3).draw(this.context);
         }
     }
     createStaticCanvas() {
