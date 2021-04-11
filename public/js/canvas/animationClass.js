@@ -19,7 +19,7 @@ class Animation {
         this.playing = false;
         this.currentFrame = -1;
     }
-    drawFrame(context) {
+    drawFrame(context, drawable) {
         this.currentFrame += this.speed;
         if (this.currentFrame >= this.frames.length) {
             if (this.repeat) {
@@ -29,14 +29,11 @@ class Animation {
             }
         }
         const frameActions = this.frames[this.currentFrame];
-        if (frameActions && frameActions.length) frameActions.forEach(action => action());
+        if (frameActions && frameActions.length && drawable) frameActions.forEach(action => action());
         this.layer.draw(context, {x: this.x, y: this.y});
 
         if (this.onEnd && !this.repeat && this.currentFrame >= this.frames.length-1)
          this.onEnd();
-    }
-    skipFrame() {
-        this.currentFrame += this.speed;
     }
 }
 

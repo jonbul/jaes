@@ -263,10 +263,8 @@ class Game {
         }
         this.player.draw(this.context);
         this.animations.forEach(anim => {
-            if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
-                anim.drawFrame(this.context);
-            } else if (anim.playing) {
-                anim.skipFrame();
+            if (anim.playing) {
+                anim.drawFrame(this.context, this.checkRectsCollision(anim, viewRect));
             }
         });
         this.drawArrows();
