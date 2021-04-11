@@ -49,7 +49,7 @@ class Player {
     createBullet() {
         let bPosX = this.x + this.width / 2;
         let bPosY = this.y + this.height / 2;
-        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate, this.speed));
+        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate, this.speed, this.rotate));
     }
     dead() {
         this.isDead = true;
@@ -77,7 +77,7 @@ class Player {
     }
 }
 class Bullet {
-    constructor(socketId, x, y, angle, shootingSpeed = 0, radiusX = 5, radiusY = 5) {
+    constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5) {
         this.socketId = socketId;
         this.x = x;
         this.y = y;
@@ -87,7 +87,7 @@ class Bullet {
         this.speed = 25 + shootingSpeed;
         this.radiusX = radiusX;
         this.radiusY = radiusY;
-        this.rotation;
+        this.rotation = rotation;
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
@@ -113,7 +113,7 @@ class Bullet {
 
         //this.arc = new Arc(this.x, this.y, 5, '#ff0000');
         //this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.angle, '#ff0000')
-        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, 0, '#ff0000', '', '')
+        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, '#ff0000', '', '')
     }
     updatePosition(x,y) {
         this.x = x;
@@ -143,7 +143,8 @@ class Bullet {
             expY: this.expY,
             moveX: this.moveX,
             moveY: this.moveY,
-            id: this.id
+            id: this.id,
+            rotation: this.rotation
         }
     }
 }
