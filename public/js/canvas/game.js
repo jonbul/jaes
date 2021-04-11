@@ -474,9 +474,9 @@ class Game {
             msg.sound = 'shot';
             this.io.emit('sound', msg);
         }
-        if (event.keyCode === 107 && this.radarZoom > 1) {
+        if (event.keyCode === KEYS.PLUS && this.radarZoom > 1) {
             this.radarZoom--;
-        } else if (event.keyCode === 109 && this.radarZoom < 5) {
+        } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 5) {
             this.radarZoom++;
         }
     }
