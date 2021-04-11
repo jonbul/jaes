@@ -5,17 +5,20 @@ module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
     
-    const resolution = resolutions[1];
+    
+    let currentResolution = 1;
+    let resolution = resolutions[currentResolution];
     
     app.get('/game', (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
         if (req.session.passport && req.session.passport.user) {
             const user = req.session.passport.user;
+
             res.render('canvas/game', {
                 title: 'Game',
                 username: user.username,
-                canvasWidth:  resolution.width,
-                canvasHeight: resolution.height
+                canvasWidth:  resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height
             });
         } else {
             res.redirect('/');
@@ -28,12 +31,13 @@ module.exports = (app, io) => {
             !req.session.passport.user.admin) {
                 res.redirect('/');
         } else {
+            currentResolution = currentResolution || 1;
             user = req.session.passport.user;
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
                 username: user.username,
-                canvasWidth:  resolution.width,
-                canvasHeight: resolution.height
+                canvasWidth:  resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height
             });
         }
     });
@@ -91,6 +95,27 @@ module.exports = (app, io) => {
         });
         res.send(cards);
     });
+
+    app.get('/admin', (req, res) => {
+        currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
+
+        if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
+            const user = req.session.passport.user;
+            res.render('admin/admin', {
+                title: 'Administration',
+                username: user.username,
+                resolutions,
+                currentResolution
+            });
+        } else {
+            req.redirect('/');
+        }
+    });
+
+    app.post('/admin', (req, res) => {
+        currentResolution = parseInt(req.body.resolution);
+        res.redirect('/admin');
+    })
 
     //IO
     io.on('connection', (socket) => {
