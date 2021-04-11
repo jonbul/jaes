@@ -96,32 +96,6 @@ class Rect {
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
     }
-
-    /*drawResized(context, resizeSize = 100) {
-        let width, height, proportion;
-        if (this.width >= this.height) {
-            width = resizeSize;
-            proportion = resizeSize / this.width
-            height = this.height * proportion;
-        } else {
-            height = resizeSize;
-            proportion = resizeSize / this.height
-            width = this.width * proportion;
-        }
-        if(this.rorationInDegrees>0)
-            context.rotate(this.rorationInDegrees*Math.PI/180);
-
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(this.x, this.y, width, height);
-        
-        if (this.borderWidth) {
-            context.strokeStyle = this.borderColor;
-            context.lineWidth = this.borderWidth;
-            context.strokeRect(this.x, this.y, width, height);
-        }
-        
-        context.setTransform(1, 0, 0, 1, 0, 0);
-    }*/
 }
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
@@ -183,8 +157,9 @@ class Ellipse {
         this.desc = CONST.ELLIPSE;
         this.x = x;
         this.y = y;
-        this.radiusX = radiusX;
-        this.radiusY = radiusY;
+
+        this.radiusX = Math.abs(radiusX);
+        this.radiusY = Math.abs(radiusY);
         this.rotation = rotation;
         this.startAngle = (startAngle * 2 / 360) * Math.PI;
         this.endAngle = (endAngle * 2 / 360) * Math.PI;
@@ -201,7 +176,6 @@ class Ellipse {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
-        if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
         context.ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, this.startAngle, this.endAngle);
@@ -218,8 +192,8 @@ class Ellipse {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
+
     drawResized(context, resizeSize = 100) {
         let rx, ry;
         if (this.radiusX >= this.radiusY) {

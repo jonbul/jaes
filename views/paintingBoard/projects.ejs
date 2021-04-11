@@ -3,7 +3,6 @@
 <a href="/paintingBoard" class="btn btn-primary mt-5">New</a>
 <div class="row mt-3">
 <% projects.forEach(project => { 
-    console.log(project.dateCreated);
     const d1 = new Date(project.dateCreated);
     const d1s = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()}`;
     const d2 = new Date(project.dateModified);

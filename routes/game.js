@@ -5,10 +5,25 @@ const { Schema } = require('mongoose');
 module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
-    const resolution = {
-        width: 1920,
-        height: 1080
-    }
+    const resolutions = [
+        {
+            name: "FullHD (1920x1080)",
+            width: 1920,
+            height: 1080
+        },
+        {
+            name: "2K (2560x1440)",
+            width: 2560,
+            height: 1440
+        },
+        {
+            name: "4K (2560x1440)",
+            width: 3840,
+            height: 2160
+        }
+    ];
+    const resolution = resolutions[1];
+    
     app.get('/game', (req, res) => {
         if (req.session.passport && req.session.passport.user) {
             const user = req.session.passport.user;
@@ -104,7 +119,7 @@ module.exports = (app, io) => {
         });
         socket.on('disconnect', () => {
             delete players[socket.id];
-            console.log('bye', socket.id, socket);
+            console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
         socket.on('bullet movement', (msg) => {
@@ -116,11 +131,9 @@ module.exports = (app, io) => {
         });
         socket.on('player hit', msg => {
             io.emit('bullet remove', msg.bulletId);
-            console.log(msg)
             io.to(msg.playerId).emit('player hit', msg);
         });
         socket.on('player died', msg => {
-            console.log(msg)
             io.emit('player died', msg);
         });
         socket.on('sound', msg => {

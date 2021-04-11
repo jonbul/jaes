@@ -16,6 +16,7 @@ import {
 } from './canvasClasses.js';
 import {
     Bullet,
+    RadarArrow,
     _player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
@@ -26,6 +27,7 @@ let Player;
 class Game {
     constructor(canvas, username, io) {
         (async () => {
+            this.radarZoom = 1;
             Player = await _player;
             window.game = this;
             this.username = username
@@ -135,7 +137,7 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     intervalMethod() {
-        
+
         this.fullScreen = window.innerHeight === screen.height;
         if (this.fullScreen) {
             document.body.classList.add('fullscreen');
@@ -217,13 +219,10 @@ class Game {
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
         if (!bullet) {
-            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed);
+            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed, bulletDetails.rotation);
             this.bullets[bulletDetails.id] = bullet;
         } else {
-            bullet.x = bulletDetails.x;
-            bullet.y = bulletDetails.y;
-            bullet.x2 = bulletDetails.x2;
-            bullet.y2 = bulletDetails.y2;
+            bullet.updatePosition(bulletDetails.x, bulletDetails.y);
         }
     }
     updatePlayers(plDetails) {
@@ -248,6 +247,7 @@ class Game {
             width: this.canvas.width,
             height: this.canvas.height
         }
+        this.viewRect = viewRect;
         this.clear();
         this.drawBackground(viewRect);
         for (const id in this.players) {
@@ -255,17 +255,18 @@ class Game {
                 if (!this.players[id].hide) this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
-            if (this.checkArcRectCollision(this.bullets[id].arc, viewRect))
+            if (this.checkArcRectCollision(this.bullets[id], viewRect)) {
                 this.bullets[id].draw(this.context);
+            }
         }
         this.player.draw(this.context);
         this.animations.forEach(anim => {
-            if (anim.playing && this.checkRectsCollision(anim, viewRect)) {
-                anim.drawFrame(this.context);
-            } else if (anim.playing) {
-                anim.skipFrame();
+            if (anim.playing) {
+                anim.drawFrame(this.context, this.checkRectsCollision(anim, viewRect));
             }
         });
+        this.drawArrows();
+        this.drawRadar();
         this.drawTexts();
     }
     drawBackground(viewRect) {
@@ -322,7 +323,7 @@ class Game {
             '#1c2773'
         ).draw(this.context);
 
-        const cords = [-1,0,1];
+        const cords = [-1, 0, 1];
         cords.forEach(i => {
             cords.forEach(j => {
                 const x = currentCard.x + i;
@@ -334,6 +335,69 @@ class Game {
                 }
             })
         });
+    }
+    drawArrows() {
+        /****************************** */
+        const rotationAxis = {}
+        const player = this.player;
+        if (window.debug) {
+            rotationAxis.x = player.x + player.width / 2;
+            rotationAxis.y = player.y + player.width / 2;
+            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
+            new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
+        }
+
+        /****************************** */
+        for (const id in this.players) {
+            const target = this.players[id];
+            if (target !== player && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
+                if (window.debug) {
+                    /****************************** */
+                    const rotationAxis2 = {
+                        x: target.x + target.width / 2,
+                        y: target.y + target.width / 2
+                    }
+                    new Line([
+                        { x: rotationAxis.x, y: rotationAxis.y },
+                        { x: rotationAxis2.x, y: rotationAxis2.y },
+                    ], '#ff0000').draw(this.context)
+                    new Arc(rotationAxis2.x, rotationAxis2.y, canvas.width * 0.01, '#ff0000').draw(this.context);
+                    new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
+                    /****************************** */
+                }
+                new RadarArrow(this.player, target, this.canvas).draw(this.context);
+            }
+        };
+    }
+    drawRadar() {
+        const player = this.player;
+        const r = this.canvas.width / 10;
+        const x = player.x + (this.canvas.width / 2) - r;
+        const y = player.y + (this.canvas.height / 2) - r;
+        new Arc(x, y, r, 'rgba(0,0,0,0.5)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 4, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 3, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 2, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Arc(x, y, (r / 5) * 1, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
+        new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2).draw(this.context);
+        new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2).draw(this.context);
+
+        const radarLength = this.canvas.width * (5 / this.radarZoom);
+
+        for (const id in this.players) {
+            const target = this.players[id];
+            if (this.player !== target && !target.isDead) {
+                const xLength = target.x - player.x;
+                const yLength = target.y - player.y;
+                const distance = Math.sqrt(Math.pow(xLength,2) + Math.pow(yLength,2));
+
+                if (distance < radarLength) {
+                    const radarX = (xLength * r / radarLength) + x;
+                    const radarY = (yLength * r / radarLength) + y;
+                    new Arc(radarX, radarY, canvas.width/300, 'rgba(255,0,0,0.7)').draw(this.context)
+                }
+            }
+        };
     }
     drawTexts() {
         const texts = [
@@ -369,14 +433,40 @@ class Game {
                 textRows.push([player.name, player.kills, player.deaths]);
             }
             const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
+            const topY = cornerY + 50;
+            const topXL = cornerX + (this.canvas.width/7) * 2 - 25;
+            const topXR = cornerX + ((this.canvas.width/7) * 5) + 25;
+            let minY;
+            const bgColors = ['rgba(0,0,0,0)', 'rgba(19,255,3,0.3)'];
             textRows.forEach((row, i) => {
                 row.forEach((column, j) => {
                     text.text = column;
-                    text.x = cornerX + 500 + 300 * j;
+                    text.x = cornerX + (this.canvas.width/7) * (j + 2);
                     text.y = cornerY + 50 + 50 * (i + 1);
                     text.draw(this.context);
+                    minY = text.y;        
                 });
+                new Rect(cornerX + (this.canvas.width/7) * 2 - 25, text.y - 25, (this.canvas.width/7)*3 + 50,50, bgColors[i%2],'#13ff03',2).draw(this.context)
             });
+            
+            new Line([
+                {
+                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    y: topY + 25
+                },
+                {
+                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    y: minY + 25
+                }],'#13ff03', 3).draw(this.context);
+            new Line([
+                {
+                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    y: topY + 25
+                },
+                {
+                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    y: minY + 25
+                }],'#13ff03', 3).draw(this.context);
         }
     }
     createStaticCanvas() {
@@ -409,6 +499,11 @@ class Game {
             const msg = this.player.getCenteredPosition();
             msg.sound = 'shot';
             this.io.emit('sound', msg);
+        }
+        if (event.keyCode === KEYS.PLUS && this.radarZoom > 1) {
+            this.radarZoom--;
+        } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 5) {
+            this.radarZoom++;
         }
     }
     leaveWindow() {
@@ -475,10 +570,10 @@ class Game {
     }
     checkArcRectCollision(arc, rect) {
         return this.checkRectsCollision(rect, {
-            x: arc.x - arc.radius,
-            y: arc.y - arc.radius,
-            width: arc.radius * 2,
-            height: arc.radius * 2
+            x: arc.x - (arc.radiusX || arc.radius),
+            y: arc.y - (arc.radiusY || arc.radius),
+            width: arc.radiusX * 2,
+            height: arc.radiusY * 2
         });
         /*const rectCenter = {
             x: rect.x + rect.width / 2,
