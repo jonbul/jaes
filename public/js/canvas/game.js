@@ -25,7 +25,7 @@ import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 let Player;
 class Game {
-    constructor(canvas, username, io) {
+    constructor(canvas, username, io, guest) {
         (async () => {
             this.radarZoom = 1;
             Player = await _player;

@@ -1,24 +1,27 @@
 const Ship = require('../model/ship');
 const resolutions = require('./constants').resolutions;
+const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
-    
-    
-    let currentResolution = 1;
-    let resolution = resolutions[currentResolution];
-    
+
+
+    let currentResolution = 2;
+    let allowedPlayerType = allowedPlayerTypes.All//allowedPlayerTypes.Registered;
+
     app.get('/game', (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        if (req.session.passport && req.session.passport.user) {
-            const user = req.session.passport.user;
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            const user = req.session.passport?.user;
 
             res.render('canvas/game', {
                 title: 'Game',
-                username: user.username,
-                canvasWidth:  resolutions[currentResolution].width,
-                canvasHeight: resolutions[currentResolution].height
+                username: user?.username || '',
+                canvasWidth: resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height,
+                allowedPlayerTypes,
+                allowedPlayerType
             });
         } else {
             res.redirect('/');
@@ -29,14 +32,14 @@ module.exports = (app, io) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
             !req.session.passport.user.admin) {
-                res.redirect('/');
+            res.redirect('/');
         } else {
             currentResolution = currentResolution || 1;
             user = req.session.passport.user;
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
                 username: user.username,
-                canvasWidth:  resolutions[currentResolution].width,
+                canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height
             });
         }
@@ -59,41 +62,62 @@ module.exports = (app, io) => {
             resultCards
         });
     });
+    app.post('/playerTypes', (req, res) => {
+        if (!req.session.passport ||
+            !req.session.passport.user ||
+            !req.session.passport.user.admin) res.redirect('/');
+        const resultCards = {};
+        for (const propX in backgroundCards) {
+            for (const propY in backgroundCards[propX]) {
+                if (!req.body[propX] || !req.body[propX][propY]) {
+                    resultCards[propX] = resultCards[propX] || {};
+                    resultCards[propX][propY] = backgroundCards[propX][propY];
+                }
+            }
+        }
+        res.send({
+            players,
+            resultCards
+        });
+    });
     app.get('/game/getShips', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        res.send(await Ship.find());
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            res.send(await Ship.find());
+        }
     });
 
     app.get('/game/getPlayers', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        res.send(players);
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            res.send(players);
+        }
     });
 
     app.post('/game/getBackgroundCards', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        const cards = [];
-        req.body.forEach(card => {
-            if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
-                cards.push(backgroundCards[card[0]][card[1]]);
-            } else {
-                const newCard = [
-                    card[0],//x
-                    card[1],//y
-                    []//start
-                ]
-                for(let i = 0; i < 500; i++) {
-                    newCard[2].push([
-                        parseInt(Math.random() * resolution.width),
-                        parseInt(Math.random() * resolution.height),
-                        parseInt(Math.random() * 4) + 1
-                    ]);
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            const cards = [];
+            req.body.forEach(card => {
+                if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
+                    cards.push(backgroundCards[card[0]][card[1]]);
+                } else {
+                    const newCard = [
+                        card[0],//x
+                        card[1],//y
+                        []//start
+                    ]
+                    for (let i = 0; i < 500; i++) {
+                        newCard[2].push([
+                            parseInt(Math.random() * resolutions[currentResolution].width),
+                            parseInt(Math.random() * resolutions[currentResolution].height),
+                            parseInt(Math.random() * 4) + 1
+                        ]);
+                    }
+                    backgroundCards[card[0]] = backgroundCards[card[0]] || {};
+                    backgroundCards[card[0]][card[1]] = newCard;
+                    cards.push(newCard);
                 }
-                backgroundCards[card[0]] = backgroundCards[card[0]] || {};
-                backgroundCards[card[0]][card[1]] = newCard;
-                cards.push(newCard);
-            }
-        });
-        res.send(cards);
+            });
+            res.send(cards);
+        }
     });
 
     app.get('/admin', (req, res) => {
@@ -101,11 +125,15 @@ module.exports = (app, io) => {
 
         if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
             const user = req.session.passport.user;
+            console.log(allowedPlayerTypes, allowedPlayerType)
+
             res.render('admin/admin', {
                 title: 'Administration',
                 username: user.username,
                 resolutions,
-                currentResolution
+                currentResolution,
+                allowedPlayerTypes,
+                allowedPlayerType
             });
         } else {
             req.redirect('/');
@@ -114,6 +142,9 @@ module.exports = (app, io) => {
 
     app.post('/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
+        gameMode = parseInt(req.body.gameMode);
+        console.log("YEE", req.body.allowedPlayerType)
+        allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/admin');
     })
 

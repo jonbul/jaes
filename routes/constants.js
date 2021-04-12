@@ -15,5 +15,9 @@ module.exports = {
             width: 3840,
             height: 2160
         }
-    ]
+    ],
+    allowedPlayerTypes: {
+        All: 0,
+        Registered: 1
+    }
 }
