@@ -55,7 +55,10 @@ module.exports = (app, io) => {
             for (const propY in backgroundCards[propX]) {
                 if (!req.body[propX] || !req.body[propX][propY]) {
                     resultCards[propX] = resultCards[propX] || {};
-                    resultCards[propX][propY] = backgroundCards[propX][propY];
+                    resultCards[propX][propY] = [
+                        backgroundCards[propX][propY][0],
+                        backgroundCards[propX][propY][1]
+                    ];
                 }
             }
         }
