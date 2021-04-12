@@ -57,6 +57,9 @@ class Game {
             this.player = new Player(this.username, 0, 0, 0);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
+            
+            this.drawableBullets = new Layer('bullets');
+            this.drawablePlayers = new Layer('players');
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
@@ -155,13 +158,14 @@ class Game {
         }
         this.viewRect = viewRect;
 
-        this.drawableBullets = new Layer('bullets');
+        
+        this.drawableBullets.shapes = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
                 if (!this.players[id].hide) this.drawableBullets.shapes.push(this.players[id]);
             }
         }
-        this.drawablePlayers = new Layer('players');
+        this.drawablePlayers.shapes = [];
         for (const id in this.bullets) {
             if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
                 this.drawablePlayers.shapes.push(this.bullets[id]);
