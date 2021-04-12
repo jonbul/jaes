@@ -28,7 +28,7 @@ module.exports = (app, io) => {
             res.redirect('/');
         }
     });
-    app.get('/gameStatus', (req, res) => {
+    app.get('/game/status', (req, res) => {
         let user;
         if (!req.session.passport ||
             !req.session.passport.user ||
