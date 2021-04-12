@@ -108,11 +108,6 @@ class GameStatus {
                     this.canvasHeight / biggerRelation,
                     '#1c2773'
                 ).draw(this.context);
-                card[2].forEach(point => {
-                    new Arc(
-                        (point[0] + x) / biggerRelation,
-                        (point[1] + y) / biggerRelation, point[2] / biggerRelation, '#ffffff').draw(this.context);
-                });
             }
         }
 

@@ -155,6 +155,19 @@ class Game {
         }
         this.viewRect = viewRect;
 
+        this.drawableBullets = new Layer('bullets');
+        for (const id in this.players) {
+            if (this.checkRectsCollision(this.players[id], this.viewRect)) {
+                if (!this.players[id].hide) this.drawableBullets.shapes.push(this.players[id]);
+            }
+        }
+        this.drawablePlayers = new Layer('players');
+        for (const id in this.bullets) {
+            if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
+                this.drawablePlayers.shapes.push(this.bullets[id]);
+            }
+        }
+
         requestAnimationFrame(this.drawAll.bind(this));
     }
     clear() {
@@ -250,15 +263,9 @@ class Game {
     drawAll() {
         this.clear();
         this.drawBackground(this.viewRect);
-        for (const id in this.players) {
-            if (this.checkRectsCollision(this.players[id], this.viewRect))
-                if (!this.players[id].hide) this.players[id].draw(this.context);
-        }
-        for (const id in this.bullets) {
-            if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
-                this.bullets[id].draw(this.context);
-            }
-        }
+        this.drawableBullets.draw(this.context);
+        this.drawablePlayers.draw(this.context);
+        
         this.player.draw(this.context);
         this.animations.forEach(anim => {
             if (anim.playing) {
