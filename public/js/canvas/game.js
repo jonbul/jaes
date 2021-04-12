@@ -25,7 +25,7 @@ import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 let Player;
 class Game {
-    constructor(canvas, username, io) {
+    constructor(canvas, username, io, guest) {
         (async () => {
             this.radarZoom = 1;
             Player = await _player;
@@ -147,7 +147,14 @@ class Game {
         this.movement();
         this.bulletInterval();
 
-        //this.drawAll();
+        const viewRect = {
+            x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
+            y: this.player.y - (this.canvas.height / 2 - this.player.height / 2),
+            width: this.canvas.width,
+            height: this.canvas.height
+        }
+        this.viewRect = viewRect;
+
         requestAnimationFrame(this.drawAll.bind(this));
     }
     clear() {
@@ -241,28 +248,21 @@ class Game {
         }
     }
     drawAll() {
-        const viewRect = {
-            x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
-            y: this.player.y - (this.canvas.height / 2 - this.player.height / 2),
-            width: this.canvas.width,
-            height: this.canvas.height
-        }
-        this.viewRect = viewRect;
         this.clear();
-        this.drawBackground(viewRect);
+        this.drawBackground(this.viewRect);
         for (const id in this.players) {
-            if (this.checkRectsCollision(this.players[id], viewRect))
+            if (this.checkRectsCollision(this.players[id], this.viewRect))
                 if (!this.players[id].hide) this.players[id].draw(this.context);
         }
         for (const id in this.bullets) {
-            if (this.checkArcRectCollision(this.bullets[id], viewRect)) {
+            if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
                 this.bullets[id].draw(this.context);
             }
         }
         this.player.draw(this.context);
         this.animations.forEach(anim => {
             if (anim.playing) {
-                anim.drawFrame(this.context, this.checkRectsCollision(anim, viewRect));
+                anim.drawFrame(this.context, this.checkRectsCollision(anim, this.viewRect));
             }
         });
         this.drawArrows();

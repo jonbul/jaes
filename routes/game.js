@@ -1,63 +1,73 @@
-const PaintingProject = require('../model/paintingProject');
 const Ship = require('../model/ship');
-const { Schema } = require('mongoose');
+const resolutions = require('./constants').resolutions;
+const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
     const backgroundCards = {};
-    const resolutions = [
-        {
-            name: "FullHD (1920x1080)",
-            width: 1920,
-            height: 1080
-        },
-        {
-            name: "2K (2560x1440)",
-            width: 2560,
-            height: 1440
-        },
-        {
-            name: "4K (2560x1440)",
-            width: 3840,
-            height: 2160
-        }
-    ];
-    const resolution = resolutions[1];
-    
+
+
+    let currentResolution = 2;
+    let allowedPlayerType = allowedPlayerTypes.Registered;//allowedPlayerTypes.Registered;
+
     app.get('/game', (req, res) => {
-        if (req.session.passport && req.session.passport.user) {
-            const user = req.session.passport.user;
+        req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            const user = req.session.passport?.user;
+
             res.render('canvas/game', {
                 title: 'Game',
-                username: user.username,
-                canvasWidth:  resolution.width,
-                canvasHeight: resolution.height
+                username: user?.username || '',
+                isAdmin: user?.admin,
+                canvasWidth: resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height,
+                allowedPlayerTypes,
+                allowedPlayerType
             });
         } else {
             res.redirect('/');
         }
     });
-    app.get('/gameStatus', (req, res) => {
+    app.get('/game/status', (req, res) => {
         let user;
-        
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !(/^jonbul$/i).test(req.session.passport.user.username)) {
-                res.redirect('/');
+            !req.session.passport.user.admin) {
+            res.redirect('/');
         } else {
+            currentResolution = currentResolution || 1;
             user = req.session.passport.user;
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
                 username: user.username,
-                canvasWidth:  resolution.width,
-                canvasHeight: resolution.height
+                isAdmin: user.admin,
+                canvasWidth: resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height
             });
         }
     });
     app.post('/gameData', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !(/^jonbul$/i).test(req.session.passport.user.username)) res.redirect('/');
+            !req.session.passport.user.admin) res.redirect('/');
+        const resultCards = {};
+        for (const propX in backgroundCards) {
+            for (const propY in backgroundCards[propX]) {
+                if (!req.body[propX] || !req.body[propX][propY]) {
+                    resultCards[propX] = resultCards[propX] || {};
+                    resultCards[propX][propY] = backgroundCards[propX][propY];
+                }
+            }
+        }
+        res.send({
+            players,
+            resultCards
+        });
+    });
+    app.post('/playerTypes', (req, res) => {
+        if (!req.session.passport ||
+            !req.session.passport.user ||
+            !req.session.passport.user.admin) res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -73,41 +83,73 @@ module.exports = (app, io) => {
         });
     });
     app.get('/game/getShips', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        res.send(await Ship.find());
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            res.send(await Ship.find());
+        }
     });
 
     app.get('/game/getPlayers', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        res.send(players);
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            res.send(players);
+        }
     });
 
     app.post('/game/getBackgroundCards', async (req, res) => {
-        if (!req.session.passport || !req.session.passport.user) return;
-        const cards = [];
-        req.body.forEach(card => {
-            if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
-                cards.push(backgroundCards[card[0]][card[1]]);
-            } else {
-                const newCard = [
-                    card[0],//x
-                    card[1],//y
-                    []//start
-                ]
-                for(let i = 0; i < 500; i++) {
-                    newCard[2].push([
-                        parseInt(Math.random() * resolution.width),
-                        parseInt(Math.random() * resolution.height),
-                        parseInt(Math.random() * 4) + 1
-                    ]);
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            const cards = [];
+            req.body.forEach(card => {
+                if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
+                    cards.push(backgroundCards[card[0]][card[1]]);
+                } else {
+                    const newCard = [
+                        card[0],//x
+                        card[1],//y
+                        []//start
+                    ]
+                    for (let i = 0; i < 500; i++) {
+                        newCard[2].push([
+                            parseInt(Math.random() * resolutions[currentResolution].width),
+                            parseInt(Math.random() * resolutions[currentResolution].height),
+                            parseInt(Math.random() * 4) + 1
+                        ]);
+                    }
+                    backgroundCards[card[0]] = backgroundCards[card[0]] || {};
+                    backgroundCards[card[0]][card[1]] = newCard;
+                    cards.push(newCard);
                 }
-                backgroundCards[card[0]] = backgroundCards[card[0]] || {};
-                backgroundCards[card[0]][card[1]] = newCard;
-                cards.push(newCard);
-            }
-        });
-        res.send(cards);
+            });
+            res.send(cards);
+        }
     });
+
+    app.get('/game/admin', (req, res) => {
+        currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
+
+        if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
+            const user = req.session.passport.user;
+            console.log(allowedPlayerTypes, allowedPlayerType)
+
+            res.render('canvas/admin', {
+                title: 'Administration',
+                username: user.username,
+                isAdmin: user.admin,
+                resolutions,
+                currentResolution,
+                allowedPlayerTypes,
+                allowedPlayerType
+            });
+        } else {
+            req.redirect('/');
+        }
+    });
+
+    app.post('/game/admin', (req, res) => {
+        currentResolution = parseInt(req.body.resolution);
+        gameMode = parseInt(req.body.gameMode);
+        console.log("YEE", req.body.allowedPlayerType)
+        allowedPlayerType = parseInt(req.body.allowedPlayerType);
+        res.redirect('/game/admin');
+    })
 
     //IO
     io.on('connection', (socket) => {
