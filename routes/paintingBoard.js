@@ -14,6 +14,7 @@ module.exports = (app) => {
             res.render('paintingBoard/paintingBoard', {
                 title: 'PaintingBoard',
                 username: user.username,
+                isAdmin: user.admin,
                 project
             });
         } else {
@@ -28,6 +29,7 @@ module.exports = (app) => {
             res.render('paintingBoard/projects', {
                 title: 'Projects',
                 username: user.username,
+                isAdmin: user.admin,
                 projects
             });
         } else {

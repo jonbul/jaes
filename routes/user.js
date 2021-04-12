@@ -8,7 +8,8 @@ module.exports = (app) => {
         }
         res.render('home', {
             title: 'Home',
-            username: user ? user.username : ''
+            username: user ? user.username : '',
+            isAdmin: user?.admin
         });
     });
     
@@ -19,7 +20,8 @@ module.exports = (app) => {
         const errors = req.flash('error');
         res.render('user/register', {
             title: 'Home',
-            username: req.user ? req.user.username : 'asd',
+            username: req.user ? req.user.username : '',
+            isAdmin: req.user?.admin,
             errors,
             hasErrors: !!errors.length
         });
@@ -48,6 +50,7 @@ module.exports = (app) => {
         res.render('user/login', {
             title: 'Home',
             username: req.user ? req.user.username : '',
+            isAdmin: req.user?.admin,
             success,
             hasSuccess: !!success.length,
             errors,
@@ -79,7 +82,8 @@ module.exports = (app) => {
         res.render('user/profile', {
             title: 'Profile',
             username: user.username,
-            user: user
+            user: user,
+            isAdmin: user.admin
         });
     });
 }

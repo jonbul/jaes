@@ -18,6 +18,7 @@ module.exports = (app, io) => {
             res.render('canvas/game', {
                 title: 'Game',
                 username: user?.username || '',
+                isAdmin: user?.admin,
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height,
                 allowedPlayerTypes,
@@ -39,6 +40,7 @@ module.exports = (app, io) => {
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
                 username: user.username,
+                isAdmin: user.admin,
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height
             });
@@ -120,16 +122,17 @@ module.exports = (app, io) => {
         }
     });
 
-    app.get('/admin', (req, res) => {
+    app.get('/game/admin', (req, res) => {
         currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
 
         if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
             const user = req.session.passport.user;
             console.log(allowedPlayerTypes, allowedPlayerType)
 
-            res.render('admin/admin', {
+            res.render('canvas/admin', {
                 title: 'Administration',
                 username: user.username,
+                isAdmin: user.admin,
                 resolutions,
                 currentResolution,
                 allowedPlayerTypes,
@@ -140,12 +143,12 @@ module.exports = (app, io) => {
         }
     });
 
-    app.post('/admin', (req, res) => {
+    app.post('/game/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
         gameMode = parseInt(req.body.gameMode);
         console.log("YEE", req.body.allowedPlayerType)
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
-        res.redirect('/admin');
+        res.redirect('/game/admin');
     })
 
     //IO
