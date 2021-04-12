@@ -8,7 +8,7 @@ module.exports = (app, io) => {
 
 
     let currentResolution = 2;
-    let allowedPlayerType = allowedPlayerTypes.All//allowedPlayerTypes.Registered;
+    let allowedPlayerType = allowedPlayerTypes.Registered;//allowedPlayerTypes.Registered;
 
     app.get('/game', (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
