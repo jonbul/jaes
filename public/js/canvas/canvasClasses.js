@@ -98,13 +98,13 @@ class Rect {
     }
 }
 class Arc {
-    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
+    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2*Math.PI) {
         this.desc = CONST.ARC;
         this.x = x;
         this.y = y;
         this.radius = radius;
-        this.startAngle = (startAngle * 2 / 360) * Math.PI;
-        this.endAngle = (endAngle * 2 / 360) * Math.PI;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
