@@ -12,7 +12,7 @@ import {
     Rect,
     Rubber,
     Text
-} from './canvasClasses.js';import Forms from './canvasClasses.js';
+} from './canvasClasses.js'; import Forms from './canvasClasses.js';
 import { parseLayers, asyncRequest } from '../functions.js';
 let ships;
 window.forms = Forms;
@@ -44,7 +44,7 @@ class Player {
         });
         this.nameShape.x = this.x;
         this.nameShape.y = this.y;
-        this.nameShape.draw(context, {x: 0, y: -(this.width / 4)});
+        this.nameShape.draw(context, { x: 0, y: -(this.width / 4) });
     }
     createBullet() {
         let bPosX = this.x + this.width / 2;
@@ -111,11 +111,9 @@ class Bullet {
         this.expX = this.moveX * this.range + this.x;
         this.expY = this.moveY * this.range + this.y;
 
-        //this.arc = new Arc(this.x, this.y, 5, '#ff0000');
-        //this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.angle, '#ff0000')
-        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, '#ff0000', '', '')
+        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, '#ff0000')
     }
-    updatePosition(x,y) {
+    updatePosition(x, y) {
         this.x = x;
         this.y = y;
         this.arc.x = x;
@@ -161,20 +159,20 @@ class RadarArrow {
         const xLength = (target.x + target.width / 2) - (player.x + player.width / 2);
         const yLength = (target.y + target.width / 2) - (player.y + player.width / 2);
 
-        this.totalDistance = Math.sqrt(xLength^2 + yLength^2);
+        this.totalDistance = Math.sqrt(xLength ^ 2 + yLength ^ 2);
 
         if (xLength > 0 && yLength > 0) {
-            this.angleRadian = Math.abs(Math.atan(yLength/xLength));
-            this.arrowDir = {x:1,y:1};
+            this.angleRadian = Math.abs(Math.atan(yLength / xLength));
+            this.arrowDir = { x: 1, y: 1 };
         } else if (xLength < 0 && yLength > 0) {
-            this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI / 2;
-            this.arrowDir = {x:-1,y:1};
+            this.angleRadian = Math.abs(Math.atan(xLength / yLength)) + Math.PI / 2;
+            this.arrowDir = { x: -1, y: 1 };
         } else if (xLength < 0 && yLength < 0) {
-            this.angleRadian = Math.abs(Math.atan(yLength/xLength)) + Math.PI;
-            this.arrowDir = {x:-1,y:-1};
+            this.angleRadian = Math.abs(Math.atan(yLength / xLength)) + Math.PI;
+            this.arrowDir = { x: -1, y: -1 };
         } else {
-            this.angleRadian = Math.abs(Math.atan(xLength/yLength)) + Math.PI * 1.5;
-            this.arrowDir = {x:1,y:-1};
+            this.angleRadian = Math.abs(Math.atan(xLength / yLength)) + Math.PI * 1.5;
+            this.arrowDir = { x: 1, y: -1 };
         }
     }
     draw(context) {
@@ -182,24 +180,24 @@ class RadarArrow {
 
 
         const points = [
-            {x: 0, y:0},
-            {x: canvas.width*0.04,y: canvas.width*0.01},
-            {x: 0, y:canvas.width*0.02},
-            {x: canvas.width*0.01, y: canvas.width*0.01}
+            { x: 0, y: 0 },
+            { x: canvas.width * 0.04, y: canvas.width * 0.01 },
+            { x: 0, y: canvas.width * 0.02 },
+            { x: canvas.width * 0.01, y: canvas.width * 0.01 }
         ];
 
         const arrowDistanceX = this.player.width / 2
         const arrowDistanceY = this.player.width / 2
 
         points.forEach(point => {
-            point.x += this.player.x + arrowDistanceX + canvas.width*0.04;
-            point.y += this.player.y + arrowDistanceY - canvas.width*0.01;
+            point.x += this.player.x + arrowDistanceX + canvas.width * 0.04;
+            point.y += this.player.y + arrowDistanceY - canvas.width * 0.01;
         })
         const rotationCenter = {
             x: this.player.x + this.player.width / 2,
             y: this.player.y + this.player.width / 2
         }
-        new Polygon(points, '#ff0000').draw(context, {rotationCenter, rotate: this.angleRadian});
+        new Polygon(points, '#ff0000').draw(context, { rotationCenter, rotate: this.angleRadian });
     }
 }
 

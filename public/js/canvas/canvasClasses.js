@@ -22,7 +22,7 @@ class MasterJasonFile {
 }
 //Shapes
 class Rect {
-    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rorationInDegrees = 0) {
+    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, roration = 0) {
         this.desc = CONST.RECT;
         this.x = x;
         this.y = y;
@@ -31,7 +31,7 @@ class Rect {
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
-        this.rorationInDegrees = rorationInDegrees;
+        this.roration = roration;
     }
 
     draw(context, options = { x: 0, y: 0 }) {
@@ -44,10 +44,10 @@ class Rect {
 
         let moveX = this.x;
         let moveY = this.y;
-        if (this.rorationInDegrees > 0) {
+        if (this.roration > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
-            context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
+            context.rotate(this.roration);
         }
 
         context.fillStyle = this.backgroundColor;//BACKGROUND
@@ -81,10 +81,10 @@ class Rect {
         let moveX = this.x;
         let moveY = this.y;
 
-        if (this.rorationInDegrees > 0) {
+        if (this.roration > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
-            context.rotate((this.rorationInDegrees * 2 / 360) * Math.PI);
+            context.rotate(this.rotation);
         }
 
         context.fillStyle = this.backgroundColor;//BACKGROUND
@@ -98,13 +98,13 @@ class Rect {
     }
 }
 class Arc {
-    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
+    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
         this.desc = CONST.ARC;
         this.x = x;
         this.y = y;
         this.radius = radius;
-        this.startAngle = (startAngle * 2 / 360) * Math.PI;
-        this.endAngle = (endAngle * 2 / 360) * Math.PI;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
@@ -153,7 +153,7 @@ class Arc {
     }
 }
 class Ellipse {
-    constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
+    constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
         this.desc = CONST.ELLIPSE;
         this.x = x;
         this.y = y;
@@ -161,8 +161,8 @@ class Ellipse {
         this.radiusX = Math.abs(radiusX);
         this.radiusY = Math.abs(radiusY);
         this.rotation = rotation;
-        this.startAngle = (startAngle * 2 / 360) * Math.PI;
-        this.endAngle = (endAngle * 2 / 360) * Math.PI;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
@@ -507,7 +507,7 @@ class Rubber {
     }
 }
 class Picture {
-    constructor(img, src, sx, sy, sw, sh, x, y, width, height, grad) {
+    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation) {
         this.desc = CONST.PICTURE;
         this.img = img;
         this.src = src;
@@ -521,14 +521,14 @@ class Picture {
         this.sw = sw;
         this.sh = sh;
 
-        this.grad = grad;
+        this.rotation = rotation;
 
         var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
-        context.rotate(this.grad * Math.PI / 180);
+        context.rotate(this.rotation);
         context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
-        context.rotate((360 - this.grad) * Math.PI / 180);
+        context.rotate(2 * Math.PI - this.rotation);
     }
     getImageFromSrc(src) {
         var image = new Image();
