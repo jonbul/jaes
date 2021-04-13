@@ -47,7 +47,7 @@ class Game {
             this.players = {};
             this.bullets = {};
             this.keys = [];
-            
+
             this.createStaticCanvas();
 
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
@@ -172,7 +172,8 @@ class Game {
                 this.drawablePlayers.shapes.push(this.bullets[id]);
             }
         }
-
+        
+        this.loadRadar();
         requestAnimationFrame(this.drawAll.bind(this));
     }
     clear() {
@@ -279,6 +280,7 @@ class Game {
         });
         this.drawArrows();
         this.drawRadar();
+        
         this.drawTexts();
     }
     drawBackground(viewRect) {
@@ -381,21 +383,26 @@ class Game {
             }
         };
     }
-    drawRadar() {
+    loadRadar() {
         const player = this.player;
         const r = this.canvas.width / 10;
-        const x = player.x + (this.canvas.width / 2) - r;
-        const y = player.y + (this.canvas.height / 2) - r;
-        new Arc(x, y, r, 'rgba(0,0,0,0.5)', '#00ff00', 2).draw(this.context);
-        new Arc(x, y, (r / 5) * 4, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
-        new Arc(x, y, (r / 5) * 3, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
-        new Arc(x, y, (r / 5) * 2, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
-        new Arc(x, y, (r / 5) * 1, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
-        new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2).draw(this.context);
-        new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2).draw(this.context);
+        const x = (this.canvas.width / 2) - r;
+        const y = (this.canvas.height / 2) - r;
+        if (!this.radar) {
+            const shapes = [
+                new Arc(x, y, r, 'rgba(0,0,0,0.5)', '#00ff00', 2),
+                new Arc(x, y, (r / 5) * 4, 'rgba(0,0,0,0)', '#00ff00', 2),
+                new Arc(x, y, (r / 5) * 3, 'rgba(0,0,0,0)', '#00ff00', 2),
+                new Arc(x, y, (r / 5) * 2, 'rgba(0,0,0,0)', '#00ff00', 2),
+                new Arc(x, y, (r / 5) * 1, 'rgba(0,0,0,0)', '#00ff00', 2),
+                new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2),
+                new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2)
+            ];
+            this.radar = new Layer('Radar', shapes);
+        }
 
         const radarLength = this.canvas.width * (5 / this.radarZoom);
-
+        this.radarPoints = [];
         for (const id in this.players) {
             const target = this.players[id];
             if (this.player !== target && !target.isDead) {
@@ -406,17 +413,26 @@ class Game {
                 if (distance < radarLength) {
                     const radarX = (xLength * r / radarLength) + x;
                     const radarY = (yLength * r / radarLength) + y;
-                    new Arc(radarX, radarY, canvas.width / 300, 'rgba(255,0,0,0.7)').draw(this.context)
+                    this.radarPoints.push({x: radarX, y: radarY});
                 }
-            }
+            } 
         };
+    }
+    drawRadar() {
+        this.radar.draw(this.context, {x: this.player.x, y: this.player.y});
+        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
+        this.radarPoints.forEach(point => {
+            arcPoint.x = point.x + this.player.x;
+            arcPoint.y = point.y + this.player.y;
+            arcPoint.draw(this.context);
+        })
     }
     drawTexts() {
         const texts = [
             `X: ${parseInt(this.player.x * 100) / 100}`,
             `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
-            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º / ${this.player.rotate} rad`,];
+            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
         const textX = cornerX + this.lineHeight;
@@ -493,7 +509,7 @@ class Game {
         ]);
 
         this.lifeText = new Text('', 0, 0 + 150, this.fontSize, 'Arcade', '#13ff03');
-        
+
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }
