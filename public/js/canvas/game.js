@@ -419,12 +419,12 @@ class Game {
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º / ${this.player.rotate} rad`,];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
-        const textX = cornerX + this.fontSize;
-        const textY = cornerY + this.fontSize;
+        const textX = cornerX + this.lineHeight;
+        const textY = cornerY + this.lineHeight;
         texts.forEach((text, i) => {
             this.playerInfo.shapes[i].text = text;
             this.playerInfo.shapes[i].x = textX;
-            this.playerInfo.shapes[i].y = textY + (this.fontSize + 10) * i;
+            this.playerInfo.shapes[i].y = textY + this.lineHeight * i;
         });
         this.playerInfo.draw(this.context);
 
@@ -444,8 +444,8 @@ class Game {
                 plList.push(player);
                 textRows.push([player.name, player.kills, player.deaths]);
             }
-            const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
-            const topY = cornerY + 50;
+            const text = new Text('', 0, 0, this.fontSize / 2, 'Digitek', '#13ff03');
+            const topY = cornerY + this.lineHeight;
 
             let minY;
             const bgColors = ['rgba(0,0,0,0)', 'rgba(19,255,3,0.3)'];
@@ -453,35 +453,36 @@ class Game {
                 row.forEach((column, j) => {
                     text.text = column;
                     text.x = cornerX + (this.canvas.width / 7) * (j + 2);
-                    text.y = cornerY + 50 + 50 * (i + 1);
+                    text.y = cornerY + this.lineHeight + this.lineHeight * (i + 1);
                     text.draw(this.context);
                     minY = text.y;
                 });
-                new Rect(cornerX + (this.canvas.width / 7) * 2 - 25, text.y - 25, (this.canvas.width / 7) * 3 + 50, 50, bgColors[i % 2], '#13ff03', 2).draw(this.context)
+                new Rect(cornerX + (this.canvas.width / 7) * 2 - this.lineHeight / 2, text.y - this.lineHeight / 2, (this.canvas.width / 7) * 3 + this.lineHeight, this.lineHeight, bgColors[i % 2], '#13ff03', 2).draw(this.context)
             });
 
             new Line([
                 {
-                    x: cornerX + (this.canvas.width / 7) * 3 - 25,
-                    y: topY + 25
+                    x: cornerX + (this.canvas.width / 7) * 3 - this.lineHeight / 2,
+                    y: topY + this.lineHeight / 2
                 },
                 {
-                    x: cornerX + (this.canvas.width / 7) * 3 - 25,
-                    y: minY + 25
+                    x: cornerX + (this.canvas.width / 7) * 3 - this.lineHeight / 2,
+                    y: minY + this.lineHeight / 2
                 }], '#13ff03', 3).draw(this.context);
             new Line([
                 {
-                    x: cornerX + (this.canvas.width / 7) * 4 - 25,
-                    y: topY + 25
+                    x: cornerX + (this.canvas.width / 7) * 4 - this.lineHeight / 2,
+                    y: topY + this.lineHeight / 2
                 },
                 {
-                    x: cornerX + (this.canvas.width / 7) * 4 - 25,
-                    y: minY + 25
+                    x: cornerX + (this.canvas.width / 7) * 4 - this.lineHeight / 2,
+                    y: minY + this.lineHeight / 2
                 }], '#13ff03', 3).draw(this.context);
         }
     }
     createStaticCanvas() {
         this.fontSize = this.canvas.width / 1920 * 40;
+        this.lineHeight = this.canvas.width / 1920 * (40 + 10);
         const fontSize = this.fontSize;
 
         this.playerInfo = new Layer('Player Info', [
