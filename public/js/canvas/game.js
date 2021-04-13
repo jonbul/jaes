@@ -47,6 +47,7 @@ class Game {
             this.players = {};
             this.bullets = {};
             this.keys = [];
+            
             this.createStaticCanvas();
 
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
@@ -57,7 +58,7 @@ class Game {
             this.player = new Player(this.username, 0, 0, 0);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
-            
+
             this.drawableBullets = new Layer('bullets');
             this.drawablePlayers = new Layer('players');
             do {
@@ -158,7 +159,7 @@ class Game {
         }
         this.viewRect = viewRect;
 
-        
+
         this.drawableBullets.shapes = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
@@ -269,7 +270,7 @@ class Game {
         this.drawBackground(this.viewRect);
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context);
-        
+
         this.player.draw(this.context);
         this.animations.forEach(anim => {
             if (anim.playing) {
@@ -400,12 +401,12 @@ class Game {
             if (this.player !== target && !target.isDead) {
                 const xLength = target.x - player.x;
                 const yLength = target.y - player.y;
-                const distance = Math.sqrt(Math.pow(xLength,2) + Math.pow(yLength,2));
+                const distance = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
 
                 if (distance < radarLength) {
                     const radarX = (xLength * r / radarLength) + x;
                     const radarY = (yLength * r / radarLength) + y;
-                    new Arc(radarX, radarY, canvas.width/300, 'rgba(255,0,0,0.7)').draw(this.context)
+                    new Arc(radarX, radarY, canvas.width / 300, 'rgba(255,0,0,0.7)').draw(this.context)
                 }
             }
         };
@@ -415,21 +416,21 @@ class Game {
             `X: ${parseInt(this.player.x * 100) / 100}`,
             `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
-            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}`,];
+            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º / ${this.player.rotate} rad`,];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
-        const textX = cornerX + 20;
-        const textY = cornerY + 50;
+        const textX = cornerX + this.fontSize;
+        const textY = cornerY + this.fontSize;
         texts.forEach((text, i) => {
             this.playerInfo.shapes[i].text = text;
             this.playerInfo.shapes[i].x = textX;
-            this.playerInfo.shapes[i].y = textY + i * 50;
+            this.playerInfo.shapes[i].y = textY + (this.fontSize + 10) * i;
         });
         this.playerInfo.draw(this.context);
 
         this.lifeText.text = `Health: ${this.player.life}`;
-        this.lifeText.x = cornerX + this.canvas.width - 300;
-        this.lifeText.y = cornerY + 50;
+        this.lifeText.x = cornerX + this.canvas.width - (this.lifeText.text.length * this.fontSize / 2);
+        this.lifeText.y = textY;
         this.lifeText.draw(this.context);
 
         if (this.keys[KEYS.TAB] || this.player.isDead) {
@@ -445,50 +446,53 @@ class Game {
             }
             const text = new Text('', 0, 0, 20, 'Digitek', '#13ff03');
             const topY = cornerY + 50;
-            const topXL = cornerX + (this.canvas.width/7) * 2 - 25;
-            const topXR = cornerX + ((this.canvas.width/7) * 5) + 25;
+
             let minY;
             const bgColors = ['rgba(0,0,0,0)', 'rgba(19,255,3,0.3)'];
             textRows.forEach((row, i) => {
                 row.forEach((column, j) => {
                     text.text = column;
-                    text.x = cornerX + (this.canvas.width/7) * (j + 2);
+                    text.x = cornerX + (this.canvas.width / 7) * (j + 2);
                     text.y = cornerY + 50 + 50 * (i + 1);
                     text.draw(this.context);
-                    minY = text.y;        
+                    minY = text.y;
                 });
-                new Rect(cornerX + (this.canvas.width/7) * 2 - 25, text.y - 25, (this.canvas.width/7)*3 + 50,50, bgColors[i%2],'#13ff03',2).draw(this.context)
+                new Rect(cornerX + (this.canvas.width / 7) * 2 - 25, text.y - 25, (this.canvas.width / 7) * 3 + 50, 50, bgColors[i % 2], '#13ff03', 2).draw(this.context)
             });
-            
+
             new Line([
                 {
-                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    x: cornerX + (this.canvas.width / 7) * 3 - 25,
                     y: topY + 25
                 },
                 {
-                    x: cornerX + (this.canvas.width/7) * 3 - 25,
+                    x: cornerX + (this.canvas.width / 7) * 3 - 25,
                     y: minY + 25
-                }],'#13ff03', 3).draw(this.context);
+                }], '#13ff03', 3).draw(this.context);
             new Line([
                 {
-                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    x: cornerX + (this.canvas.width / 7) * 4 - 25,
                     y: topY + 25
                 },
                 {
-                    x: cornerX + (this.canvas.width/7) * 4 - 25,
+                    x: cornerX + (this.canvas.width / 7) * 4 - 25,
                     y: minY + 25
-                }],'#13ff03', 3).draw(this.context);
+                }], '#13ff03', 3).draw(this.context);
         }
     }
     createStaticCanvas() {
+        this.fontSize = this.canvas.width / 1920 * 40;
+        const fontSize = this.fontSize;
+
         this.playerInfo = new Layer('Player Info', [
-            new Text('', 0, 0, 40, 'Arcade', '#13ff03'),
-            new Text('', 0, 0 + 50, 40, 'Arcade', '#13ff03'),
-            new Text('', 0, 0 + 100, 40, 'Arcade', '#13ff03'),
-            new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03')
+            new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
+            new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
+            new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
+            new Text('', 0, 0, fontSize, 'Arcade', '#13ff03')
         ]);
 
-        this.lifeText = new Text('', 0, 0 + 150, 40, 'Arcade', '#13ff03');
+        this.lifeText = new Text('', 0, 0 + 150, this.fontSize, 'Arcade', '#13ff03');
+        
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }
