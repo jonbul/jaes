@@ -172,7 +172,7 @@ class Game {
                 this.drawablePlayers.shapes.push(this.bullets[id]);
             }
         }
-        this.loadBackground();
+        
         this.loadRadar();
         requestAnimationFrame(this.drawAll.bind(this));
     }
@@ -283,7 +283,7 @@ class Game {
         
         this.drawTexts();
     }
-    loadBackground() {
+    drawBackground() {
         const currentCard = {
             x: parseInt(this.player.x / this.canvas.width),
             y: parseInt(this.player.y / this.canvas.height)
@@ -327,12 +327,6 @@ class Game {
                     )
                 })
             });
-        }
-    }
-    drawBackground() {
-        const currentCard = {
-            x: parseInt(this.player.x / this.canvas.width),
-            y: parseInt(this.player.y / this.canvas.height)
         }
 
         new Rect(
