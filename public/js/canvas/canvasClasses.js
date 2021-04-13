@@ -98,7 +98,7 @@ class Rect {
     }
 }
 class Arc {
-    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2*Math.PI) {
+    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
         this.desc = CONST.ARC;
         this.x = x;
         this.y = y;
@@ -153,7 +153,7 @@ class Arc {
     }
 }
 class Ellipse {
-    constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 360) {
+    constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
         this.desc = CONST.ELLIPSE;
         this.x = x;
         this.y = y;
@@ -161,8 +161,8 @@ class Ellipse {
         this.radiusX = Math.abs(radiusX);
         this.radiusY = Math.abs(radiusY);
         this.rotation = rotation;
-        this.startAngle = (startAngle * 2 / 360) * Math.PI;
-        this.endAngle = (endAngle * 2 / 360) * Math.PI;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
