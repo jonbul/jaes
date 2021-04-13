@@ -507,7 +507,7 @@ class Rubber {
     }
 }
 class Picture {
-    constructor(img, src, sx, sy, sw, sh, x, y, width, height, grad) {
+    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation) {
         this.desc = CONST.PICTURE;
         this.img = img;
         this.src = src;
@@ -521,14 +521,14 @@ class Picture {
         this.sw = sw;
         this.sh = sh;
 
-        this.grad = grad;
+        this.rotation = rotation;
 
         var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
-        context.rotate(this.grad * Math.PI / 180);
+        context.rotate(this.rotation);
         context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
-        context.rotate((360 - this.grad) * Math.PI / 180);
+        context.rotate(2 * Math.PI - this.rotation);
     }
     getImageFromSrc(src) {
         var image = new Image();
