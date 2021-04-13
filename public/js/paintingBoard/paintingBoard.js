@@ -503,7 +503,7 @@ class PaintingBoard {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
 
-            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value, this.menus.rotation.value);
+            drawingObj.shape = new Rect(currentPos.x, currentPos.y, 0, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
         }
         const rect = drawingObj.shape;
         rect.width = currentPos.x - rect.x;
