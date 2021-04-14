@@ -138,8 +138,7 @@ class Game {
         })
     }
     beginInterval() {
-        //setInterval(this.intervalMethod.bind(this), 1000 / 60);
-        requestAnimationFrame(this.intervalMethod.bind(this))
+        setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     intervalMethod() {
 
@@ -176,7 +175,6 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
-        requestAnimationFrame(this.intervalMethod.bind(this))
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
