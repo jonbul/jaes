@@ -559,7 +559,7 @@ class Game {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
-                //this.io.emit('bullet remove', bullet.id);
+                this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
