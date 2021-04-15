@@ -25,7 +25,8 @@ import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 let Player;
 class Game {
-    constructor(canvas, username, io, guest) {
+    constructor(canvas, username, io) {
+        window.game = this;
         (async () => {
             this.radarZoom = 1;
             Player = await _player;
@@ -36,9 +37,6 @@ class Game {
                 throw 'Paramete 1 must be a Canvas HTML Element'
             }
             this.loadEvents();
-            this.socketIOEvents();
-
-            //await new FontFace('retro', 'url(/fonts/Arcade.ttf)').load();
 
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
@@ -69,9 +67,11 @@ class Game {
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
-            this.io.emit('player movement', this.player.getSortDetails());
+            
+            this.socketIOEvents();
 
             this.beginInterval();
+            this.io.emit('playerData', this.player.getSortDetails());
         })();
     }
     reloadPlayer() {
@@ -84,12 +84,9 @@ class Game {
         } while (this.checkCollisionsWithPlayers());
 
         this.context.translate(x - this.player.x, y - this.player.y);
-        this.io.emit('player movement', this.player.getSortDetails());
     }
     socketIOEvents() {
-
-        this.io.on('players updated', this.updatePlayers.bind(this));
-        this.io.on('bullet movement', this.updateBullets.bind(this));
+        this.io.on('gameBroadcast', this.gameBroadcast.bind(this));
         this.io.on('player leave', id => {
             delete this.players[id];
             this.updatePlayers();
@@ -103,16 +100,13 @@ class Game {
             if (!this.player.life) {
                 this.io.emit('player died', msg);
                 this.player.dead();
-                this.io.emit('player movement', this.player.getSortDetails());
                 setTimeout(() => {
                     this.player.hide = true;
-                    this.io.emit('player movement', this.player.getSortDetails());
                     setTimeout(() => {
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
                         this.player.isDead = false;
-                        this.io.emit('player movement', this.player.getSortDetails());
                     }, 10000);
                 }, 2000);
             }
@@ -136,9 +130,10 @@ class Game {
         this.io.on('sound', msg => {
             gameSounds[msg.sound]();
         })
+        this.io.on('sendHome', () => location.href='/');
     }
     beginInterval() {
-        setInterval(this.intervalMethod.bind(this), 1000 / 60);
+        setInterval(this.intervalMethod.bind(this), 1000/60);
     }
     intervalMethod() {
 
@@ -175,6 +170,10 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
+        if(this.player.bullets.length || this.player.moving || this.player.speed) {
+            console.log("MOVING")
+            this.io.emit('playerData', this.player.getSortDetails())
+        }
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -186,7 +185,7 @@ class Game {
             x: player.x,
             y: player.y
         }
-
+        this.player.moving = this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT];
         if (this.keys[KEYS.UP]) {
             player.speed += 0.1;
         }
@@ -234,13 +233,24 @@ class Game {
         if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
             if (!this.checkCollisionsWithPlayers()) {
                 this.context.translate(-moveX, -moveY);
-                this.io.emit('player movement', this.player.getSortDetails());
             } else {
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
             }
         }
 
+    }
+    gameBroadcast(players) {
+        window.players = players;
+        for(const idp in players) {
+            if (players[idp].socketId !== this.player.socketId) {
+                this.updatePlayers(players[idp]);
+            }
+            
+            for(const idb in players[idp].bullets) {
+                this.updateBullets(players[idp].bullets[idb]);
+            }
+        }
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
@@ -548,7 +558,8 @@ class Game {
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
-                this.io.emit('bullet remove', bullet.id);
+                delete this.player.bullets[bullet.id];
+                //this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
@@ -560,7 +571,6 @@ class Game {
                     });
                     return false;
                 } else {
-                    this.io.emit('bullet movement', bullet);
                     return true;
                 }
             }

@@ -4,11 +4,12 @@ const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
+    let playersToSend = {};
     const backgroundCards = {};
 
 
     let currentResolution = 2;
-    let allowedPlayerType = allowedPlayerTypes.Registered;//allowedPlayerTypes.Registered;
+    let allowedPlayerType = allowedPlayerTypes.Registered;
 
     app.get('/game', (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
@@ -156,20 +157,11 @@ module.exports = (app, io) => {
 
     //IO
     io.on('connection', (socket) => {
-        console.log("Connected from IP: ", socket.handshake.address)
-        socket.on('player movement', (msg) => {
-            players[socket.id] = msg;
-            msg.socketId = socket.id;
-            socket.broadcast.emit('players updated', msg);
-        });
+        console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', () => {
             delete players[socket.id];
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
-        });
-        socket.on('bullet movement', (msg) => {
-            msg.socketId = socket.id;
-            io.emit('bullet movement', msg);
         });
         socket.on('bullet remove', id => {
             io.emit('bullet remove', id);
@@ -184,5 +176,36 @@ module.exports = (app, io) => {
         socket.on('sound', msg => {
             io.emit('sound', msg);
         })
+
+        socket.on('playerData', msg => {
+            players[socket.id] = msg;
+            playersToSend[socket.id] = msg;
+            players[socket.id].lastUpdate = Date.now();
+            msg.socketId = socket.id;
+        });
+
+        setInterval(cleanPlayers, 10000)
+        function cleanPlayers() {
+            for(const sId in players) {
+                if(Date.now() - players[sId].lastUpdate > 60000) {
+                    delete players[sId];
+                    io.to(sId).emit('sendHome');
+                }
+            }
+        }
+
     });
+    setInterval(gameStatusBroadcast, 1000 / 30)
+    let max = 0;
+    function gameStatusBroadcast() {
+        const jsonLength = JSON.stringify(playersToSend).length;
+        max = jsonLength > max ? jsonLength : max;
+        if (JSON.stringify(playersToSend).length > 3) {
+            console.log(jsonLength, max);
+            for(let sId in players) {
+                io.to(sId).emit('gameBroadcast', playersToSend);
+            }
+            playersToSend = {};
+        }
+    }
 }
