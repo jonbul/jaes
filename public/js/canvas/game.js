@@ -155,24 +155,27 @@ class Game {
         this.viewRect = viewRect;
 
 
-        this.drawableBullets.shapes = [];
+        this.drawablePlayers.shapes = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
-                if (!this.players[id].hide) this.drawableBullets.shapes.push(this.players[id]);
+                if (!this.players[id].hide) this.drawablePlayers.shapes.push(this.players[id]);
             }
         }
-        this.drawablePlayers.shapes = [];
+        this.drawableBullets.shapes = [];
         for (const id in this.bullets) {
             if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
-                this.drawablePlayers.shapes.push(this.bullets[id]);
+                if (this.bullets[id].isExpired()) {
+                    delete this.bullets[id];
+                } else {
+                    this.drawableBullets.shapes.push(this.bullets[id]);
+                }
             }
         }
         
         this.loadRadar();
         this.drawAll();
         if(this.player.bullets.length || this.player.moving || this.player.speed) {
-            console.log("MOVING")
-            this.io.emit('playerData', this.player.getSortDetails())
+            this.io.emit('playerData', this.player.getSortDetails());
         }
     }
     clear() {
@@ -554,12 +557,11 @@ class Game {
         }
     }
     bulletInterval() {
-        const bulletSpeed = 25;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
-                //this.io.emit('bullet remove', bullet.id);
+                this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
