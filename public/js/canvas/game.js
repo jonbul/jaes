@@ -36,7 +36,6 @@ class Game {
                 throw 'Paramete 1 must be a Canvas HTML Element'
             }
             this.loadEvents();
-            this.socketIOEvents();
 
             //await new FontFace('retro', 'url(/fonts/Arcade.ttf)').load();
 
@@ -69,6 +68,8 @@ class Game {
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
+            
+            this.socketIOEvents();
             this.io.emit('player movement', this.player.getSortDetails());
 
             this.beginInterval();
@@ -87,9 +88,7 @@ class Game {
         this.io.emit('player movement', this.player.getSortDetails());
     }
     socketIOEvents() {
-
-        this.io.on('players updated', this.updatePlayers.bind(this));
-        this.io.on('bullet movement', this.updateBullets.bind(this));
+        this.io.on('gameBroadcast', this.gameBroadcast.bind(this));
         this.io.on('player leave', id => {
             delete this.players[id];
             this.updatePlayers();
@@ -241,6 +240,18 @@ class Game {
             }
         }
 
+    }
+    gameBroadcast(data) {
+        window.data = data;
+        for(const idp in data.players) {
+            if (data.players[idp].socketId !== this.player.socketId) {
+                console.log(data.players[idp].x,data.players[idp].y)
+                this.updatePlayers(data.players[idp]);
+            }
+        }
+        /*for(const idb in data.bullets) {
+            this.updateBullets(data.bullets[idb]);
+        }*/
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];

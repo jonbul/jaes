@@ -4,6 +4,7 @@ const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
+    const bullets = {};
     const backgroundCards = {};
 
 
@@ -160,16 +161,15 @@ module.exports = (app, io) => {
         socket.on('player movement', (msg) => {
             players[socket.id] = msg;
             msg.socketId = socket.id;
-            socket.broadcast.emit('players updated', msg);
+        });
+        socket.on('bullet movement', (msg) => {
+            bullets[socket.id] = msg;
+            msg.socketId = socket.id;
         });
         socket.on('disconnect', () => {
             delete players[socket.id];
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
-        });
-        socket.on('bullet movement', (msg) => {
-            msg.socketId = socket.id;
-            io.emit('bullet movement', msg);
         });
         socket.on('bullet remove', id => {
             io.emit('bullet remove', id);
@@ -184,5 +184,13 @@ module.exports = (app, io) => {
         socket.on('sound', msg => {
             io.emit('sound', msg);
         })
+
+        setInterval(gameStatusBroadcast.bind(null, socket), 1000 / 30)
+        function gameStatusBroadcast(socket) {
+            io.emit('gameBroadcast', {
+                players,
+                bullets
+            });
+        }
     });
 }
