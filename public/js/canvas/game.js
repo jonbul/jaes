@@ -168,7 +168,10 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
-        this.io.emit('playerData', this.player)
+        if(this.player.bullets.length || this.player.moving || this.player.speed) {
+            console.log("MOVING")
+            this.io.emit('playerData', this.player.getSortDetails())
+        }
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -180,7 +183,7 @@ class Game {
             x: player.x,
             y: player.y
         }
-
+        this.player.moving = this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT];
         if (this.keys[KEYS.UP]) {
             player.speed += 0.1;
         }

@@ -4,6 +4,7 @@ const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
+    let playersToSend = {};
     const backgroundCards = {};
 
 
@@ -178,11 +179,12 @@ module.exports = (app, io) => {
 
         socket.on('playerData', msg => {
             players[socket.id] = msg;
+            playersToSend[socket.id] = msg;
             players[socket.id].lastUpdate = Date.now();
             msg.socketId = socket.id;
         });
 
-        setInterval(cleanPlayers, 10000)
+        /*setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
             for(const sId in players) {
                 if(Date.now() - players[sId].lastUpdate > 10000) {
@@ -190,10 +192,12 @@ module.exports = (app, io) => {
                     io.to(sId).emit('sendHome');
                 }
             }
-        }
+        }*/
         setInterval(gameStatusBroadcast, 1000/60)
         function gameStatusBroadcast() {
-            io.emit('gameBroadcast', players);
+            console.log(JSON.stringify(playersToSend).length);
+            io.emit('gameBroadcast', playersToSend);
+            playersToSend = {};
         }
     });
 }
