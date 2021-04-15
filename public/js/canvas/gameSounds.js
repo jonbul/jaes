@@ -15,10 +15,15 @@ class GameSounds {
         }
     }
     shot() {
-        this.sounds.shot.cloneNode(true).play();
+        this.play(this.sounds.shot.cloneNode(true));
     }
     explosion() {
-        this.sounds.explosion.cloneNode(true).play();
+        this.play(this.sounds.explosion.cloneNode(true));
+    }
+    play(s) {
+        try {
+            s.play();
+        } catch(e) {}
     }
 }
 
