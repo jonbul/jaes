@@ -25,7 +25,8 @@ import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 let Player;
 class Game {
-    constructor(canvas, username, io, guest) {
+    constructor(canvas, username, io) {
+        window.game = this;
         (async () => {
             this.radarZoom = 1;
             Player = await _player;
@@ -70,6 +71,7 @@ class Game {
             this.socketIOEvents();
 
             this.beginInterval();
+            this.io.emit('playerData', this.player.getSortDetails());
         })();
     }
     reloadPlayer() {

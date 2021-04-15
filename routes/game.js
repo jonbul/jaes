@@ -9,7 +9,7 @@ module.exports = (app, io) => {
 
 
     let currentResolution = 2;
-    let allowedPlayerType = allowedPlayerTypes.Registered;//allowedPlayerTypes.Registered;
+    let allowedPlayerType = allowedPlayerTypes.Registered;
 
     app.get('/game', (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
@@ -184,20 +184,28 @@ module.exports = (app, io) => {
             msg.socketId = socket.id;
         });
 
-        /*setInterval(cleanPlayers, 10000)
+        setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
             for(const sId in players) {
-                if(Date.now() - players[sId].lastUpdate > 10000) {
+                if(Date.now() - players[sId].lastUpdate > 60000) {
                     delete players[sId];
                     io.to(sId).emit('sendHome');
                 }
             }
-        }*/
-        setInterval(gameStatusBroadcast, 1000/60)
-        function gameStatusBroadcast() {
-            console.log(JSON.stringify(playersToSend).length);
-            io.emit('gameBroadcast', playersToSend);
+        }
+
+    });
+    setInterval(gameStatusBroadcast, 1000 / 30)
+    let max = 0;
+    function gameStatusBroadcast() {
+        const jsonLength = JSON.stringify(playersToSend).length;
+        max = jsonLength > max ? jsonLength : max;
+        if (JSON.stringify(playersToSend).length > 3) {
+            console.log(jsonLength, max);
+            for(let sId in players) {
+                io.to(sId).emit('gameBroadcast', playersToSend);
+            }
             playersToSend = {};
         }
-    });
+    }
 }
