@@ -131,7 +131,6 @@ module.exports = (app, io) => {
 
         if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
             const user = req.session.passport.user;
-            console.log(allowedPlayerTypes, allowedPlayerType)
 
             res.render('canvas/admin', {
                 title: 'Administration',
@@ -150,7 +149,6 @@ module.exports = (app, io) => {
     app.post('/game/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
         gameMode = parseInt(req.body.gameMode);
-        console.log("YEE", req.body.allowedPlayerType)
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/game/admin');
     })
@@ -199,9 +197,7 @@ module.exports = (app, io) => {
     let max = 0;
     function gameStatusBroadcast() {
         const jsonLength = JSON.stringify(playersToSend).length;
-        max = jsonLength > max ? jsonLength : max;
-        if (JSON.stringify(playersToSend).length > 3) {
-            console.log(jsonLength, max);
+        if (jsonLength > 3) {
             for(let sId in players) {
                 io.to(sId).emit('gameBroadcast', playersToSend);
             }
