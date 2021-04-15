@@ -4,7 +4,6 @@ const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 
 module.exports = (app, io) => {
     const players = {};
-    const bullets = {};
     const backgroundCards = {};
 
 
@@ -157,15 +156,7 @@ module.exports = (app, io) => {
 
     //IO
     io.on('connection', (socket) => {
-        console.log("Connected from IP: ", socket.handshake.address)
-        socket.on('player movement', (msg) => {
-            players[socket.id] = msg;
-            msg.socketId = socket.id;
-        });
-        socket.on('bullet movement', (msg) => {
-            bullets[socket.id] = msg;
-            msg.socketId = socket.id;
-        });
+        console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', () => {
             delete players[socket.id];
             console.log('bye', socket.id);
@@ -185,12 +176,24 @@ module.exports = (app, io) => {
             io.emit('sound', msg);
         })
 
-        setInterval(gameStatusBroadcast.bind(null, socket), 1000 / 30)
-        function gameStatusBroadcast(socket) {
-            io.emit('gameBroadcast', {
-                players,
-                bullets
-            });
+        socket.on('playerData', msg => {
+            players[socket.id] = msg;
+            players[socket.id].lastUpdate = Date.now();
+            msg.socketId = socket.id;
+        });
+
+        setInterval(cleanPlayers, 10000)
+        function cleanPlayers() {
+            for(const sId in players) {
+                if(Date.now() - players[sId].lastUpdate > 10000) {
+                    delete players[sId];
+                    io.to(sId).emit('sendHome');
+                }
+            }
+        }
+        setInterval(gameStatusBroadcast, 1000/60)
+        function gameStatusBroadcast() {
+            io.emit('gameBroadcast', players);
         }
     });
 }

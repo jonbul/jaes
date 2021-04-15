@@ -66,7 +66,8 @@ class Player {
             deaths: this.deaths,
             shipId: this.shipId,
             hide: this.hide,
-            isDead: this.isDead
+            isDead: this.isDead,
+            bullets: this.bullets.map(bullet => bullet.getSortDetails())
         }
     }
     getCenteredPosition() {

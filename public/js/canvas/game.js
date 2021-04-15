@@ -37,8 +37,6 @@ class Game {
             }
             this.loadEvents();
 
-            //await new FontFace('retro', 'url(/fonts/Arcade.ttf)').load();
-
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
 
@@ -70,7 +68,6 @@ class Game {
             this.player.ioId = this.io.id;
             
             this.socketIOEvents();
-            this.io.emit('player movement', this.player.getSortDetails());
 
             this.beginInterval();
         })();
@@ -85,7 +82,6 @@ class Game {
         } while (this.checkCollisionsWithPlayers());
 
         this.context.translate(x - this.player.x, y - this.player.y);
-        this.io.emit('player movement', this.player.getSortDetails());
     }
     socketIOEvents() {
         this.io.on('gameBroadcast', this.gameBroadcast.bind(this));
@@ -102,16 +98,13 @@ class Game {
             if (!this.player.life) {
                 this.io.emit('player died', msg);
                 this.player.dead();
-                this.io.emit('player movement', this.player.getSortDetails());
                 setTimeout(() => {
                     this.player.hide = true;
-                    this.io.emit('player movement', this.player.getSortDetails());
                     setTimeout(() => {
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
                         this.player.isDead = false;
-                        this.io.emit('player movement', this.player.getSortDetails());
                     }, 10000);
                 }, 2000);
             }
@@ -135,9 +128,10 @@ class Game {
         this.io.on('sound', msg => {
             gameSounds[msg.sound]();
         })
+        this.io.on('sendHome', () => location.href='/');
     }
     beginInterval() {
-        setInterval(this.intervalMethod.bind(this), 1000 / 60);
+        setInterval(this.intervalMethod.bind(this), 1000/60);
     }
     intervalMethod() {
 
@@ -174,6 +168,7 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
+        this.io.emit('playerData', this.player)
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -233,7 +228,6 @@ class Game {
         if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
             if (!this.checkCollisionsWithPlayers()) {
                 this.context.translate(-moveX, -moveY);
-                this.io.emit('player movement', this.player.getSortDetails());
             } else {
                 player.x = tempPosition.x;
                 player.y = tempPosition.y;
@@ -241,17 +235,17 @@ class Game {
         }
 
     }
-    gameBroadcast(data) {
-        window.data = data;
-        for(const idp in data.players) {
-            if (data.players[idp].socketId !== this.player.socketId) {
-                console.log(data.players[idp].x,data.players[idp].y)
-                this.updatePlayers(data.players[idp]);
+    gameBroadcast(players) {
+        window.players = players;
+        for(const idp in players) {
+            if (players[idp].socketId !== this.player.socketId) {
+                this.updatePlayers(players[idp]);
+            }
+            
+            for(const idb in players[idp].bullets) {
+                this.updateBullets(players[idp].bullets[idb]);
             }
         }
-        /*for(const idb in data.bullets) {
-            this.updateBullets(data.bullets[idb]);
-        }*/
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
@@ -559,7 +553,8 @@ class Game {
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
-                this.io.emit('bullet remove', bullet.id);
+                delete this.player.bullets[bullet.id];
+                //this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
@@ -571,7 +566,6 @@ class Game {
                     });
                     return false;
                 } else {
-                    this.io.emit('bullet movement', bullet);
                     return true;
                 }
             }
