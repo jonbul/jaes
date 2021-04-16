@@ -5,6 +5,7 @@ class GameSounds {
             explosion: '/sounds/explossion.wav',
             shot: '/sounds/shot.wav'
         }
+        this.volume = document.getElementById('volume');
         for (const soundName in paths) {
             const audio = document.createElement('audio');
             audio.id = soundName;
@@ -22,6 +23,7 @@ class GameSounds {
     }
     play(s) {
         try {
+            s.volume = this.volume.value / 100;
             s.play();
         } catch(e) {}
     }
