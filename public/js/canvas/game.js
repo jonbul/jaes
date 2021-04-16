@@ -71,11 +71,8 @@ class Game {
             this.socketIOEvents();
 
             this.beginInterval();
-            this.sendPlayerData();
+            this.io.emit('playerData', this.player.getSortDetails());
         })();
-    }
-    sendPlayerData() {
-        this.io.emit('playerData', this.player.getSortDetails());
     }
     reloadPlayer() {
         const x = this.player.x;
@@ -93,6 +90,9 @@ class Game {
         this.io.on('player leave', id => {
             delete this.players[id];
             this.updatePlayers();
+        });
+        this.io.on('bullet remove', id => {
+            delete this.bullets[id];
         });
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
@@ -144,7 +144,7 @@ class Game {
             document.body.classList.remove('fullscreen');
         }
         this.movement();
-        const bulletUpdate = this.bulletInterval();
+        this.bulletInterval();
 
         const viewRect = {
             x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
@@ -164,14 +164,18 @@ class Game {
         this.drawableBullets.shapes = [];
         for (const id in this.bullets) {
             if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
-                this.drawableBullets.shapes.push(this.bullets[id]);
+                if (this.bullets[id].isExpired()) {
+                    delete this.bullets[id];
+                } else {
+                    this.drawableBullets.shapes.push(this.bullets[id]);
+                }
             }
         }
         
         this.loadRadar();
         this.drawAll();
-        if(bulletUpdate || this.player.bullets.length || this.player.moving || this.player.speed) {
-            this.sendPlayerData();
+        if(this.player.bullets.length || this.player.moving || this.player.speed) {
+            this.io.emit('playerData', this.player.getSortDetails());
         }
     }
     clear() {
@@ -240,15 +244,24 @@ class Game {
 
     }
     gameBroadcast(players) {
+        window.players = players;
         for(const idp in players) {
             if (players[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(players[idp]);
             }
-            this.bullets = {};
+            
             for(const idb in players[idp].bullets) {
-                const details = players[idp].bullets[idb];
-                this.bullets[details.id] = new Bullet(details.socketId, details.x, details.y, details.angle, details.speed, details.rotation);
+                this.updateBullets(players[idp].bullets[idb]);
             }
+        }
+    }
+    updateBullets(bulletDetails) {
+        let bullet = this.bullets[bulletDetails.id];
+        if (!bullet) {
+            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed, bulletDetails.rotation);
+            this.bullets[bulletDetails.id] = bullet;
+        } else {
+            bullet.updatePosition(bulletDetails.x, bulletDetails.y);
         }
     }
     updatePlayers(plDetails) {
@@ -544,18 +557,15 @@ class Game {
         }
     }
     bulletInterval() {
-        let bulletUpdate = false;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
-                bulletUpdate = true;
+                this.io.emit('bullet remove', bullet.id);
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
                 if (playerHit) {
-                    delete this.player.bullets[bullet.id];
-                    bulletUpdate = true;
                     this.io.emit('player hit', {
                         bulletId: bullet.id,
                         playerId: playerHit.socketId,
@@ -568,7 +578,6 @@ class Game {
             }
 
         });
-        return bulletUpdate;
     }
     checkBulletCollision(bullet) {
         let collision = false;
