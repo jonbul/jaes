@@ -131,7 +131,6 @@ module.exports = (app, io) => {
 
         if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
             const user = req.session.passport.user;
-            console.log(allowedPlayerTypes, allowedPlayerType)
 
             res.render('canvas/admin', {
                 title: 'Administration',
@@ -150,7 +149,6 @@ module.exports = (app, io) => {
     app.post('/game/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
         gameMode = parseInt(req.body.gameMode);
-        console.log("YEE", req.body.allowedPlayerType)
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/game/admin');
     })
@@ -163,11 +161,7 @@ module.exports = (app, io) => {
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
-        socket.on('bullet remove', id => {
-            io.emit('bullet remove', id);
-        });
         socket.on('player hit', msg => {
-            io.emit('bullet remove', msg.bulletId);
             io.to(msg.playerId).emit('player hit', msg);
         });
         socket.on('player died', msg => {
@@ -187,7 +181,7 @@ module.exports = (app, io) => {
         setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
             for(const sId in players) {
-                if(Date.now() - players[sId].lastUpdate > 60000) {
+                if(Date.now() - players[sId].lastUpdate > 600000) {
                     delete players[sId];
                     io.to(sId).emit('sendHome');
                 }
@@ -195,13 +189,10 @@ module.exports = (app, io) => {
         }
 
     });
-    setInterval(gameStatusBroadcast, 1000 / 30)
-    let max = 0;
+    setInterval(gameStatusBroadcast, 1000 / 30);
     function gameStatusBroadcast() {
         const jsonLength = JSON.stringify(playersToSend).length;
-        max = jsonLength > max ? jsonLength : max;
-        if (JSON.stringify(playersToSend).length > 3) {
-            console.log(jsonLength, max);
+        if (jsonLength > 3) {
             for(let sId in players) {
                 io.to(sId).emit('gameBroadcast', playersToSend);
             }
