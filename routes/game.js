@@ -185,7 +185,7 @@ module.exports = (app, io) => {
         setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
             for(const sId in players) {
-                if(Date.now() - players[sId].lastUpdate > 60000) {
+                if(Date.now() - players[sId].lastUpdate > 600000) {
                     delete players[sId];
                     io.to(sId).emit('sendHome');
                 }
