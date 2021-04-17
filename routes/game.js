@@ -161,11 +161,7 @@ module.exports = (app, io) => {
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
-        socket.on('bullet remove', id => {
-            io.emit('bullet remove', id);
-        });
         socket.on('player hit', msg => {
-            io.emit('bullet remove', msg.bulletId);
             io.to(msg.playerId).emit('player hit', msg);
         });
         socket.on('player died', msg => {
@@ -185,7 +181,7 @@ module.exports = (app, io) => {
         setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
             for(const sId in players) {
-                if(Date.now() - players[sId].lastUpdate > 60000) {
+                if(Date.now() - players[sId].lastUpdate > 600000) {
                     delete players[sId];
                     io.to(sId).emit('sendHome');
                 }
