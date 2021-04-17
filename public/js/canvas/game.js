@@ -91,9 +91,6 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
-        this.io.on('bullet remove', id => {
-            delete this.bullets[id];
-        });
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
@@ -144,7 +141,7 @@ class Game {
             document.body.classList.remove('fullscreen');
         }
         this.movement();
-        this.bulletInterval();
+        const updatedBullets = this.bulletInterval();
 
         const viewRect = {
             x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
@@ -174,7 +171,7 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
-        if(this.player.bullets.length || this.player.moving || this.player.speed) {
+        if(updatedBullets || this.player.bullets.length || this.player.moving || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
         }
     }
@@ -245,6 +242,7 @@ class Game {
     }
     gameBroadcast(players) {
         window.players = players;
+        this.bullets = [];
         for(const idp in players) {
             if (players[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(players[idp]);
@@ -557,11 +555,12 @@ class Game {
         }
     }
     bulletInterval() {
+        let bulletsUpdated = false;
         this.player.bullets = this.player.bullets.filter((bullet, i) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
-                this.io.emit('bullet remove', bullet.id);
+                bulletsUpdated = true;
                 return false;
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
@@ -571,6 +570,8 @@ class Game {
                         playerId: playerHit.socketId,
                         from: this.player.socketId
                     });
+                    delete this.player.bullets[bullet.id];
+                    bulletsUpdated = true;
                     return false;
                 } else {
                     return true;
@@ -578,6 +579,7 @@ class Game {
             }
 
         });
+        return bulletsUpdated;
     }
     checkBulletCollision(bullet) {
         let collision = false;
