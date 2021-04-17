@@ -1,6 +1,7 @@
 class GameSounds {
     constructor() {
         this.sounds = {};
+        this.volumeElement = document.getElementById('audioVolume');
         const paths = {
             explosion: '/sounds/explossion.wav',
             shot: '/sounds/shot.wav'
@@ -22,6 +23,7 @@ class GameSounds {
     }
     play(s) {
         try {
+            s.volume = this.volumeElement.value / 100;
             s.play();
         } catch(e) {}
     }
