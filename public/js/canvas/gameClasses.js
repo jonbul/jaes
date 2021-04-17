@@ -84,7 +84,7 @@ class Bullet {
         this.y = y;
         this.angle = angle;
         this.id = socketId + '-' + Date.now();
-        this.range = 10000;
+        this.range = 500;
         this.speed = 25 + shootingSpeed;
         this.radiusX = radiusX;
         this.radiusY = radiusY;
