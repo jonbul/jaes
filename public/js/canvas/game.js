@@ -70,6 +70,7 @@ class Game {
             
             this.socketIOEvents();
 
+            this.playerUpdated = true;
             this.beginInterval();
             this.io.emit('playerData', this.player.getSortDetails());
         })();
@@ -99,7 +100,9 @@ class Game {
                 this.player.dead();
                 setTimeout(() => {
                     this.player.hide = true;
+                    this.playerUpdated = true;
                     setTimeout(() => {
+                        this.playerUpdated = true;
                         this.reloadPlayer();
                         this.player.hide = false;
                         this.player.life = 10;
@@ -171,9 +174,10 @@ class Game {
         
         this.loadRadar();
         this.drawAll();
-        if(updatedBullets || this.player.bullets.length || this.player.moving || this.player.speed) {
+        if(this.playerUpdated || updatedBullets || this.player.moving || this.player.bullets.length || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
         }
+        this.playerUpdated = false;
     }
     clear() {
         this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
