@@ -161,11 +161,7 @@ module.exports = (app, io) => {
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
-        socket.on('bullet remove', id => {
-            io.emit('bullet remove', id);
-        });
         socket.on('player hit', msg => {
-            io.emit('bullet remove', msg.bulletId);
             io.to(msg.playerId).emit('player hit', msg);
         });
         socket.on('player died', msg => {
