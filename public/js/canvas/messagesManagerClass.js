@@ -15,7 +15,7 @@ export default class MessagesManager {
     add(msg) {
         this.messages.push({
             text: msg,
-            exp: DataCue.now() + 3000,
+            exp: Date.now() + 3000,
             opacity: 1
         });
     }
@@ -29,17 +29,18 @@ export default class MessagesManager {
         const x = this.player.x - this.canvas.width / 2 + this.player.width / 2 + this.lineHeight;
         const y = this.player.y - this.canvas.height / 2 + this.player.height / 2 + this.y;
         const text = new Text('', x, y, this.fontSize, this.fontFamily);
-        this.messages.forEach((msg, i) => {
+        this.messages = this.messages.filter((msg, i) => {
             const opacity = 1;
-            if (Date.now - msg.exp) {
+            if (Date.now() > msg.exp) {
                 msg.opacity -= 0.01;
             }
             if(msg.opacity > 0) {
-                text.color = this.getColor(msg.alpha);
+                text.color = this.getColor(msg.opacity);
                 text.text = msg.text;
                 text.y = y + this.lineHeight * i;
                 text.draw(this.context);
             }
+            return msg.opacity > 0;
         });
     }
 }
