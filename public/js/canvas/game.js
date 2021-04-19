@@ -23,6 +23,7 @@ import { KEYS, KILLWORDS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
+import MessagesManager from './messagesManagerClass.js';
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -47,7 +48,7 @@ class Game {
             this.keys = [];
 
             this.createStaticCanvas();
-
+            
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -68,6 +69,7 @@ class Game {
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
             
+            this.messagesManager = new MessagesManager(this);
             this.socketIOEvents();
 
             this.playerUpdated = true;
@@ -520,6 +522,7 @@ class Game {
                     y: minY + this.lineHeight / 2
                 }], '#13ff03', 3).draw(this.context);
         }
+        this.messagesManager.draw();
     }
     createStaticCanvas() {
         this.fontSize = this.canvas.width / 1920 * 40;
