@@ -19,10 +19,11 @@ import {
     RadarArrow,
     _player
 } from './gameClasses.js';
-import { KEYS } from './constants.js';
+import { KEYS, KILLWORDS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
+import MessagesManager from './messagesManagerClass.js';
 let Player;
 class Game {
     constructor(canvas, username, io) {
@@ -47,7 +48,7 @@ class Game {
             this.keys = [];
 
             this.createStaticCanvas();
-
+            
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -68,6 +69,7 @@ class Game {
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
             
+            this.messagesManager = new MessagesManager(this);
             this.socketIOEvents();
 
             this.playerUpdated = true;
@@ -111,22 +113,6 @@ class Game {
                 }, 2000);
             }
         });
-        this.io.on('player died', msg => {
-            this.players[msg.playerId].deaths++;
-            this.players[msg.from].kills++;
-            const explossionFrames = getExplossionFrames();
-            const explossion = new Animation({
-                frames: explossionFrames.frames,
-                layer: explossionFrames.layer,
-                x: this.players[msg.playerId].x,
-                y: this.players[msg.playerId].y,
-                width: 100,
-                height: 100
-            });
-            this.animations.push(explossion);
-            explossion.play();
-            gameSounds.explosion();
-        });
         this.io.on('sound', msg => {
             gameSounds[msg.sound]();
         })
@@ -134,6 +120,27 @@ class Game {
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000/60);
+    }
+    onPlayerDied(msg) {
+        console.log(msg)
+        this.players[msg.playerId].deaths++;
+        this.players[msg.from].kills++;
+        const explossionFrames = getExplossionFrames();
+        const explossion = new Animation({
+            frames: explossionFrames.frames,
+            layer: explossionFrames.layer,
+            x: this.players[msg.playerId].x,
+            y: this.players[msg.playerId].y,
+            width: 100,
+            height: 100
+        });
+        this.animations.push(explossion);
+        explossion.play();
+        gameSounds.explosion();
+
+        const fromName = this.players[msg.from].name;
+        const diedName = this.players[msg.playerId].name;
+        this.messagesManager.addKillMessage(fromName, diedName);
     }
     intervalMethod() {
 
@@ -244,18 +251,21 @@ class Game {
         }
 
     }
-    gameBroadcast(players) {
-        window.players = players;
+    gameBroadcast(data) {
+        const playersData = data.players;
+        
         this.bullets = [];
-        for(const idp in players) {
-            if (players[idp].socketId !== this.player.socketId) {
-                this.updatePlayers(players[idp]);
+        for(const idp in playersData) {
+            if (playersData[idp].socketId !== this.player.socketId) {
+                this.updatePlayers(playersData[idp]);
             }
             
-            for(const idb in players[idp].bullets) {
-                this.updateBullets(players[idp].bullets[idb]);
+            for(const idb in playersData[idp].bullets) {
+                this.updateBullets(playersData[idp].bullets[idb]);
             }
         }
+
+        data.kills.forEach(this.onPlayerDied.bind(this));
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];
@@ -510,6 +520,7 @@ class Game {
                     y: minY + this.lineHeight / 2
                 }], '#13ff03', 3).draw(this.context);
         }
+        this.messagesManager.draw();
     }
     createStaticCanvas() {
         this.fontSize = this.canvas.width / 1920 * 40;
