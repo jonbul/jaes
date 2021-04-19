@@ -22,7 +22,7 @@ export default class MessagesManager {
     }
     addKillMessage(name1, name2) {
         const killword = KILLWORDS[parseInt(Math.random() * KILLWORDS.length)];
-        this.add(`☠ ${name1} HAS ${killword} TO ${name2}`)
+        this.add(`☠ ${name1} HAS ${killword} ${name2}`)
     }
     getColor(alpha) {
         return `rgba(19, 255, 3, ${alpha})`;
