@@ -22,15 +22,11 @@ export default class MessagesManager {
     getColor(alpha) {
         return `rgba(19, 255, 3, ${alpha})`;
     }
-    getTextPosition() {
-
-    }
     draw() {
         const x = this.player.x - this.canvas.width / 2 + this.player.width / 2 + this.lineHeight;
         const y = this.player.y - this.canvas.height / 2 + this.player.height / 2 + this.y;
         const text = new Text('', x, y, this.fontSize, this.fontFamily);
         this.messages = this.messages.filter((msg, i) => {
-            const opacity = 1;
             if (Date.now() > msg.exp) {
                 msg.opacity -= 0.01;
             }
