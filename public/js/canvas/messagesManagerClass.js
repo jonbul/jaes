@@ -1,4 +1,5 @@
 import { Text } from './canvasClasses.js';
+import { KILLWORDS } from './constants.js';
 
 export default class MessagesManager {
     constructor(game) {
@@ -18,6 +19,10 @@ export default class MessagesManager {
             exp: Date.now() + 3000,
             opacity: 1
         });
+    }
+    addKillMessage(name1, name2) {
+        const killword = KILLWORDS[parseInt(Math.random() * KILLWORDS.length)];
+        this.add(`☠ ${name1} HAS ${killword} TO ${name2}`)
     }
     getColor(alpha) {
         return `rgba(19, 255, 3, ${alpha})`;
