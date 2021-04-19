@@ -111,22 +111,6 @@ class Game {
                 }, 2000);
             }
         });
-        this.io.on('player died', msg => {
-            this.players[msg.playerId].deaths++;
-            this.players[msg.from].kills++;
-            const explossionFrames = getExplossionFrames();
-            const explossion = new Animation({
-                frames: explossionFrames.frames,
-                layer: explossionFrames.layer,
-                x: this.players[msg.playerId].x,
-                y: this.players[msg.playerId].y,
-                width: 100,
-                height: 100
-            });
-            this.animations.push(explossion);
-            explossion.play();
-            gameSounds.explosion();
-        });
         this.io.on('sound', msg => {
             gameSounds[msg.sound]();
         })
@@ -134,6 +118,22 @@ class Game {
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000/60);
+    }
+    onPlayerDied(msg) {
+        this.players[msg.playerId].deaths++;
+        this.players[msg.from].kills++;
+        const explossionFrames = getExplossionFrames();
+        const explossion = new Animation({
+            frames: explossionFrames.frames,
+            layer: explossionFrames.layer,
+            x: this.players[msg.playerId].x,
+            y: this.players[msg.playerId].y,
+            width: 100,
+            height: 100
+        });
+        this.animations.push(explossion);
+        explossion.play();
+        gameSounds.explosion();
     }
     intervalMethod() {
 
@@ -244,18 +244,21 @@ class Game {
         }
 
     }
-    gameBroadcast(players) {
-        window.players = players;
+    gameBroadcast(data) {
+        const playersData = data.players;
+        
         this.bullets = [];
-        for(const idp in players) {
-            if (players[idp].socketId !== this.player.socketId) {
-                this.updatePlayers(players[idp]);
+        for(const idp in playersData) {
+            if (playersData[idp].socketId !== this.player.socketId) {
+                this.updatePlayers(playersData[idp]);
             }
             
-            for(const idb in players[idp].bullets) {
-                this.updateBullets(players[idp].bullets[idb]);
+            for(const idb in playersData[idp].bullets) {
+                this.updateBullets(playersData[idp].bullets[idb]);
             }
         }
+
+        data.kills.forEach(this.onPlayerDied.bind(this));
     }
     updateBullets(bulletDetails) {
         let bullet = this.bullets[bulletDetails.id];

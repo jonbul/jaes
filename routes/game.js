@@ -5,6 +5,7 @@ const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 module.exports = (app, io) => {
     const players = {};
     let playersToSend = {};
+    let killsList = [];
     const backgroundCards = {};
 
 
@@ -166,6 +167,7 @@ module.exports = (app, io) => {
         });
         socket.on('player died', msg => {
             io.emit('player died', msg);
+            killsList.push(msg);
         });
         socket.on('sound', msg => {
             io.emit('sound', msg);
@@ -195,9 +197,13 @@ module.exports = (app, io) => {
         const jsonLength = JSON.stringify(playersToSend).length;
         if (jsonLength > 3) {
             for(let sId in players) {
-                io.to(sId).emit('gameBroadcast', playersToSend);
+                io.to(sId).emit('gameBroadcast', {
+                    players: playersToSend,
+                    kills: killsList
+                });
             }
             playersToSend = {};
+            killsList = [];
         }
     }
 }
