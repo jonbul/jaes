@@ -1,4 +1,5 @@
 const express = require('express');
+const {collectDefaultMetrics} = require('prom-client');
 const session = require('express-session');
 const app = express();
 const http = require('http').createServer(app);
@@ -36,6 +37,7 @@ app.use(express.static('public'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 
+
 require('./model/user');
 require('./passport/passport');
 
@@ -54,6 +56,11 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+
+//Grafana
+collectDefaultMetrics();
+
+require('./routes/grafana')(app);
 require('./routes/user')(app);
 require('./routes/game')(app, io);
 require('./routes/paintingBoard')(app);
