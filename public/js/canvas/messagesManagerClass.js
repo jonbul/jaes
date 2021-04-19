@@ -35,7 +35,7 @@ export default class MessagesManager {
             if (Date.now() > msg.exp) {
                 msg.opacity -= 0.01;
             }
-            if(msg.opacity > 0) {
+            if(msg.opacity > 0 && i < 6) {
                 text.color = this.getColor(msg.opacity);
                 text.text = msg.text;
                 text.y = y + this.lineHeight * i;
