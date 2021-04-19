@@ -19,7 +19,7 @@ import {
     RadarArrow,
     _player
 } from './gameClasses.js';
-import { KEYS } from './constants.js';
+import { KEYS, KILLWORDS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
@@ -120,6 +120,7 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000/60);
     }
     onPlayerDied(msg) {
+        console.log(msg)
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
         const explossionFrames = getExplossionFrames();
@@ -134,6 +135,12 @@ class Game {
         this.animations.push(explossion);
         explossion.play();
         gameSounds.explosion();
+
+        const fromName = this.players[msg.from].name;
+        const diedName = this.players[msg.playerId].name;
+        const killword = KILLWORDS[parseInt(Math.random() * KILLWORDS.length)];
+        const text = `☠ ${fromName} HAS ${killword} TO ${diedName}`;
+        console.log(text);
     }
     intervalMethod() {
 
