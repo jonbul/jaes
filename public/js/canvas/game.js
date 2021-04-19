@@ -140,8 +140,7 @@ class Game {
 
         const fromName = this.players[msg.from].name;
         const diedName = this.players[msg.playerId].name;
-        const killword = KILLWORDS[parseInt(Math.random() * KILLWORDS.length)];
-        this.messagesManager.add(`☠ ${fromName} HAS ${killword} TO ${diedName}`);
+        this.messagesManager.addKillMessage(fromName, diedName);
     }
     intervalMethod() {
 
