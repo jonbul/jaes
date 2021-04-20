@@ -19,7 +19,7 @@ import {
     RadarArrow,
     _player
 } from './gameClasses.js';
-import { KEYS, KILLWORDS } from './constants.js';
+import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
@@ -389,7 +389,9 @@ class Game {
         /****************************** */
         for (const id in this.players) {
             const target = this.players[id];
-            if (target !== player && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
+            const distance = parseInt(this.player.getDistanceToPlayer(target));
+            const inScope = distance < this.canvas.width * 2;
+            if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
                     const rotationAxis2 = {
@@ -404,7 +406,11 @@ class Game {
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
-                new RadarArrow(this.player, target, this.canvas).draw(this.context);
+                const scope = {
+                    from: this.canvas.width,
+                    to: this.canvas.width * 2
+                }
+                new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
         };
     }
@@ -426,18 +432,18 @@ class Game {
             this.radar = new Layer('Radar', shapes);
         }
 
-        const radarLength = this.canvas.width * (5 / this.radarZoom);
+        const radarScope = this.canvas.width * (10 / this.radarZoom);
         this.radarPoints = [];
         for (const id in this.players) {
             const target = this.players[id];
             if (this.player !== target && !target.isDead) {
                 const xLength = target.x - player.x;
                 const yLength = target.y - player.y;
-                const distance = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
+                const distance = this.player.getDistanceToPlayer(target);
 
-                if (distance < radarLength) {
-                    const radarX = (xLength * r / radarLength) + x;
-                    const radarY = (yLength * r / radarLength) + y;
+                if (distance < radarScope) {
+                    const radarX = (xLength * r / radarScope) + x;
+                    const radarY = (yLength * r / radarScope) + y;
                     this.radarPoints.push({x: radarX, y: radarY});
                 }
             } 
@@ -560,7 +566,7 @@ class Game {
         }
         if (event.keyCode === KEYS.PLUS && this.radarZoom > 1) {
             this.radarZoom--;
-        } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 5) {
+        } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 10) {
             this.radarZoom++;
         }
     }
