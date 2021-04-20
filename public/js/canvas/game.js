@@ -19,7 +19,7 @@ import {
     RadarArrow,
     _player
 } from './gameClasses.js';
-import { KEYS, KILLWORDS } from './constants.js';
+import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
