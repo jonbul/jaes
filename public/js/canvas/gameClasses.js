@@ -70,6 +70,11 @@ class Player {
             bullets: this.bullets.map(bullet => bullet.getSortDetails())
         }
     }
+    getDistanceToPlayer(player) {
+        const xLength = this.x - player.x;
+        const yLength = this.y - player.y;
+        return Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
+    }
     getCenteredPosition() {
         return {
             x: this.x + (this.width / 2),

@@ -389,7 +389,8 @@ class Game {
         /****************************** */
         for (const id in this.players) {
             const target = this.players[id];
-            if (target !== player && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
+            const inScope = this.player.getDistanceToPlayer(target) < this.canvas.width * 2;
+            if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
                     const rotationAxis2 = {
@@ -433,7 +434,7 @@ class Game {
             if (this.player !== target && !target.isDead) {
                 const xLength = target.x - player.x;
                 const yLength = target.y - player.y;
-                const distance = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
+                const distance = this.player.getDistanceToPlayer(target);
 
                 if (distance < radarScope) {
                     const radarX = (xLength * r / radarScope) + x;
