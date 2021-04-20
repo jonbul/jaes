@@ -389,7 +389,8 @@ class Game {
         /****************************** */
         for (const id in this.players) {
             const target = this.players[id];
-            const inScope = this.player.getDistanceToPlayer(target) < this.canvas.width * 2;
+            const distance = parseInt(this.player.getDistanceToPlayer(target));
+            const inScope = distance < this.canvas.width * 2;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
@@ -405,7 +406,11 @@ class Game {
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
-                new RadarArrow(this.player, target, this.canvas).draw(this.context);
+                const scope = {
+                    from: this.canvas.width,
+                    to: this.canvas.width * 2
+                }
+                new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
         };
     }

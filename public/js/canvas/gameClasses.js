@@ -181,23 +181,26 @@ class RadarArrow {
             this.arrowDir = { x: 1, y: -1 };
         }
     }
-    draw(context) {
+    draw(context, distance) {
         this.getDistance();
+        const canvas = this.canvas;
 
+        let multiplier = canvas.width*1.5 - distance;
+        multiplier = multiplier < 0 ? 0 : multiplier;
 
         const points = [
             { x: 0, y: 0 },
-            { x: canvas.width * 0.04, y: canvas.width * 0.01 },
-            { x: 0, y: canvas.width * 0.02 },
-            { x: canvas.width * 0.01, y: canvas.width * 0.01 }
+            { x: multiplier * 0.04, y: multiplier * 0.01 },
+            { x: 0, y: multiplier * 0.02 },
+            { x: multiplier * 0.01, y: multiplier * 0.01 }
         ];
 
         const arrowDistanceX = this.player.width / 2
         const arrowDistanceY = this.player.width / 2
 
         points.forEach(point => {
-            point.x += this.player.x + arrowDistanceX + canvas.width * 0.04;
-            point.y += this.player.y + arrowDistanceY - canvas.width * 0.01;
+            point.x += this.player.x + arrowDistanceX + multiplier * 0.04;
+            point.y += this.player.y + arrowDistanceY - multiplier * 0.01;
         })
         const rotationCenter = {
             x: this.player.x + this.player.width / 2,
