@@ -19,7 +19,6 @@ module.exports = (app, io, mongoose) => {
             const sUser = req.session.passport?.user;
 
             const user = sUser ? await User.findOne({ username: sUser.username }) : !1;
-            console.log(user.credits);
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser?.username || '',

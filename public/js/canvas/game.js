@@ -259,7 +259,7 @@ class Game {
         for(const idp in playersData) {
             if (playersData[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(playersData[idp]);
-            } else {
+            } else if (this.player.credits < playersData[idp].credits) {
                 this.players[idp].credits = playersData[idp].credits;
                 this.player.credits = playersData[idp].credits;
             }
