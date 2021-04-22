@@ -17,10 +17,11 @@ import { parseLayers, asyncRequest } from '../functions.js';
 let ships;
 window.forms = Forms;
 class Player {
-    constructor(username, shipId, x = 0, y = 0) {
+    constructor(username, shipId, x = 0, y = 0, credits) {
         this.name = username;
         this.shipId = shipId;
         this.ship = ships[shipId];
+        this.credits = credits || 0;
         this.layers = parseLayers(this.ship.layers);
         this.x = x;
         this.y = y;
@@ -60,6 +61,7 @@ class Player {
             x: this.x,
             y: this.y,
             name: this.name,
+            credits: this.credits,
             rotate: this.rotate,
             life: this.life,
             kills: this.kills,

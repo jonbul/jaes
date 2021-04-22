@@ -62,7 +62,7 @@ collectDefaultMetrics();
 
 require('./routes/grafana')(app);
 require('./routes/user')(app);
-require('./routes/game')(app, io);
+require('./routes/game')(app, io, mongoose);
 require('./routes/paintingBoard')(app);
 
 http.listen(PORT, () => { console.log('Hello from port ' + PORT) });
