@@ -23,7 +23,7 @@ const MongoStore = require('connect-mongo')(session);
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useUnifiedTopology', true);
-mongoose.connect('mongodb+srv://jonbul:m_Airrebexte1987!@nodecourse.er3ps.azure.mongodb.net/jaes?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://jaes:m_Airrebexte1987!@nodecourse.er3ps.azure.mongodb.net/jaes?retryWrites=true&w=majority', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
@@ -62,7 +62,7 @@ collectDefaultMetrics();
 
 require('./routes/grafana')(app);
 require('./routes/user')(app);
-require('./routes/game')(app, io);
+require('./routes/game')(app, io, mongoose);
 require('./routes/paintingBoard')(app);
 
 http.listen(PORT, () => { console.log('Hello from port ' + PORT) });

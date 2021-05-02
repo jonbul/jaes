@@ -26,8 +26,9 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 let Player;
 class Game {
-    constructor(canvas, username, io) {
+    constructor(canvas, username, io, guest, credits) {
         window.game = this;
+        this.isGuest = guest;
         (async () => {
             this.radarZoom = 1;
             Player = await _player;
@@ -54,7 +55,7 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, 0, 0, 0);
+            this.player = new Player(this.username, 0, 0, 0, credits);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
 
@@ -122,7 +123,6 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000/60);
     }
     onPlayerDied(msg) {
-        console.log(msg)
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
         const explossionFrames = getExplossionFrames();
@@ -252,19 +252,22 @@ class Game {
 
     }
     gameBroadcast(data) {
+        if(data.players[game.player.ioId])console.log(game.players[game.player.ioId].credits, data.players[game.player.ioId].credits)
         const playersData = data.players;
         
         this.bullets = [];
         for(const idp in playersData) {
             if (playersData[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(playersData[idp]);
+            } else if (this.player.credits < playersData[idp].credits) {
+                this.players[idp].credits = playersData[idp].credits;
+                this.player.credits = playersData[idp].credits;
             }
             
             for(const idb in playersData[idp].bullets) {
                 this.updateBullets(playersData[idp].bullets[idb]);
             }
         }
-
         data.kills.forEach(this.onPlayerDied.bind(this));
     }
     updateBullets(bulletDetails) {
@@ -289,6 +292,7 @@ class Game {
             players[plDetails.socketId].rotate = plDetails.rotate;
             players[plDetails.socketId].hide = plDetails.hide;
             players[plDetails.socketId].isDead = plDetails.isDead;
+            players[plDetails.socketId].credits = plDetails.credits;
         }
     }
     drawAll() {
@@ -480,6 +484,11 @@ class Game {
         this.lifeText.y = textY;
         this.lifeText.draw(this.context);
 
+        this.creditsText.text = `Credits: ${this.player.credits || 0}`;
+        this.creditsText.x = cornerX + this.canvas.width - (this.creditsText.text.length * this.fontSize / 2);
+        this.creditsText.y = textY + this.lineHeight;
+        this.creditsText.draw(this.context);
+
         if (this.keys[KEYS.TAB] || this.player.isDead) {
             this.shadowBackground.x = cornerX;
             this.shadowBackground.y = cornerY;
@@ -541,6 +550,7 @@ class Game {
         ]);
 
         this.lifeText = new Text('', 0, 0 + 150, this.fontSize, 'Arcade', '#13ff03');
+        this.creditsText = new Text('', 0, this.lineHeight + 150, this.fontSize, 'Arcade', '#13ff03');
 
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];

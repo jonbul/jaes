@@ -18,5 +18,5 @@
         %>
             window._username = prompt('Username:', 'Username')
     <% } %>
-    new Game(document.getElementById('canvas'), _username, socket, <%= guest %>);
+    new Game(document.getElementById('canvas'), _username, socket, <%= guest %>, <%= credits %>);
 </script>

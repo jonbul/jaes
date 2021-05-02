@@ -1,8 +1,9 @@
 const Ship = require('../model/ship');
 const resolutions = require('./constants').resolutions;
 const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
+const User = require('../model/user');
 
-module.exports = (app, io) => {
+module.exports = (app, io, mongoose) => {
     const players = {};
     let playersToSend = {};
     let killsList = [];
@@ -10,17 +11,19 @@ module.exports = (app, io) => {
 
 
     let currentResolution = 2;
-    let allowedPlayerType = allowedPlayerTypes.Registered;
+    let allowedPlayerType = allowedPlayerTypes.All;
 
-    app.get('/game', (req, res) => {
+    app.get('/game', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            const user = req.session.passport?.user;
+            const sUser = req.session.passport?.user;
 
+            const user = sUser ? await User.findOne({ username: sUser.username }) : !1;
             res.render('canvas/game', {
                 title: 'Game',
-                username: user?.username || '',
-                isAdmin: user?.admin,
+                username: sUser?.username || '',
+                credits: user?.credits || 0,
+                isAdmin: sUser?.admin,
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height,
                 allowedPlayerTypes,
@@ -157,7 +160,16 @@ module.exports = (app, io) => {
     //IO
     io.on('connection', (socket) => {
         console.log("Connected from IP: ", socket.handshake.address);
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
+            if (!players[socket.id]) return;
+            const user = await User.findOne({ username: players[socket.id].name });
+            if (user) {
+                user.credits = players[socket.id].credits;
+                user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
+                user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
+                user.save();
+                delete mongoose.models.user;
+            }
             delete players[socket.id];
             console.log('bye', socket.id);
             io.emit('player leave', socket.id);
@@ -165,25 +177,34 @@ module.exports = (app, io) => {
         socket.on('player hit', msg => {
             io.to(msg.playerId).emit('player hit', msg);
         });
-        socket.on('player died', msg => {
-            io.emit('player died', msg);
+        socket.on('player died', async msg => {
             killsList.push(msg);
+            players[msg.from].credits += 100;
+            if (playersToSend[msg.from]) {
+                playersToSend[msg.from].credits = players[msg.from].credits;
+            } else {
+                playersToSend[msg.from] = players[msg.from];
+            }
         });
         socket.on('sound', msg => {
             io.emit('sound', msg);
         })
 
         socket.on('playerData', msg => {
+            if (playersToSend[socket.id]) {
+                msg.credits = playersToSend[socket.id].credits;
+            }
             players[socket.id] = msg;
             playersToSend[socket.id] = msg;
             players[socket.id].lastUpdate = Date.now();
             msg.socketId = socket.id;
+            console.log(players[socket.id].credits)
         });
 
         setInterval(cleanPlayers, 10000)
         function cleanPlayers() {
-            for(const sId in players) {
-                if(Date.now() - players[sId].lastUpdate > 600000) {
+            for (const sId in players) {
+                if (Date.now() - players[sId].lastUpdate > 600000) {
                     delete players[sId];
                     io.to(sId).emit('sendHome');
                 }
@@ -191,12 +212,11 @@ module.exports = (app, io) => {
         }
 
     });
-    setInterval(gameStatusBroadcast, 1000 / 30)
-    let max = 0;
+    setInterval(gameStatusBroadcast, 1000 / 60)
     function gameStatusBroadcast() {
         const jsonLength = JSON.stringify(playersToSend).length;
         if (jsonLength > 3) {
-            for(let sId in players) {
+            for (let sId in players) {
                 io.to(sId).emit('gameBroadcast', {
                     players: playersToSend,
                     kills: killsList
