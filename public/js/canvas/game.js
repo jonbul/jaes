@@ -252,7 +252,7 @@ class Game {
 
     }
     gameBroadcast(data) {
-        if(data.players[game.player.ioId])console.log(game.players[game.player.ioId].credits, data.players[game.player.ioId].credits)
+        //if(data.players[game.player.ioId])console.log(game.players[game.player.ioId].credits, data.players[game.player.ioId].credits)
         const playersData = data.players;
         
         this.bullets = [];

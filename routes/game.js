@@ -198,7 +198,6 @@ module.exports = (app, io, mongoose) => {
             playersToSend[socket.id] = msg;
             players[socket.id].lastUpdate = Date.now();
             msg.socketId = socket.id;
-            console.log(players[socket.id].credits)
         });
 
         setInterval(cleanPlayers, 10000)

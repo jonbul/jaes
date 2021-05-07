@@ -10,7 +10,6 @@
 <script type="module">
     import Game from '/js/canvas/game.js';
     window.socket = io();
-    console.log("<%= typeof allowedPlayerType%>")
     <% 
         let guest = false;
         if(allowedPlayerTypes.All === allowedPlayerType && !username) {
