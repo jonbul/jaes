@@ -198,12 +198,12 @@ class Game {
         }
         this.player.moving = this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT];
         if (this.keys[KEYS.UP]) {
-            player.speed += 0.1;
+            player.speed += 0.2;
         }
         if (this.keys[KEYS.DOWN] && player.speed) {
-            player.speed -= 0.1;
+            player.speed -= 0.2;
         }
-        if (player.speed >= 20) player.speed = 20;
+        if (player.speed >= 50) player.speed = 50;
         if (player.speed < 0) player.speed = 0;
 
         if (this.keys[KEYS.LEFT]) {
@@ -252,7 +252,6 @@ class Game {
 
     }
     gameBroadcast(data) {
-        //if(data.players[game.player.ioId])console.log(game.players[game.player.ioId].credits, data.players[game.player.ioId].credits)
         const playersData = data.players;
         
         this.bullets = [];
