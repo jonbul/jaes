@@ -204,7 +204,7 @@ class Game {
             player.speed -= 0.2;
         }
         if (player.speed >= 50) player.speed = 50;
-        if (player.speed < 0) player.speed = 0;
+        if (player.speed < -20) player.speed = -20;
 
         if (this.keys[KEYS.LEFT]) {
             player.rotate -= 0.02;
