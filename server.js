@@ -21,6 +21,10 @@ const mongodb = require('mongodb');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 
+//Server /status
+app.use(require('express-status-monitor')());
+
+
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useUnifiedTopology', true);
 mongoose.connect('mongodb+srv://jaes:m_Airrebexte1987!@nodecourse.er3ps.azure.mongodb.net/jaes?retryWrites=true&w=majority', {
