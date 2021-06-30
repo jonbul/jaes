@@ -18,7 +18,7 @@ module.exports = (app, io, mongoose) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
             const sUser = req.session.passport ? req.session.passport.user : {};
 
-            const user = sUser ? await User.findOne({ username: sUser.username }) : !1;
+            const user = sUser ? await User.findOne({ username: sUser.username }) : {};
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
@@ -164,7 +164,7 @@ module.exports = (app, io, mongoose) => {
             if (!players[socket.id]) return;
             const user = await User.findOne({ username: players[socket.id].name });
             if (user) {
-                user.credits = players[socket.id].credits;
+                user.credits = players[socket.id] ? players[socket.id].credits : 0;
                 user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
                 user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
                 user.save();
