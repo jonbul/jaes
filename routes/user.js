@@ -9,7 +9,7 @@ module.exports = (app) => {
         res.render('home', {
             title: 'Home',
             username: user ? user.username : '',
-            isAdmin: user?.admin
+            isAdmin: user ? user.admin : false
         });
     });
     
@@ -21,7 +21,7 @@ module.exports = (app) => {
         res.render('user/register', {
             title: 'Home',
             username: req.user ? req.user.username : '',
-            isAdmin: req.user?.admin,
+            isAdmin: req.user ? req.user.admin : false,
             errors,
             hasErrors: !!errors.length
         });
@@ -50,7 +50,7 @@ module.exports = (app) => {
         res.render('user/login', {
             title: 'Home',
             username: req.user ? req.user.username : '',
-            isAdmin: req.user?.admin,
+            isAdmin: req.user ? req.user.admin : false,
             success,
             hasSuccess: !!success.length,
             errors,

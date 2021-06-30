@@ -16,14 +16,14 @@ module.exports = (app, io, mongoose) => {
     app.get('/game', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            const sUser = req.session.passport?.user;
+            const sUser = req.session.passport ? req.session.passport.user : {};
 
             const user = sUser ? await User.findOne({ username: sUser.username }) : !1;
             res.render('canvas/game', {
                 title: 'Game',
-                username: sUser?.username || '',
-                credits: user?.credits || 0,
-                isAdmin: sUser?.admin,
+                username: sUser.username || '',
+                credits: user.credits || 0,
+                isAdmin: sUser.admin,
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height,
                 allowedPlayerTypes,

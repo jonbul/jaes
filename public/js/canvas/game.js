@@ -567,7 +567,7 @@ class Game {
     }
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
-        if (!this.player?.isDead && event.keyCode === KEYS.SPACE) {
+        if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
             this.player.createBullet();
             const msg = this.player.getCenteredPosition();
             msg.sound = 'shot';
