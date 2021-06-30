@@ -18,7 +18,7 @@ module.exports = (app, io, mongoose) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
             const sUser = req.session.passport ? req.session.passport.user : {};
 
-            const user = sUser ? await User.findOne({ username: sUser.username }) : !1;
+            const user = sUser ? await User.findOne({ username: sUser.username }) : {};
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
