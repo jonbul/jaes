@@ -22,7 +22,7 @@ module.exports = (app, io, mongoose) => {
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
-                credits: user.credits || 0,
+                credits: user ? user.credits :0 || 0,
                 isAdmin: sUser.admin,
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height,
