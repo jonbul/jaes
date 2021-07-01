@@ -26,3 +26,4 @@ steps:
       echo YEE $(pat)
       git remote add heroku https://heroku:$(pat)@git.heroku.com/jaes-website.git
       git push heroku $(Build.SourceBranchName)
+      npm install
