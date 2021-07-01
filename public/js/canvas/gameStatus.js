@@ -37,15 +37,37 @@ class GameStatus {
         window.context = this.context;
         window.drawMap = this.drawMap.bind(this);
         this.mouseEvent();
+        this.playersDetails = document.getElementById('playersDetails');
     }
     drawMapInterval() {
         const func = async () => {
             
             const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted })).response;
             this.players = data.players;
+            this.writePlayersTable(data.players);
             this.drawMap(data.resultCards);
         };
         setInterval(func, 1000);
+    }
+    writePlayersTable(players) {
+        console.log(players)
+        this.playersDetails.innerHTML = '';
+        const props = [
+            'name',
+            'deaths',
+            'kills',
+            'socketId'
+        ];
+        for (const plId in players) {
+            const player = players[plId];
+            const tr = document.createElement('tr');
+            props.forEach( prop => {
+                const td = document.createElement('td');
+                td.innerHTML = player[prop];
+                tr.appendChild(td);
+            });
+            this.playersDetails.appendChild(tr);
+        }
     }
     drawMap(resultCards) {
         new Rect(0, 0, this.canvasWidth, this.canvasHeight, '#ffffff').draw(this.context)
