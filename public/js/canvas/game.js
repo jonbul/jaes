@@ -95,6 +95,7 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
+        const _this = this;
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
@@ -113,6 +114,7 @@ class Game {
                     }, 10000);
                 }, 2000);
             }
+            this.io.emit('removeBullet', msg.bulletId);
         });
         this.io.on('newBullet', msg => {
             const bullet = new Bullet(
@@ -130,9 +132,9 @@ class Game {
 
             gameSounds['shot']();
         })
-        this.io.on('expiredBullets', msg => {
-            console.log(msg);
-            msg.forEach(id => delete this.bullets[id]);
+        this.io.on('removeBullet', id => {
+            console.log('removeBullet', id, this.bullets[id])
+            delete this.bullets[id];
         });
         this.io.on('sendHome', () => location.href='/');
     }
@@ -186,8 +188,6 @@ class Game {
             }
         }
         this.drawableBullets.shapes = [];
-        const expiredBullets = [];
-        let sendExpiredBullets = false;
         for (const id in this.bullets) {
             const bullet = this.bullets[id];
             bullet.moveStep();
@@ -201,9 +201,6 @@ class Game {
         this.loadRadar();
         this.drawAll();
         
-        if(sendExpiredBullets === true) {
-            this.io.emit('expiredBullets', expiredBullets);
-        }
         if(this.playerUpdated || this.player.moving || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
         }

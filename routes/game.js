@@ -190,8 +190,8 @@ module.exports = (app, io, mongoose) => {
             io.emit('newBullet', msg);
         });
 
-        socket.on('expiredBullets', msg => {
-            io.emit('expiredBullets', msg);
+        socket.on('removeBullet', msg => {
+            io.emit('removeBullet', msg);
         });
 
         socket.on('playerData', msg => {
