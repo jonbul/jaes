@@ -130,6 +130,10 @@ class Game {
 
             gameSounds['shot']();
         })
+        this.io.on('expiredBullets', msg => {
+            console.log(msg);
+            msg.forEach(id => delete this.bullets[id]);
+        });
         this.io.on('sendHome', () => location.href='/');
     }
     beginInterval() {
@@ -164,7 +168,7 @@ class Game {
             document.body.classList.remove('fullscreen');
         }
         this.movement();
-        const updatedBullets = this.bulletInterval();
+        this.bulletInterval();
 
         const viewRect = {
             x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
@@ -186,11 +190,10 @@ class Game {
         let sendExpiredBullets = false;
         for (const id in this.bullets) {
             const bullet = this.bullets[id];
-            console.log(1, bullet.x, bullet.y)
             bullet.moveStep();
-            console.log(2, bullet.x, bullet.y)
             if (this.socketId === bullet.socketId && bullet.isExpired()) {
                 expiredBullets.push(id);
+                sendExpiredBullets = true;
             } else if (this.checkArcRectCollision(bullet, this.viewRect)) {
                 this.drawableBullets.shapes.push(bullet);
             }
@@ -319,10 +322,6 @@ class Game {
         this.clear();
         this.drawBackground(this.viewRect);
         this.drawableBullets.draw(this.context);
-        for (var id in this.drawableBullets.shapes) {
-            var bullet = this.drawableBullets.shapes[id];
-            console.log(3, bullet.x, bullet.y)
-        }
         this.drawablePlayers.draw(this.context);
 
         this.player.draw(this.context);
