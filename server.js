@@ -66,6 +66,6 @@ require('./routes/game')(app, io, mongoose);
 require('./routes/paintingBoard')(app);
 
 //Server /status
-app.use(require('express-status-monitor')());
+//app.use(require('express-status-monitor')());
 
 http.listen(PORT, () => { console.log('Hello from port ' + PORT) });
