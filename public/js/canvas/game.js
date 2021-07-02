@@ -274,7 +274,6 @@ class Game {
     gameBroadcast(data) {
         const playersData = data.players;
         
-        //this.bullets = [];
         for(const idp in playersData) {
             if (playersData[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(playersData[idp]);
@@ -282,22 +281,9 @@ class Game {
                 this.players[idp].credits = playersData[idp].credits;
                 this.player.credits = playersData[idp].credits;
             }
-            
-            /*for(const idb in playersData[idp].bullets) {
-                this.updateBullets(playersData[idp].bullets[idb]);
-            }*/
         }
         data.kills.forEach(this.onPlayerDied.bind(this));
     }
-    /*updateBullets(bulletDetails) {
-        let bullet = this.bullets[bulletDetails.id];
-        if (!bullet) {
-            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed, bulletDetails.rotation);
-            this.bullets[bulletDetails.id] = bullet;
-        } else {
-            bullet.updatePosition(bulletDetails.x, bulletDetails.y);
-        }
-    }*/
     updatePlayers(plDetails) {
         const players = this.players;
         if (plDetails) {
