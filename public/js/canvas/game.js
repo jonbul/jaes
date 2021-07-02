@@ -192,8 +192,7 @@ class Game {
             const bullet = this.bullets[id];
             bullet.moveStep();
             if (this.socketId === bullet.socketId && bullet.isExpired()) {
-                expiredBullets.push(id);
-                sendExpiredBullets = true;
+                delete this.bullets[id];
             } else if (this.checkArcRectCollision(bullet, this.viewRect)) {
                 this.drawableBullets.shapes.push(bullet);
             }
