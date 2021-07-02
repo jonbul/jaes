@@ -186,9 +186,13 @@ module.exports = (app, io, mongoose) => {
                 playersToSend[msg.from] = players[msg.from];
             }
         });
-        socket.on('sound', msg => {
-            io.emit('sound', msg);
-        })
+        socket.on('newBullet', msg => {
+            io.emit('newBullet', msg);
+        });
+
+        socket.on('removeBullet', msg => {
+            io.emit('removeBullet', msg);
+        });
 
         socket.on('playerData', msg => {
             if (playersToSend[socket.id]) {

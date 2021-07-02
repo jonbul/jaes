@@ -50,7 +50,9 @@ class Player {
     createBullet() {
         let bPosX = this.x + this.width / 2;
         let bPosY = this.y + this.height / 2;
-        this.bullets.push(new Bullet(this.socketId, bPosX, bPosY, this.rotate, this.speed, this.rotate));
+        const bullet = new Bullet(this.socketId, bPosX, bPosY, this.rotate, this.speed, this.rotate);
+        this.bullets.push(bullet);
+        return bullet;
     }
     dead() {
         this.isDead = true;
@@ -69,7 +71,7 @@ class Player {
             shipId: this.shipId,
             hide: this.hide,
             isDead: this.isDead,
-            bullets: this.bullets.map(bullet => bullet.getSortDetails())
+            //bullets: this.bullets.map(bullet => bullet.getSortDetails())
         }
     }
     getDistanceToPlayer(player) {
@@ -92,6 +94,7 @@ class Bullet {
         this.angle = angle;
         this.id = socketId + '-' + Date.now();
         this.range = 5000;
+        this.shootingSpeed = shootingSpeed;
         this.speed = 25 + shootingSpeed;
         this.radiusX = radiusX;
         this.radiusY = radiusY;
@@ -139,6 +142,8 @@ class Bullet {
     moveStep() {
         this.x += (this.speed * this.moveX);
         this.y += (this.speed * this.moveY);
+        this.arc.x = this.x;
+        this.arc.y = this.y;
     }
     getSortDetails() {
         return {
@@ -150,7 +155,8 @@ class Bullet {
             moveX: this.moveX,
             moveY: this.moveY,
             id: this.id,
-            rotation: this.rotation
+            rotation: this.rotation,
+            shootingSpeed: this.shootingSpeed
         }
     }
 }

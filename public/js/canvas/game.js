@@ -95,6 +95,7 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
+        const _this = this;
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0) this.player.life--;
@@ -113,10 +114,28 @@ class Game {
                     }, 10000);
                 }, 2000);
             }
+            this.io.emit('removeBullet', msg.bulletId);
         });
-        this.io.on('sound', msg => {
-            gameSounds[msg.sound]();
+        this.io.on('newBullet', msg => {
+            const bullet = new Bullet(
+                msg.bullet.socketId,
+                msg.bullet.x,
+                msg.bullet.y,
+                msg.bullet.angle,
+                msg.bullet.shootingSpeed,
+                msg.bullet.rotation,
+                msg.bullet.radiusX,
+                msg.bullet.radiusY
+            );
+            bullet.id = msg.bullet.id;
+            this.bullets[bullet.id] = bullet;
+
+            gameSounds['shot']();
         })
+        this.io.on('removeBullet', id => {
+            console.log('removeBullet', id, this.bullets[id])
+            delete this.bullets[id];
+        });
         this.io.on('sendHome', () => location.href='/');
     }
     beginInterval() {
@@ -151,7 +170,7 @@ class Game {
             document.body.classList.remove('fullscreen');
         }
         this.movement();
-        const updatedBullets = this.bulletInterval();
+        this.bulletInterval();
 
         const viewRect = {
             x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
@@ -170,18 +189,19 @@ class Game {
         }
         this.drawableBullets.shapes = [];
         for (const id in this.bullets) {
-            if (this.checkArcRectCollision(this.bullets[id], this.viewRect)) {
-                if (this.bullets[id].isExpired()) {
-                    delete this.bullets[id];
-                } else {
-                    this.drawableBullets.shapes.push(this.bullets[id]);
-                }
+            const bullet = this.bullets[id];
+            bullet.moveStep();
+            if (this.socketId === bullet.socketId && bullet.isExpired()) {
+                delete this.bullets[id];
+            } else if (this.checkArcRectCollision(bullet, this.viewRect)) {
+                this.drawableBullets.shapes.push(bullet);
             }
         }
         
         this.loadRadar();
         this.drawAll();
-        if(this.playerUpdated || updatedBullets || this.player.moving || this.player.bullets.length || this.player.speed) {
+        
+        if(this.playerUpdated || this.player.moving || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
         }
         this.playerUpdated = false;
@@ -254,7 +274,6 @@ class Game {
     gameBroadcast(data) {
         const playersData = data.players;
         
-        this.bullets = [];
         for(const idp in playersData) {
             if (playersData[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(playersData[idp]);
@@ -262,21 +281,8 @@ class Game {
                 this.players[idp].credits = playersData[idp].credits;
                 this.player.credits = playersData[idp].credits;
             }
-            
-            for(const idb in playersData[idp].bullets) {
-                this.updateBullets(playersData[idp].bullets[idb]);
-            }
         }
         data.kills.forEach(this.onPlayerDied.bind(this));
-    }
-    updateBullets(bulletDetails) {
-        let bullet = this.bullets[bulletDetails.id];
-        if (!bullet) {
-            bullet = new Bullet(bulletDetails.socketId, bulletDetails.x, bulletDetails.y, bulletDetails.angle, bulletDetails.speed, bulletDetails.rotation);
-            this.bullets[bulletDetails.id] = bullet;
-        } else {
-            bullet.updatePosition(bulletDetails.x, bulletDetails.y);
-        }
     }
     updatePlayers(plDetails) {
         const players = this.players;
@@ -568,10 +574,10 @@ class Game {
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
         if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
-            this.player.createBullet();
+            const bullet = this.player.createBullet();
             const msg = this.player.getCenteredPosition();
-            msg.sound = 'shot';
-            this.io.emit('sound', msg);
+            msg.bullet = bullet.getSortDetails();
+            this.io.emit('newBullet', msg);
         }
         if (event.keyCode === KEYS.PLUS && this.radarZoom > 1) {
             this.radarZoom--;
