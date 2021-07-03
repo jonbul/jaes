@@ -32,10 +32,8 @@ steps:
     sshEndpoint: 'Raspberry'
     runOptions: 'commands'
     commands: |
-      pkill node
       cd game/Jaes
       npm install
       git fetch
       git pull
-      node server.js
     readyTimeout: '20000'
