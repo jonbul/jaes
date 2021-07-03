@@ -27,3 +27,11 @@ steps:
       git remote add heroku https://heroku:$(pat)@git.heroku.com/jaes-website.git
       git push heroku $(Build.SourceBranchName)
       npm install
+      echo Adding code for raspberry
+      sshpass -p 'rednanoj' ssh pi@jonbul.ddns.net
+      pkill node
+      npm install
+      cd game/Jaes
+      git fetch
+      git pull
+      node server.js
