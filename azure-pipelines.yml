@@ -33,7 +33,7 @@ steps:
     runOptions: 'commands'
     commands: |
       cd /home/pi/game/JAES
-      npm install
-      git fetch
-      git pull
+      echo npm install
+      echo git fetch
+      echo git pull
     readyTimeout: '20000'
