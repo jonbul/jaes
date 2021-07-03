@@ -32,7 +32,7 @@ steps:
     sshEndpoint: 'Raspberry'
     runOptions: 'commands'
     commands: |
-      cd game/Jaes
+      cd /home/pi/game/Jaes
       npm install
       git fetch
       git pull
