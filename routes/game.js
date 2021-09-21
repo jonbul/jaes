@@ -8,6 +8,8 @@ module.exports = (app, io, mongoose) => {
     let playersToSend = {};
     let killsList = [];
     const backgroundCards = {};
+    let newBullets = [];
+    let bulletsToRemove = [];
 
 
     let currentResolution = 2;
@@ -187,11 +189,11 @@ module.exports = (app, io, mongoose) => {
             }
         });
         socket.on('newBullet', msg => {
-            io.emit('newBullet', msg);
+            newBullets.push(msg.bullet);
         });
 
         socket.on('removeBullet', msg => {
-            io.emit('removeBullet', msg);
+            bulletsToRemove.push(msg);
         });
 
         socket.on('playerData', msg => {
@@ -215,18 +217,23 @@ module.exports = (app, io, mongoose) => {
         }
 
     });
-    setInterval(gameStatusBroadcast, 1000 / 60)
+    setInterval(gameStatusBroadcast)
     function gameStatusBroadcast() {
-        const jsonLength = JSON.stringify(playersToSend).length;
-        if (jsonLength > 3) {
-            for (let sId in players) {
-                io.to(sId).emit('gameBroadcast', {
-                    players: playersToSend,
-                    kills: killsList
-                });
-            }
+        let playersToSendLength = 0;
+        
+        for(let k in playersToSend){playersToSendLength++;break};
+
+        if (playersToSendLength || killsList.length || newBullets.length || bulletsToRemove.length) {
+            io.emit('gameBroadcast', {
+                bulletsToRemove,
+                newBullets,
+                players: playersToSend,
+                kills: killsList
+            });
             playersToSend = {};
             killsList = [];
+            newBullets = [];
+            bulletsToRemove = [];
         }
     }
 }
