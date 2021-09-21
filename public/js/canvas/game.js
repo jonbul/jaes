@@ -55,7 +55,7 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, 0, 0, 0, credits);
+            this.player = new Player(this.username, parseInt(Math.random() * 5), 0, 0, credits);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
 
@@ -115,26 +115,6 @@ class Game {
                 }, 2000);
             }
             this.io.emit('removeBullet', msg.bulletId);
-        });
-        this.io.on('newBullet', msg => {
-            const bullet = new Bullet(
-                msg.bullet.socketId,
-                msg.bullet.x,
-                msg.bullet.y,
-                msg.bullet.angle,
-                msg.bullet.shootingSpeed,
-                msg.bullet.rotation,
-                msg.bullet.radiusX,
-                msg.bullet.radiusY
-            );
-            bullet.id = msg.bullet.id;
-            this.bullets[bullet.id] = bullet;
-
-            gameSounds['shot']();
-        })
-        this.io.on('removeBullet', id => {
-            console.log('removeBullet', id, this.bullets[id])
-            delete this.bullets[id];
         });
         this.io.on('sendHome', () => location.href='/');
     }
@@ -283,6 +263,29 @@ class Game {
             }
         }
         data.kills.forEach(this.onPlayerDied.bind(this));
+        
+        this.comingNewBullets(data.newBullets);
+        data.bulletsToRemove.forEach(bulletId => {
+            delete this.bullets[bulletId];
+        });
+    }
+    comingNewBullets(newBullets) {
+        newBullets.forEach(newBullet => {
+            const bullet = new Bullet(
+                newBullet.socketId,
+                newBullet.x,
+                newBullet.y,
+                newBullet.angle,
+                newBullet.shootingSpeed,
+                newBullet.rotation,
+                newBullet.radiusX,
+                newBullet.radiusY
+            );
+            bullet.id = newBullet.id;
+            this.bullets[bullet.id] = bullet;
+
+            gameSounds['shot']();
+        })
     }
     updatePlayers(plDetails) {
         const players = this.players;
