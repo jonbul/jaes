@@ -1,0 +1,47 @@
+{
+    "_id" : ObjectId("5f5a1382887b9c0017fceace"),
+    "email" : "tieso@pen.com",
+    "username" : "pene",
+    "password" : "$2a$10$.RRs1SxRbIU9vtn.0Qys4uieV2RBcw.1VUZ3sZ1R4SX7/LV0jnwAy",
+    "__v" : NumberInt(0)
+}
+{
+    "_id" : ObjectId("5f58750796f0210017952088"),
+    "email" : "test@test.com",
+    "username" : "Test",
+    "password" : "$2a$10$PGb6n.XiHuPi.Mn4V3ArFOSdIyNJ/OP8IlixFe1IOWyh57KOmzhWu",
+    "__v" : NumberInt(0)
+}
+{
+    "_id" : ObjectId("606ea5c63836cc001744c3c6"),
+    "email" : "mandamespam@ve.com",
+    "username" : "MandameSpam",
+    "password" : "$2a$10$WF3w47DPHqGg4408edgNkek5M5P8nfG8.6EMs0FMX6YXi257IHXv6",
+    "__v" : NumberInt(0)
+}
+{
+    "_id" : ObjectId("5f74876b86bf140017691129"),
+    "email" : "emaildeverdad@gmail.com",
+    "username" : "Mikel",
+    "password" : "$2a$10$T6rcS/XTAJAit4xkaGmkBuE8ElW9cBsuP0L6o3i/qEgTHPhA/v9/m",
+    "__v" : NumberInt(0)
+}
+{
+    "_id" : ObjectId("5f33b5e7601ad069b093cc6a"),
+    "email" : "jondrow@hotmail.com",
+    "username" : "jonbul",
+    "password" : "$2a$10$FVtpD8/iTmMUae.oQLsGAeaoNku4dW7ZkYXIxmZuAUQmufkyTp1ZW",
+    "admin" : true,
+    "__v" : NumberInt(0),
+    "credits" : NumberInt(0),
+    "deaths" : NumberInt(34),
+    "kills" : NumberInt(142)
+}
+{
+    "_id" : ObjectId("5f33b8242a80663274637761"),
+    "email" : "jondrow2@hotmail.com",
+    "username" : "jonbul2",
+    "password" : "$2a$10$qH8aHjY2cJzSsZwlPdCsS./EpVP./H7N8ZNRrkna.sAGvt.p7ezp6",
+    "admin" : false,
+    "__v" : NumberInt(0)
+}
