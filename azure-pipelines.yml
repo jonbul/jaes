@@ -27,13 +27,3 @@ steps:
       git remote add heroku https://heroku:$(pat)@git.heroku.com/jaes-website.git
       git push heroku $(Build.SourceBranchName)
       npm install
-- task: SSH@0
-  inputs:
-    sshEndpoint: 'Raspberry'
-    runOptions: 'commands'
-    commands: |
-      cd /home/pi/game/JAES
-      echo npm install
-      echo git fetch
-      echo git pull
-    readyTimeout: '20000'
