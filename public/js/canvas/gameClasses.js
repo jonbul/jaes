@@ -95,7 +95,7 @@ class Bullet {
         this.id = socketId + '-' + Date.now();
         this.range = 5000;
         this.shootingSpeed = shootingSpeed;
-        this.speed = 25 + shootingSpeed;
+        this.speed = (25 * 1.5) + shootingSpeed;
         this.radiusX = radiusX;
         this.radiusY = radiusY;
         this.rotation = rotation;
