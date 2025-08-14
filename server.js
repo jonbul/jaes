@@ -23,7 +23,11 @@ const MongoStore = require('connect-mongo')(session);
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useUnifiedTopology', true);
-mongoose.connect('mongodb+srv://jaes:m_Airrebexte1987!@nodecourse.er3ps.azure.mongodb.net/jaes?retryWrites=true&w=majority', {
+
+// Atlas : mongodb+srv://jaes:m_Airrebexte1987!@nodecourse.er3ps.azure.mongodb.net/jaes?retryWrites=true&w=majority
+const connectionString = 'mongodb://jaes:Rednanoj1987!@192.168.1.10/jaes?retryWrites=true&w=majority';
+
+mongoose.connect(connectionString, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
