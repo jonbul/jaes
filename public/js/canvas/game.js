@@ -143,7 +143,7 @@ class Game {
     }
     intervalMethod() {
 
-        this.fullScreen = window.innerHeight === screen.height || (window.innerHeight - screen.height) < 10;
+        this.fullScreen = window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
         if (this.fullScreen) {
             document.body.classList.add('fullscreen');
         } else {
