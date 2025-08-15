@@ -2,7 +2,13 @@ const express = require('express');
 const {collectDefaultMetrics} = require('prom-client');
 const session = require('express-session');
 const app = express();
-const http = require('http').createServer(app);
+const fs = require('fs');
+// SSL
+const options = {
+  key: fs.readFileSync('ssl/key.pem'),       // o ruta a tu .key real
+  cert: fs.readFileSync('ssl/cert.pem')      // o ruta a tu .crt real
+};
+const http = require('https').createServer(options, app);
 const io = require('socket.io').listen(http);;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');

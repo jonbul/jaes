@@ -1,18 +1,18 @@
 'use strict';
 import {
     Arc,
+    Layer,
+    Line,
+    Rect,
+    Text
+/*    Rubber,
     ClickXY,
     Abstract,
     Ellipse,
-    Layer,
-    Line,
     MasterJasonFile,
     Pencil,
     Picture,
-    Polygon,
-    Rect,
-    Rubber,
-    Text
+    Polygon*/
 } from './canvasClasses.js';
 import {
     Bullet,
@@ -26,9 +26,10 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 let Player;
 class Game {
-    constructor(canvas, username, io, guest, credits) {
+    constructor(canvas, username, io, guest, credits, isSmartphone) {
         window.game = this;
         this.isGuest = guest;
+        this.isSmartphone = isSmartphone;
         (async () => {
             this.radarZoom = 1;
             Player = await _player;
@@ -143,13 +144,18 @@ class Game {
     }
     intervalMethod() {
 
-        this.fullScreen = window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
+        this.fullScreen = this.isSmartphone || window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
         if (this.fullScreen) {
             document.body.classList.add('fullscreen');
         } else {
             document.body.classList.remove('fullscreen');
         }
-        this.movement();
+        if (this.isSmartphone) {
+            this.movementSmarphone();
+            //this.movement();
+        } else {
+            this.movement();
+        }
         this.bulletInterval();
 
         const viewRect = {
@@ -217,7 +223,7 @@ class Game {
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
         const angle = player.rotate - Math.PI / 2 * quad;
-
+        
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
         switch (quad) {
@@ -250,6 +256,62 @@ class Game {
             }
         }
 
+    }
+    movementSmarphone() {
+        if (this.player.isDead) return;
+        const player = this.player;
+        const tempPosition = {
+            x: player.x,
+            y: player.y
+        }
+
+        player.speed = this.deviceorientation ? this.deviceorientation.gamma : 0
+        if (player.speed >= 50) player.speed = 50;
+        if (player.speed < -20) player.speed = -20;
+        player.speed = player.speed || 0
+        
+        
+
+        player.rotate = this.deviceorientation ? this.deviceorientation.beta / 10 : 0
+
+        if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
+        if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
+
+
+        const quad = parseInt(player.rotate / (Math.PI / 2));
+        const angle = player.rotate - Math.PI / 2 * quad;
+
+        let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
+        let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
+        switch (quad) {
+            case 0:
+                break;
+            case 1:
+                moveX *= -1;
+                break;
+            case 2:
+                moveY *= -1;
+                moveX *= -1;
+                break;
+            case 3:
+                moveY *= -1;
+                break;
+        }
+
+        player.x += moveX;
+        player.y += moveY;
+
+        player.x = Math.round(player.x * 100) / 100;
+        player.y = Math.round(player.y * 100) / 100;
+
+        if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
+            if (!this.checkCollisionsWithPlayers()) {
+                this.context.translate(-moveX, -moveY);
+            } else {
+                player.x = tempPosition.x;
+                player.y = tempPosition.y;
+            }
+        }
     }
     gameBroadcast(data) {
         const playersData = data.players;
@@ -567,6 +629,48 @@ class Game {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
         window.addEventListener('blur', this.leaveWindow.bind(this));
+        if (this.isSmartphone) {
+            
+            document.body.addEventListener('touchend', this.screenTouchEvent.bind(this));
+            this.gyroscope = new Gyroscope({ frequency: 60 });
+
+            this.gyroscope.addEventListener("reading", this.gyroscopeEvent.bind(this));
+            this.gyroscope.start();
+            /////////////////////////////////////////
+
+            
+            addEventListener("deviceorientation", (e) => {
+                this.deviceorientation = e
+            })
+
+            /*
+            if (location.host.indexOf(3000) > 0) {
+                const div = document.createElement("div")
+                div.style.position = "absolute"
+                div.style.display = "block"
+                div.style.height = "60px";
+                div.style.width = "100%";
+                div.style.top = "0";
+                div.style.left = "0";
+                div.style.backgroundColor  = "#fff";
+                document.body.appendChild(div)
+
+                function log() {
+                    let deviceorientation = this.deviceorientation;
+                    let gyroscope = this.gyroscope;
+                    let text = ""
+                    if (deviceorientation && deviceorientation.alpha)
+                        text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
+                    if (gyroscope && gyroscope.x)
+                        text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
+
+                    text += `\n${this.player ? this.player.rotate : 0}`
+                    div.innerText = text;
+                }
+                setInterval(log.bind(this), 1)
+            }/**/
+        }
+
     }
     keyDownEvent(event) {
         this.keys[event.keyCode] = true;
@@ -577,15 +681,26 @@ class Game {
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
         if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
-            const bullet = this.player.createBullet();
-            const msg = this.player.getCenteredPosition();
-            msg.bullet = bullet.getSortDetails();
-            this.io.emit('newBullet', msg);
+            this.newBullet()
         }
         if (event.keyCode === KEYS.PLUS && this.radarZoom > 1) {
             this.radarZoom--;
         } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 10) {
             this.radarZoom++;
+        }
+    }
+    screenTouchEvent(e) {
+        this.newBullet()
+    }
+    newBullet(){
+        const bullet = this.player.createBullet();
+        const msg = this.player.getCenteredPosition();
+        msg.bullet = bullet.getSortDetails();
+        this.io.emit('newBullet', msg);
+    }
+    gyroscopeEvent(e) {
+        if (!window.stopLog) {
+            //console.log(`x: ${this.gyroscope.x.toFixed(2)}, y: ${this.gyroscope.y.toFixed(2)}, z: ${this.gyroscope.z.toFixed(2)}`)
         }
     }
     leaveWindow() {
