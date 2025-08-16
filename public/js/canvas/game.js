@@ -118,9 +118,37 @@ class Game {
             this.io.emit('removeBullet', msg.bulletId);
         });
         this.io.on('sendHome', () => location.href='/');
+        this.io.on('getBackgroundCards', cards => {
+            cards.forEach(card => {
+                const shapes = [];
+                card[2].forEach(point => {
+                    shapes.push(new Arc(
+                        point[0] + card[0] * this.canvas.width,
+                        point[1] + card[1] * this.canvas.height,
+                        point[2],
+                        '#ffffff'
+                    ))
+                })
+                this.backgroundCards[card[0]][card[1]] = new Layer(
+                    `${card[0]},${card[1]}`,
+                    shapes
+                )
+            })
+        })
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000/60);
+    }
+    toSmartphoneFullScreen(e) {
+        if (this.isSmartphone) {
+            document.body.requestFullscreen().then(n => {
+                screen.orientation.lock('landscape')/* // o 'portrait'
+                    .then(() => {
+                        console.log('Orientación bloqueada')
+                    })
+                    .catch(err => console.error('No se pudo bloquear la orientación', err)*/
+            });
+        }
     }
     onPlayerDied(msg) {
         this.players[msg.playerId].deaths++;
@@ -264,15 +292,21 @@ class Game {
             x: player.x,
             y: player.y
         }
+        
+        player.speed = 0;
+        if (this.deviceorientation) {
+            if (screen.orientation.angle === 90) {
+                player.speed = this.deviceorientation.gamma + 50;
+                player.rotate += this.deviceorientation.beta / 1000
+            } if (screen.orientation.angle === 270) {
+                player.speed = -this.deviceorientation.gamma + 50;
+                player.rotate += -this.deviceorientation.beta / 1000;
+            }
+        }
 
-        player.speed = this.deviceorientation ? this.deviceorientation.gamma : 0
         if (player.speed >= 50) player.speed = 50;
         if (player.speed < -20) player.speed = -20;
         player.speed = player.speed || 0
-        
-        
-
-        player.rotate = this.deviceorientation ? this.deviceorientation.beta / 10 : 0
 
         if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
@@ -367,7 +401,17 @@ class Game {
     }
     drawAll() {
         this.clear();
-        this.drawBackground(this.viewRect);
+        let translateX;
+        let translateY;
+        let globalRotation = this.player.rotate + 90 * Math.PI / 180;
+        if (this.isSmartphone) {
+            translateX = this.player.x + (this.player.width / 2)
+            translateY = this.player.y + (this.player.height / 2)
+            this.context.translate(translateX, translateY)
+            this.context.rotate(-globalRotation)
+            this.context.translate(-translateX, -translateY)
+        } 
+        this.drawBackground();
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context);
 
@@ -378,7 +422,14 @@ class Game {
             }
         });
         this.drawArrows();
-        this.drawRadar();
+    
+        if (this.isSmartphone) {
+            this.context.translate(translateX, translateY)
+            this.context.rotate(globalRotation)
+            this.context.translate(-translateX, -translateY)
+        }
+
+        this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
         
         this.drawTexts();
     }
@@ -389,50 +440,31 @@ class Game {
         }
         if (this.player.x < 0) currentCard.x -= 1;
         if (this.player.y < 0) currentCard.y -= 1;
-        const tempCardList = [
-            [currentCard.x - 1, currentCard.y - 1],
-            [currentCard.x - 1, currentCard.y],
-            [currentCard.x - 1, currentCard.y + 1],
-            [currentCard.x, currentCard.y - 1],
-            [currentCard.x, currentCard.y],
-            [currentCard.x, currentCard.y + 1],
-            [currentCard.x + 1, currentCard.y - 1],
-            [currentCard.x + 1, currentCard.y],
-            [currentCard.x + 1, currentCard.y + 1]
-        ]
+        
+        const tempCardList = []
+        const n = 2;
         const data = [];
-        tempCardList.forEach(card => {
-            if (!this.backgroundCards[card[0]] || this.backgroundCards[card[0]][card[1]] === undefined) {
-                data.push(card);
-                this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
-                this.backgroundCards[card[0]][card[1]] = false;
+        for (var x = -n; x <= n; x++) {
+            for (var y = -n; y <= n; y++) {
+                const card = [currentCard.x + x, currentCard.y + y];
+
+                if (!this.backgroundCards[card[0]] || !this.backgroundCards[card[0]][card[1]]) {
+                    data.push(card);
+                    this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
+                    this.backgroundCards[card[0]][card[1]] = false;
+                }
             }
-        });
-        if (data.length) {
-            asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
-                newBgCards.response.forEach(card => {
-                    const shapes = [];
-                    card[2].forEach(point => {
-                        shapes.push(new Arc(
-                            point[0] + card[0] * this.canvas.width,
-                            point[1] + card[1] * this.canvas.height,
-                            point[2],
-                            '#ffffff'
-                        ))
-                    })
-                    this.backgroundCards[card[0]][card[1]] = new Layer(
-                        `${card[0]},${card[1]}`,
-                        shapes
-                    )
-                })
-            });
+        }
+
+        if (data.length) { // TODO update to WebSocket
+            this.io.emit('getBackgroundCards', {socketId: socket.id, data})
         }
 
         new Rect(
-            this.canvas.width * (currentCard.x - 1),
-            this.canvas.height * (currentCard.y - 1),
-            this.canvas.width * 3,
-            this.canvas.height * 3,
+            this.canvas.width * (currentCard.x - n),
+            this.canvas.height * (currentCard.y - n),
+            this.canvas.width * (n * 2 + 1),
+            this.canvas.height * (n * 2 + 1),
             '#1c2773'
         ).draw(this.context);
 
@@ -464,7 +496,7 @@ class Game {
         for (const id in this.players) {
             const target = this.players[id];
             const distance = parseInt(this.player.getDistanceToPlayer(target));
-            const inScope = distance < this.canvas.width * 2;
+            const inScope = distance < this.canvas.width * 1.5;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
@@ -490,6 +522,7 @@ class Game {
     }
     loadRadar() {
         const player = this.player;
+        // r is radar scale
         const r = this.canvas.width / 10;
         const x = (this.canvas.width / 2) - r;
         const y = (this.canvas.height / 2) - r;
@@ -506,6 +539,7 @@ class Game {
             this.radar = new Layer('Radar', shapes);
         }
 
+        // alncance del radar
         const radarScope = this.canvas.width * (10 / this.radarZoom);
         this.radarPoints = [];
         for (const id in this.players) {
@@ -518,6 +552,7 @@ class Game {
                 if (distance < radarScope) {
                     const radarX = (xLength * r / radarScope) + x;
                     const radarY = (yLength * r / radarScope) + y;
+                    // Coordenadas respecto al centro del radar
                     this.radarPoints.push({x: radarX, y: radarY});
                 }
             } 
@@ -531,6 +566,25 @@ class Game {
             arcPoint.y = point.y + this.player.y;
             arcPoint.draw(this.context);
         })
+    }
+    drawRadarSmartphone() {
+        const rotationCenter = this.isSmartphone ? {x: this.radar.shapes[0].x, y: this.radar.shapes[0].y} : {};
+        const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
+        const options = {
+            x: this.player.x,
+            y: this.player.y,
+            rotate,
+            rotationCenter
+        }
+        this.radar.draw(this.context, options);
+        
+        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');        
+        this.radarPoints.forEach(point => {
+            
+            arcPoint.x = point.x
+            arcPoint.y = point.y
+            arcPoint.draw(this.context, options);
+        });
     }
     drawTexts() {
         const texts = [
@@ -632,12 +686,8 @@ class Game {
         if (this.isSmartphone) {
             
             document.body.addEventListener('touchend', this.screenTouchEvent.bind(this));
-            this.gyroscope = new Gyroscope({ frequency: 60 });
-
-            this.gyroscope.addEventListener("reading", this.gyroscopeEvent.bind(this));
-            this.gyroscope.start();
-            /////////////////////////////////////////
-
+            
+            window.onorientationchange = this.toSmartphoneFullScreen.bind(this);
             
             addEventListener("deviceorientation", (e) => {
                 this.deviceorientation = e
@@ -657,14 +707,14 @@ class Game {
 
                 function log() {
                     let deviceorientation = this.deviceorientation;
-                    let gyroscope = this.gyroscope;
+                    //let gyroscope = this.gyroscope;
                     let text = ""
                     if (deviceorientation && deviceorientation.alpha)
                         text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
-                    if (gyroscope && gyroscope.x)
-                        text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
+                    //if (gyroscope && gyroscope.x)
+                    //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
 
-                    text += `\n${this.player ? this.player.rotate : 0}`
+                    text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
                     div.innerText = text;
                 }
                 setInterval(log.bind(this), 1)
@@ -697,11 +747,6 @@ class Game {
         const msg = this.player.getCenteredPosition();
         msg.bullet = bullet.getSortDetails();
         this.io.emit('newBullet', msg);
-    }
-    gyroscopeEvent(e) {
-        if (!window.stopLog) {
-            //console.log(`x: ${this.gyroscope.x.toFixed(2)}, y: ${this.gyroscope.y.toFixed(2)}, z: ${this.gyroscope.z.toFixed(2)}`)
-        }
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
@@ -750,12 +795,30 @@ class Game {
         }
         return playerKilled;
     }
+    /**
+     * Check collisions with other players
+     * 
+     * @returns 
+     */
     checkCollisionsWithPlayers() {
         const rect1 = this.player;
         let collision = false;
+
+        const cellSize = Math.max(rect1.width, rect1.height);
+        const playerXB = Math.floor(rect1.x / cellSize)
+        const playerYB = Math.floor(rect1.y / cellSize)
+        const validValues = [1, 0, -1]
         for (let id in this.players) {
             const rect2 = this.players[id];
-            if (!rect2.isDead && rect2.socketId !== rect1.socketId) {
+
+            if (rect2.isDead || rect2.socketId === rect1.socketId) {
+                continue;
+            }
+            const rect2XB = parseInt(rect2.x / cellSize)
+            const rect2YB = parseInt(rect2.y / cellSize)
+
+            // in same area
+            if (Math.abs(playerXB - rect2XB) <= 1 && Math.abs(playerYB - rect2YB) <= 1) {
                 collision = this.checkRectsCollision(rect1, rect2);
                 if (collision) break;
             }
@@ -775,18 +838,6 @@ class Game {
             width: arc.radiusX * 2,
             height: arc.radiusY * 2
         });
-        /*const rectCenter = {
-            x: rect.x + rect.width / 2,
-            y: rect.y + rect.height / 2,
-        }
-        const bc1 = rectCenter.x - arc.x;
-        const bc2 = rectCenter.y - arc.y;
-        const bh = Math.sqrt(Math.pow(bc1,2) + Math.pow(bc2,2), 2);
-        const rectAlphaSen = bc2 / bh;
-        const inRectAngle = Math.PI - Math.asin(rectAlphaSen);
-        const inRectC1 = rect.height / 2;
-        const inRectH = inRectC1 / Math.cos(inRectAngle);
-        return inRectH + arc.radius > bh;*/
     }
 }
 export default Game;

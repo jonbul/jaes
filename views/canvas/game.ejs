@@ -16,7 +16,7 @@
         if(allowedPlayerTypes.All === allowedPlayerType && !username) {
             guest = true;
         %>
-            window._username = prompt('Username:', 'Username')
+            window._username = location.host.indexOf("3000") >= 0 ? "jonbul" : prompt('Username:', 'Username')
     <% } %>
 
 
@@ -35,10 +35,12 @@
                         console.log('Orientación bloqueada')
                         startBtn.style.display = "none"
                         canvas.style.display = ""
+                        canvas.height = parseInt(canvas.width * innerHeight / innerWidth)
                         new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone);
                     })
-                    .catch(err => console.error('No se pudo bloquear la orientación', err));
-                })
+                    .catch(err => console.error('No se pudo bloquear la orientación', err)
+                );
+            });
         });
     } else {
         canvas.style.display = ""
