@@ -280,16 +280,16 @@ class Game {
         if (this.deviceorientation) {
             if (screen.orientation.angle === 90) {
                 player.speed = this.deviceorientation.gamma + 50;
+                player.rotate += this.deviceorientation.beta / 1000
             } if (screen.orientation.angle === 270) {
-                player.speed = this.deviceorientation.gamma + 50;
+                player.speed = -this.deviceorientation.gamma + 50;
+                player.rotate += -this.deviceorientation.beta / 1000;
             }
         }
 
         if (player.speed >= 50) player.speed = 50;
         if (player.speed < -20) player.speed = -20;
         player.speed = player.speed || 0
-
-        player.rotate = this.deviceorientation ? this.deviceorientation.beta / 10 : 0
 
         if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
@@ -394,7 +394,7 @@ class Game {
             this.context.rotate(-globalRotation)
             this.context.translate(-translateX, -translateY)
         } 
-        this.drawBackground(this.viewRect);
+        this.drawBackground();
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context);
 
@@ -460,10 +460,10 @@ class Game {
         }
 
         new Rect(
-            this.canvas.width * (currentCard.x - 1),
-            this.canvas.height * (currentCard.y - 1),
-            this.canvas.width * 3,
-            this.canvas.height * 3,
+            this.canvas.width * (currentCard.x - n),
+            this.canvas.height * (currentCard.y - n),
+            this.canvas.width * (n * 2 + 1),
+            this.canvas.height * (n * 2 + 1),
             '#1c2773'
         ).draw(this.context);
 
