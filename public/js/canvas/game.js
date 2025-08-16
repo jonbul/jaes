@@ -423,17 +423,14 @@ class Game {
         }
         if (this.player.x < 0) currentCard.x -= 1;
         if (this.player.y < 0) currentCard.y -= 1;
-        const tempCardList = [
-            [currentCard.x - 1, currentCard.y - 1],
-            [currentCard.x - 1, currentCard.y],
-            [currentCard.x - 1, currentCard.y + 1],
-            [currentCard.x, currentCard.y - 1],
-            [currentCard.x, currentCard.y],
-            [currentCard.x, currentCard.y + 1],
-            [currentCard.x + 1, currentCard.y - 1],
-            [currentCard.x + 1, currentCard.y],
-            [currentCard.x + 1, currentCard.y + 1]
-        ]
+        
+        const tempCardList = []
+        const n = 2;
+        for (var x = -n; x <= n; x++) {
+            for (var y = -n; y <= n; y++) {
+                tempCardList.push([currentCard.x + x, currentCard.y + y])
+            }
+        }
         const data = [];
         tempCardList.forEach(card => {
             if (!this.backgroundCards[card[0]] || this.backgroundCards[card[0]][card[1]] === undefined) {
@@ -442,7 +439,7 @@ class Game {
                 this.backgroundCards[card[0]][card[1]] = false;
             }
         });
-        if (data.length) {
+        if (data.length) { // TODO update to WebSocket
             asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
                 newBgCards.response.forEach(card => {
                     const shapes = [];
@@ -524,7 +521,7 @@ class Game {
     }
     loadRadar() {
         const player = this.player;
-        // r is radas scale
+        // r is radar scale
         const r = this.canvas.width / 10;
         const x = (this.canvas.width / 2) - r;
         const y = (this.canvas.height / 2) - r;
@@ -691,12 +688,6 @@ class Game {
             
             window.onorientationchange = this.toSmartphoneFullScreen.bind(this);
             
-            /*this.gyroscope = new Gyroscope({ frequency: 60 });
-            this.gyroscope.addEventListener("reading", this.gyroscopeEvent.bind(this));
-            this.gyroscope.start();*/
-            /////////////////////////////////////////
-
-            
             addEventListener("deviceorientation", (e) => {
                 this.deviceorientation = e
             })
@@ -828,18 +819,6 @@ class Game {
             width: arc.radiusX * 2,
             height: arc.radiusY * 2
         });
-        /*const rectCenter = {
-            x: rect.x + rect.width / 2,
-            y: rect.y + rect.height / 2,
-        }
-        const bc1 = rectCenter.x - arc.x;
-        const bc2 = rectCenter.y - arc.y;
-        const bh = Math.sqrt(Math.pow(bc1,2) + Math.pow(bc2,2), 2);
-        const rectAlphaSen = bc2 / bh;
-        const inRectAngle = Math.PI - Math.asin(rectAlphaSen);
-        const inRectC1 = rect.height / 2;
-        const inRectH = inRectC1 / Math.cos(inRectAngle);
-        return inRectH + arc.radius > bh;*/
     }
 }
 export default Game;
