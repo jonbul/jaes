@@ -122,6 +122,17 @@ class Game {
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000/60);
     }
+    toSmartphoneFullScreen(e) {
+        if (this.isSmartphone) {
+            document.body.requestFullscreen().then(n => {
+                screen.orientation.lock('landscape')/* // o 'portrait'
+                    .then(() => {
+                        console.log('Orientación bloqueada')
+                    })
+                    .catch(err => console.error('No se pudo bloquear la orientación', err)*/
+            });
+        }
+    }
     onPlayerDied(msg) {
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
@@ -264,13 +275,19 @@ class Game {
             x: player.x,
             y: player.y
         }
+        
+        player.speed = 0;
+        if (this.deviceorientation) {
+            if (screen.orientation.angle === 90) {
+                player.speed = this.deviceorientation.gamma + 50;
+            } if (screen.orientation.angle === 270) {
+                player.speed = this.deviceorientation.gamma + 50;
+            }
+        }
 
-        player.speed = this.deviceorientation ? this.deviceorientation.gamma : 0
         if (player.speed >= 50) player.speed = 50;
         if (player.speed < -20) player.speed = -20;
         player.speed = player.speed || 0
-        
-        
 
         player.rotate = this.deviceorientation ? this.deviceorientation.beta / 10 : 0
 
@@ -367,6 +384,16 @@ class Game {
     }
     drawAll() {
         this.clear();
+        let translateX;
+        let translateY;
+        let globalRotation = this.player.rotate + 90 * Math.PI / 180;
+        if (this.isSmartphone) {
+            translateX = this.player.x + (this.player.width / 2)
+            translateY = this.player.y + (this.player.height / 2)
+            this.context.translate(translateX, translateY)
+            this.context.rotate(-globalRotation)
+            this.context.translate(-translateX, -translateY)
+        } 
         this.drawBackground(this.viewRect);
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context);
@@ -378,7 +405,14 @@ class Game {
             }
         });
         this.drawArrows();
-        this.drawRadar();
+    
+        if (this.isSmartphone) {
+            this.context.translate(translateX, translateY)
+            this.context.rotate(globalRotation)
+            this.context.translate(-translateX, -translateY)
+        }
+
+        this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
         
         this.drawTexts();
     }
@@ -464,7 +498,7 @@ class Game {
         for (const id in this.players) {
             const target = this.players[id];
             const distance = parseInt(this.player.getDistanceToPlayer(target));
-            const inScope = distance < this.canvas.width * 2;
+            const inScope = distance < this.canvas.width * 1.5;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (window.debug) {
                     /****************************** */
@@ -490,6 +524,7 @@ class Game {
     }
     loadRadar() {
         const player = this.player;
+        // r is radas scale
         const r = this.canvas.width / 10;
         const x = (this.canvas.width / 2) - r;
         const y = (this.canvas.height / 2) - r;
@@ -506,6 +541,7 @@ class Game {
             this.radar = new Layer('Radar', shapes);
         }
 
+        // alncance del radar
         const radarScope = this.canvas.width * (10 / this.radarZoom);
         this.radarPoints = [];
         for (const id in this.players) {
@@ -518,6 +554,7 @@ class Game {
                 if (distance < radarScope) {
                     const radarX = (xLength * r / radarScope) + x;
                     const radarY = (yLength * r / radarScope) + y;
+                    // Coordenadas respecto al centro del radar
                     this.radarPoints.push({x: radarX, y: radarY});
                 }
             } 
@@ -531,6 +568,25 @@ class Game {
             arcPoint.y = point.y + this.player.y;
             arcPoint.draw(this.context);
         })
+    }
+    drawRadarSmartphone() {
+        const rotationCenter = this.isSmartphone ? {x: this.radar.shapes[0].x, y: this.radar.shapes[0].y} : {};
+        const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
+        const options = {
+            x: this.player.x,
+            y: this.player.y,
+            rotate,
+            rotationCenter
+        }
+        this.radar.draw(this.context, options);
+        
+        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');        
+        this.radarPoints.forEach(point => {
+            
+            arcPoint.x = point.x
+            arcPoint.y = point.y
+            arcPoint.draw(this.context, options);
+        });
     }
     drawTexts() {
         const texts = [
@@ -632,10 +688,12 @@ class Game {
         if (this.isSmartphone) {
             
             document.body.addEventListener('touchend', this.screenTouchEvent.bind(this));
-            this.gyroscope = new Gyroscope({ frequency: 60 });
-
+            
+            window.onorientationchange = this.toSmartphoneFullScreen.bind(this);
+            
+            /*this.gyroscope = new Gyroscope({ frequency: 60 });
             this.gyroscope.addEventListener("reading", this.gyroscopeEvent.bind(this));
-            this.gyroscope.start();
+            this.gyroscope.start();*/
             /////////////////////////////////////////
 
             
@@ -657,14 +715,14 @@ class Game {
 
                 function log() {
                     let deviceorientation = this.deviceorientation;
-                    let gyroscope = this.gyroscope;
+                    //let gyroscope = this.gyroscope;
                     let text = ""
                     if (deviceorientation && deviceorientation.alpha)
                         text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
-                    if (gyroscope && gyroscope.x)
-                        text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
+                    //if (gyroscope && gyroscope.x)
+                    //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
 
-                    text += `\n${this.player ? this.player.rotate : 0}`
+                    text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
                     div.innerText = text;
                 }
                 setInterval(log.bind(this), 1)
@@ -697,11 +755,6 @@ class Game {
         const msg = this.player.getCenteredPosition();
         msg.bullet = bullet.getSortDetails();
         this.io.emit('newBullet', msg);
-    }
-    gyroscopeEvent(e) {
-        if (!window.stopLog) {
-            //console.log(`x: ${this.gyroscope.x.toFixed(2)}, y: ${this.gyroscope.y.toFixed(2)}, z: ${this.gyroscope.z.toFixed(2)}`)
-        }
     }
     leaveWindow() {
         for (const keyCode in this.keys) {

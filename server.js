@@ -8,8 +8,8 @@ const options = {
   key: fs.readFileSync('ssl/key.pem'),       // o ruta a tu .key real
   cert: fs.readFileSync('ssl/cert.pem')      // o ruta a tu .crt real
 };
-const http = require('https').createServer(options, app);
-const io = require('socket.io').listen(http);;
+const https = require('https').createServer(options, app);
+const io = require('socket.io').listen(https);;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const validator = require('express-validator');
@@ -80,4 +80,4 @@ app.use(require('express-status-monitor')({
     websocket: io
 }));
 
-http.listen(PORT, () => { console.log('Hello from port ' + PORT) });
+https.listen(PORT, () => { console.log('Hello from port ' + PORT) });
