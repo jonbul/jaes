@@ -104,34 +104,6 @@ module.exports = (app, io, mongoose) => {
         }
     });
 
-    app.post('/game/getBackgroundCards', async (req, res) => {
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            const cards = [];
-            req.body.forEach(card => {
-                if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
-                    cards.push(backgroundCards[card[0]][card[1]]);
-                } else {
-                    const newCard = [
-                        card[0],//x
-                        card[1],//y
-                        []//start
-                    ]
-                    for (let i = 0; i < 500; i++) {
-                        newCard[2].push([
-                            parseInt(Math.random() * resolutions[currentResolution].width),
-                            parseInt(Math.random() * resolutions[currentResolution].height),
-                            parseInt(Math.random() * 4) + 1
-                        ]);
-                    }
-                    backgroundCards[card[0]] = backgroundCards[card[0]] || {};
-                    backgroundCards[card[0]][card[1]] = newCard;
-                    cards.push(newCard);
-                }
-            });
-            res.send(cards);
-        }
-    });
-
     app.get('/game/admin', (req, res) => {
         currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
 
@@ -190,6 +162,33 @@ module.exports = (app, io, mongoose) => {
         });
         socket.on('newBullet', msg => {
             newBullets.push(msg.bullet);
+        });
+        
+        socket.on('getBackgroundCards', msg => {
+            const cards = []
+            msg.data.forEach(card => {
+                if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
+                    cards.push(backgroundCards[card[0]][card[1]]);
+                } else {
+                    const newCard = [
+                        card[0],//x
+                        card[1],//y
+                        []//start
+                    ]
+                    for (let i = 0; i < 500; i++) {
+                        newCard[2].push([
+                            parseInt(Math.random() * resolutions[currentResolution].width),
+                            parseInt(Math.random() * resolutions[currentResolution].height),
+                            parseInt(Math.random() * 4) + 1
+                        ]);
+                    }
+                    backgroundCards[card[0]] = backgroundCards[card[0]] || {};
+                    backgroundCards[card[0]][card[1]] = newCard;
+                    cards.push(newCard);
+                }
+            });
+            console.log(socket)
+            io.to(msg.socketId).emit("getBackgroundCards", cards);
         });
 
         socket.on('removeBullet', msg => {

@@ -118,6 +118,23 @@ class Game {
             this.io.emit('removeBullet', msg.bulletId);
         });
         this.io.on('sendHome', () => location.href='/');
+        this.io.on('getBackgroundCards', cards => {
+            cards.forEach(card => {
+                const shapes = [];
+                card[2].forEach(point => {
+                    shapes.push(new Arc(
+                        point[0] + card[0] * this.canvas.width,
+                        point[1] + card[1] * this.canvas.height,
+                        point[2],
+                        '#ffffff'
+                    ))
+                })
+                this.backgroundCards[card[0]][card[1]] = new Layer(
+                    `${card[0]},${card[1]}`,
+                    shapes
+                )
+            })
+        })
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000/60);
@@ -440,23 +457,7 @@ class Game {
         }
 
         if (data.length) { // TODO update to WebSocket
-            asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
-                newBgCards.response.forEach(card => {
-                    const shapes = [];
-                    card[2].forEach(point => {
-                        shapes.push(new Arc(
-                            point[0] + card[0] * this.canvas.width,
-                            point[1] + card[1] * this.canvas.height,
-                            point[2],
-                            '#ffffff'
-                        ))
-                    })
-                    this.backgroundCards[card[0]][card[1]] = new Layer(
-                        `${card[0]},${card[1]}`,
-                        shapes
-                    )
-                })
-            });
+            this.io.emit('getBackgroundCards', {socketId: socket.id, data})
         }
 
         new Rect(
