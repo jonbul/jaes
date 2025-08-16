@@ -426,19 +426,19 @@ class Game {
         
         const tempCardList = []
         const n = 2;
+        const data = [];
         for (var x = -n; x <= n; x++) {
             for (var y = -n; y <= n; y++) {
-                tempCardList.push([currentCard.x + x, currentCard.y + y])
+                const card = [currentCard.x + x, currentCard.y + y];
+
+                if (!this.backgroundCards[card[0]] || !this.backgroundCards[card[0]][card[1]]) {
+                    data.push(card);
+                    this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
+                    this.backgroundCards[card[0]][card[1]] = false;
+                }
             }
         }
-        const data = [];
-        tempCardList.forEach(card => {
-            if (!this.backgroundCards[card[0]] || this.backgroundCards[card[0]][card[1]] === undefined) {
-                data.push(card);
-                this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
-                this.backgroundCards[card[0]][card[1]] = false;
-            }
-        });
+
         if (data.length) { // TODO update to WebSocket
             asyncRequest({ url: '/game/getBackgroundCards', method: 'POST', data }).then(newBgCards => {
                 newBgCards.response.forEach(card => {
@@ -794,12 +794,30 @@ class Game {
         }
         return playerKilled;
     }
+    /**
+     * Check collisions with other players
+     * 
+     * @returns 
+     */
     checkCollisionsWithPlayers() {
         const rect1 = this.player;
         let collision = false;
+
+        const cellSize = Math.max(rect1.width, rect1.height);
+        const playerXB = Math.floor(rect1.x / cellSize)
+        const playerYB = Math.floor(rect1.y / cellSize)
+        const validValues = [1, 0, -1]
         for (let id in this.players) {
             const rect2 = this.players[id];
-            if (!rect2.isDead && rect2.socketId !== rect1.socketId) {
+
+            if (rect2.isDead || rect2.socketId === rect1.socketId) {
+                continue;
+            }
+            const rect2XB = parseInt(rect2.x / cellSize)
+            const rect2YB = parseInt(rect2.y / cellSize)
+
+            // in same area
+            if (Math.abs(playerXB - rect2XB) <= 1 && Math.abs(playerYB - rect2YB) <= 1) {
                 collision = this.checkRectsCollision(rect1, rect2);
                 if (collision) break;
             }
