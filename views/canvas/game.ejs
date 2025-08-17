@@ -33,9 +33,12 @@
                 screen.orientation.lock('landscape') // o 'portrait'
                     .then(() => {
                         //console.log('Orientación bloqueada')
+                        debugger;
                         startBtn.style.display = "none"
                         canvas.style.display = ""
-                        canvas.height = parseInt(canvas.width * innerHeight / innerWidth)
+                        const h = Math.min(innerHeight, innerWidth)
+                        const w = Math.max(innerHeight, innerWidth)
+                        canvas.height = parseInt(canvas.width * h / w)
                         new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone);
                     })
                     //.catch(err => console.error('No se pudo bloquear la orientación', err));
