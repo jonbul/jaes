@@ -32,14 +32,13 @@
             document.body.requestFullscreen().then(n => {
                 screen.orientation.lock('landscape') // o 'portrait'
                     .then(() => {
-                        console.log('Orientación bloqueada')
+                        //console.log('Orientación bloqueada')
                         startBtn.style.display = "none"
                         canvas.style.display = ""
                         canvas.height = parseInt(canvas.width * innerHeight / innerWidth)
                         new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone);
                     })
-                    .catch(err => console.error('No se pudo bloquear la orientación', err)
-                );
+                    //.catch(err => console.error('No se pudo bloquear la orientación', err));
             });
         });
     } else {

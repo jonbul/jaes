@@ -133,7 +133,7 @@ module.exports = (app, io, mongoose) => {
 
     //IO
     io.on('connection', (socket) => {
-        console.log("Connected from IP: ", socket.handshake.address);
+        ///console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', async () => {
             if (!players[socket.id]) return;
             const user = await User.findOne({ username: players[socket.id].name });
@@ -145,7 +145,7 @@ module.exports = (app, io, mongoose) => {
                 delete mongoose.models.user;
             }
             delete players[socket.id];
-            console.log('bye', socket.id);
+            //console.log('bye', socket.id);
             io.emit('player leave', socket.id);
         });
         socket.on('player hit', msg => {
@@ -153,11 +153,13 @@ module.exports = (app, io, mongoose) => {
         });
         socket.on('player died', async msg => {
             killsList.push(msg);
-            players[msg.from].credits += 100;
-            if (playersToSend[msg.from]) {
-                playersToSend[msg.from].credits = players[msg.from].credits;
-            } else {
-                playersToSend[msg.from] = players[msg.from];
+            if (players[msg.from]) {
+                players[msg.from].credits += 100;
+                if (playersToSend[msg.from]) {
+                    playersToSend[msg.from].credits = players[msg.from].credits;
+                } else {
+                    playersToSend[msg.from] = players[msg.from];
+                }
             }
         });
         socket.on('newBullet', msg => {
@@ -187,7 +189,7 @@ module.exports = (app, io, mongoose) => {
                     cards.push(newCard);
                 }
             });
-            console.log(socket)
+            //console.log(socket)
             io.to(msg.socketId).emit("getBackgroundCards", cards);
         });
 
