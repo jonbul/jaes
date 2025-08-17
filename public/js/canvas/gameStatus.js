@@ -50,7 +50,6 @@ class GameStatus {
         setInterval(func, 1000);
     }
     writePlayersTable(players) {
-        console.log(players)
         this.playersDetails.innerHTML = '';
         const props = [
             'name',

@@ -44,7 +44,7 @@ module.exports = (app) => {
         }
         const success = req.flash('success');
         const errors = req.flash('error');
-        console.log({errors})
+        console.error({errors})
         console.log('success', success);
         
         res.render('user/login', {
@@ -78,7 +78,6 @@ module.exports = (app) => {
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;
         }
-        console.log(!!req.user);
         res.render('user/profile', {
             title: 'Profile',
             username: user.username,
