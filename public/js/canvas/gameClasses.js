@@ -87,7 +87,7 @@ class Player {
     }
 }
 class Bullet {
-    constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5) {
+    constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5, bulletCharge = 1) {
         this.socketId = socketId;
         this.x = x;
         this.y = y;
@@ -99,6 +99,7 @@ class Bullet {
         this.radiusX = radiusX;
         this.radiusY = radiusY;
         this.rotation = rotation;
+        this.bulletCharge = bulletCharge;
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
@@ -122,7 +123,12 @@ class Bullet {
         this.expX = this.moveX * this.range + this.x;
         this.expY = this.moveY * this.range + this.y;
 
-        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, '#ff0000')
+        const extraRadiusX = (this.bulletCharge - 1) * this.radiusX / 2;
+        const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
+        let colorHex = parseInt((this.bulletCharge - 1) * 255 / 9).toString(16,2)
+        colorHex = colorHex.length == 1 ? "0" + colorHex : colorHex;
+        console.log({colorHex})
+        this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}`)
     }
     updatePosition(x, y) {
         this.x = x;
@@ -145,7 +151,7 @@ class Bullet {
         this.arc.x = this.x;
         this.arc.y = this.y;
     }
-    getSortDetails() {
+    getSortDetails(bulletCharge) {
         return {
             x: this.x,
             y: this.y,
@@ -156,7 +162,8 @@ class Bullet {
             moveY: this.moveY,
             id: this.id,
             rotation: this.rotation,
-            shootingSpeed: this.shootingSpeed
+            shootingSpeed: this.shootingSpeed,
+            bulletCharge: this.bulletCharge
         }
     }
 }
