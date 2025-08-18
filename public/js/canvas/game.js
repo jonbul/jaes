@@ -433,7 +433,8 @@ class Game {
             this.context.rotate(globalRotation)
             this.context.translate(-translateX, -translateY)
         }
-        this.chargingBar.draw(this.context, this.bulletCharging);
+        if (this.bulletCharging)
+            this.chargingBar.draw(this.context, this.bulletCharging);
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
         
@@ -593,10 +594,6 @@ class Game {
         });
     }
     drawTexts() {
-        let bulletCharge = 0;
-        if (this.bulletCharging) {
-            bulletCharge = Math.min(Math.ceil((Date.now() - this.bulletCharging) / 1000), 10);
-        }
 
         const texts = [
             `X: ${parseInt(this.player.x * 100) / 100}`,
