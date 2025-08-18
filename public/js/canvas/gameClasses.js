@@ -125,10 +125,10 @@ class Bullet {
 
         const extraRadiusX = (this.bulletCharge - 1) * this.radiusX / 2;
         const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
-        let colorHex = parseInt((this.bulletCharge - 1) * 255 / 9).toString(16,2)
+        let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16,2)
         colorHex = colorHex.length == 1 ? "0" + colorHex : colorHex;
         console.log({colorHex})
-        this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}`)
+        this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
     updatePosition(x, y) {
         this.x = x;
@@ -168,11 +168,42 @@ class Bullet {
     }
 }
 
+class ChargingBar {
+    constructor(player, context) {
+        this.player = player;
+
+        const canvas = context.canvas;
+
+        const width = context.canvas.width / 20;
+        const height = width / 5;
+        const x = -Math.abs(player.width - width) / 2
+        const y = player.height + 10;
+
+        this.border = new Rect(x, y, width, height, '#ffffff00', '#000000', 3, 0)
+        this.bar = new Rect(x, y, 0, height, '#ff0000', '#000000', 0, 0)
+    }
+
+    draw(context, bulletChargeTs) {
+        if (!bulletChargeTs) return
+        
+        const player = this.player;
+        const width = player.width;
+
+        const bulletCharge = (Date.now() - bulletChargeTs) / 1000;
+        const barWidth = bulletCharge * width / 10;
+        this.bar.width = Math.min(barWidth, this.border.width);
+        
+        const options = {x: player.x, y: player.y};
+        
+        this.bar.draw(context, options);
+        this.border.draw(context, options);
+    }
+}
+
 class RadarArrow {
-    constructor(player, target, canvas) {
+    constructor(player, target) {
         this.player = player;
         this.target = target;
-        this.canvas = canvas;
     }
     getDistance() {
         const target = this.target;
@@ -198,7 +229,7 @@ class RadarArrow {
     }
     draw(context, distance) {
         this.getDistance();
-        const canvas = this.canvas;
+        const canvas = context.canvas;
 
         let multiplier = canvas.width*1.5 - distance;
         multiplier = multiplier < 0 ? 0 : multiplier;
@@ -230,5 +261,5 @@ const _player = new Promise(async function (resolve) {
     resolve(Player);
 });
 
-export { Bullet, RadarArrow, _player }
-export default { Bullet, RadarArrow, _player }
+export { Bullet, RadarArrow, ChargingBar, _player }
+export default { Bullet, RadarArrow, ChargingBar, _player }

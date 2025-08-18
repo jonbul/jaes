@@ -22,7 +22,7 @@ class MasterJasonFile {
 }
 //Shapes
 class Rect {
-    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, roration = 0) {
+    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rotation = 0) {
         this.desc = CONST.RECT;
         this.x = x;
         this.y = y;
@@ -31,7 +31,7 @@ class Rect {
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
-        this.roration = roration;
+        this.rotation = rotation;
     }
 
     draw(context, options = { x: 0, y: 0 }) {
@@ -44,19 +44,20 @@ class Rect {
 
         let moveX = this.x;
         let moveY = this.y;
-        if (this.roration > 0) {
+        if (this.rotation > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
-            context.rotate(this.roration);
+            context.rotate(this.rotation);
         }
 
-        context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.fillRect(moveX, moveY, this.width, this.height);
-
-        if (this.borderWidth) {
+        context.beginPath();
+        context.rect(moveX, moveY, this.width, this.height);
+        context.fillStyle = this.backgroundColor;
+        context.fill();
+        if (this.borderWidth > 0) {
             context.strokeStyle = this.borderColor;
             context.lineWidth = this.borderWidth;
-            context.strokeRect(moveX, moveY, this.width, this.height);
+            context.stroke();
         }
 
         if (options.rotationCenter && options.rotate) {
@@ -81,7 +82,7 @@ class Rect {
         let moveX = this.x;
         let moveY = this.y;
 
-        if (this.roration > 0) {
+        if (this.rotation > 0) {
             moveX = this.x + this.width / 2;
             moveY = this.y + this.height / 2;
             context.rotate(this.rotation);

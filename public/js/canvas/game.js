@@ -17,6 +17,7 @@ import {
 import {
     Bullet,
     RadarArrow,
+    ChargingBar,
     _player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
@@ -57,6 +58,7 @@ class Game {
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
             this.player = new Player(this.username, parseInt(Math.random() * 5), 0, 0, credits);
+            this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
 
@@ -431,6 +433,7 @@ class Game {
             this.context.rotate(globalRotation)
             this.context.translate(-translateX, -translateY)
         }
+        this.chargingBar.draw(this.context, this.bulletCharging);
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
         
@@ -592,7 +595,7 @@ class Game {
     drawTexts() {
         let bulletCharge = 0;
         if (this.bulletCharging) {
-            bulletCharge = Math.ceil((Date.now() - this.bulletCharging) / 1000);
+            bulletCharge = Math.min(Math.ceil((Date.now() - this.bulletCharging) / 1000), 10);
         }
 
         const texts = [
@@ -600,8 +603,6 @@ class Game {
             `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,
-            // TODO remove for loading bar and then remove last this.playerInfo.shapes
-            `Bullet charge: ${bulletCharge || 0}`
         ];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
@@ -678,7 +679,6 @@ class Game {
         const fontSize = this.fontSize;
 
         this.playerInfo = new Layer('Player Info', [
-            new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
             new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
             new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
             new Text('', 0, 0, fontSize, 'Arcade', '#13ff03'),
