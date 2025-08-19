@@ -57,8 +57,15 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            const shipId = ship._id || parseInt(Math.random() * 5);
-            this.player = new Player(this.username, shipId, 0, 0, credits, ship);
+            
+            if (!ship) {
+                const baseShips = this.ships.filter(s => !s.userId);
+                const index = parseInt(Math.random() * baseShips.length)
+                ship = baseShips[index]
+            }
+
+
+            this.player = new Player(this.username, ship._id, 0, 0, credits, ship);
             this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;

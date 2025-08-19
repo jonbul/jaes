@@ -27,14 +27,8 @@ class Player {
         this.x = x;
         this.y = y;
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
-        //if(this.ship.width && this.ship.height) {
-            this.width = this.ship.canvas.width || this.ship.width;
-            this.height = this.ship.canvas.width || this.ship.height;
-        /*} else {
-            const shipSize = this.getShipSize(ship);
-            this.width = shipSize.width;
-            this.height = shipSize.height;
-        }*/
+        this.width = this.ship.canvas ? this.ship.canvas.width : this.ship.width;
+        this.height = this.ship.canvas ? this.ship.canvas.height : this.ship.height;
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
@@ -44,43 +38,6 @@ class Player {
         this.hide = false;
         this.isDead = false;
     }
-
-    /*getShipSize(ship) {
-        let minX = undefined;
-        let maxX = undefined;
-        let minY = undefined;
-        let maxY = undefined;
-
-        ship.layers.forEach(layer => {
-            if (layer.shapes)
-                layer.shapes.forEach(shape => {
-                    if (undefined === minX) {
-                        minX = shape.x;
-                        maxX = shape.x;
-                        minY = shape.y;
-                        maxY = shape.y;
-                    } else {
-                        if (shape.x) {
-                            minX = Math.min(minX, shape.x);
-                            maxX = Math.max(maxX, shape.x);
-                            minY = Math.min(minX, shape.y);
-                            maxY = Math.max(minY, shape.y);
-                        } else if (shape.points.length) {
-                            shape.points.forEach(point => {
-                                minX = Math.min(minX, point.x);
-                                maxX = Math.max(maxX, point.x);
-                                minY = Math.min(minX, point.y);
-                                maxY = Math.max(minY, point.y);
-                            })
-                        }
-                    }
-                });
-        });
-        return {
-            width: maxX - minX,
-            height: maxY - minY
-        };
-    }*/
 
     draw(context) {
         if (this.hide) return;

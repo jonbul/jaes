@@ -40,10 +40,15 @@ module.exports = (app, io, mongoose) => {
     app.get('/game/userShips', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-
-            res.send({
-                userShips: await PaintingProject.find({userId: req.session.passport.user})
-            });
+            if (req.session.passport && req.session.passport.user) {
+                res.send({
+                    userShips: await PaintingProject.find({userId: req.session.passport.user})
+                });
+            } else {
+                res.send({
+                    userShips: []
+                })
+            }
         } else {
             res.redirect('/');
         }

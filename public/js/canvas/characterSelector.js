@@ -3,6 +3,7 @@ import {parseLayers} from '../functions.js';
 
 class CharacterSelector {
     constructor(mainDiv, btnNext, btnPrevious, ships) {
+        if (!ships || !ships.length) return;
         this.mainDiv = mainDiv;
         this.ships = ships;
 
@@ -65,7 +66,7 @@ class CharacterSelector {
     }
 
     getCurrentShip() {
-        return this.ships[this.selected];
+        return this.selected ? this.ships[this.selected] : null;
     }
 }
 
