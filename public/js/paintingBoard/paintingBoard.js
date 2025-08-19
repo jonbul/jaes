@@ -160,7 +160,7 @@ class PaintingBoard {
         });
         this.menus.layerList.addEventListener('change', this.layerChange.bind(this));
         document.getElementById('createLayer').addEventListener('click', this.createLayer.bind(this));
-        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this));
+        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this, this.menus.layerList));
         document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
         document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
         this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
@@ -194,10 +194,10 @@ class PaintingBoard {
 
         $('#newLayerModal').modal('hide')
     }
-    removeLayer() {
+    removeLayer(layerList) {
         if (this.layers.length === 1) return;
-        this.layers.pop(this.menus.layerList.selectedIndex);
-        this.menus.layerList.removeChild(this.menus.layerList.selectedOptions[0]);
+        this.layers.pop(layerList.selectedIndex);
+        layerList.removeChild(layerList.selectedOptions[0]);
         this.currentLayer = this.layers[0];
         this.layerPreviewUpdate();
     }

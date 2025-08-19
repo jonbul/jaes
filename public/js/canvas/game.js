@@ -27,7 +27,7 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 let Player;
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone) {
+    constructor(canvas, username, io, guest, credits, isSmartphone, ship) {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
@@ -57,7 +57,8 @@ class Game {
                 this.updatePlayers(tempPlayers[id]);
             }
             this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, parseInt(Math.random() * 5), 0, 0, credits);
+            const shipId = ship._id || parseInt(Math.random() * 5);
+            this.player = new Player(this.username, shipId, 0, 0, credits, ship);
             this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;

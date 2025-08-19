@@ -24,7 +24,7 @@
           "backgroundColor": "rgba(128,217,229,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9129,7 +9129,7 @@
           "backgroundColor": "rgba(133,133,133,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9374,7 +9374,7 @@
           "backgroundColor": "rgba(164,84,30,1)",
           "borderColor": "#713504",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9389,7 +9389,7 @@
           "backgroundColor": "rgba(164,84,30,1)",
           "borderColor": "#713504",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9404,7 +9404,7 @@
           "backgroundColor": "rgba(164,84,30,1)",
           "borderColor": "#713504",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9419,7 +9419,7 @@
           "backgroundColor": "rgba(164,84,30,1)",
           "borderColor": "#713504",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9434,7 +9434,7 @@
           "backgroundColor": "rgba(163,253,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -9449,7 +9449,7 @@
           "backgroundColor": "rgba(163,253,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -17888,7 +17888,7 @@
           "backgroundColor": "rgba(112,112,112,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         }
       ],
@@ -18091,7 +18091,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18106,7 +18106,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         }
       ],
@@ -18325,7 +18325,7 @@
           "backgroundColor": "rgba(106,100,115,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18340,7 +18340,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18355,7 +18355,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         }
       ],
@@ -18480,7 +18480,7 @@
           "backgroundColor": "rgba(20,165,255,1)",
           "borderColor": "#000000",
           "borderWidth": 1,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18495,7 +18495,7 @@
           "backgroundColor": "rgba(20,165,255,1)",
           "borderColor": "#000000",
           "borderWidth": 1,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18510,7 +18510,7 @@
           "backgroundColor": "rgba(20,165,255,1)",
           "borderColor": "#000000",
           "borderWidth": 1,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18525,7 +18525,7 @@
           "backgroundColor": "rgba(20,165,255,1)",
           "borderColor": "#000000",
           "borderWidth": 1,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -18540,7 +18540,7 @@
           "backgroundColor": "rgba(20,165,255,1)",
           "borderColor": "#000000",
           "borderWidth": 1,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         }
       ],

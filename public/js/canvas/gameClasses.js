@@ -12,22 +12,29 @@ import {
     Rect,
     Rubber,
     Text
-} from './canvasClasses.js'; import Forms from './canvasClasses.js';
+} from './canvasClasses.js';
+import Forms from './canvasClasses.js';
 import { parseLayers, asyncRequest } from '../functions.js';
 let ships;
 window.forms = Forms;
 class Player {
-    constructor(username, shipId, x = 0, y = 0, credits) {
+    constructor(username, shipId, x = 0, y = 0, credits, ship) {
         this.name = username;
-        this.shipId = shipId;
-        this.ship = ships[shipId];
+        this.shipId = ship && ship._id ? ship._id : shipId;
+        this.ship = ship || ships[shipId];
         this.credits = credits || 0;
         this.layers = parseLayers(this.ship.layers);
         this.x = x;
         this.y = y;
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
-        this.width = this.ship.width;
-        this.height = this.ship.height;
+        //if(this.ship.width && this.ship.height) {
+            this.width = this.ship.canvas.width || this.ship.width;
+            this.height = this.ship.canvas.width || this.ship.height;
+        /*} else {
+            const shipSize = this.getShipSize(ship);
+            this.width = shipSize.width;
+            this.height = shipSize.height;
+        }*/
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
@@ -37,6 +44,44 @@ class Player {
         this.hide = false;
         this.isDead = false;
     }
+
+    /*getShipSize(ship) {
+        let minX = undefined;
+        let maxX = undefined;
+        let minY = undefined;
+        let maxY = undefined;
+
+        ship.layers.forEach(layer => {
+            if (layer.shapes)
+                layer.shapes.forEach(shape => {
+                    if (undefined === minX) {
+                        minX = shape.x;
+                        maxX = shape.x;
+                        minY = shape.y;
+                        maxY = shape.y;
+                    } else {
+                        if (shape.x) {
+                            minX = Math.min(minX, shape.x);
+                            maxX = Math.max(maxX, shape.x);
+                            minY = Math.min(minX, shape.y);
+                            maxY = Math.max(minY, shape.y);
+                        } else if (shape.points.length) {
+                            shape.points.forEach(point => {
+                                minX = Math.min(minX, point.x);
+                                maxX = Math.max(maxX, point.x);
+                                minY = Math.min(minX, point.y);
+                                maxY = Math.max(minY, point.y);
+                            })
+                        }
+                    }
+                });
+        });
+        return {
+            width: maxX - minX,
+            height: maxY - minY
+        };
+    }*/
+
     draw(context) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
@@ -127,7 +172,6 @@ class Bullet {
         const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
         let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16,2)
         colorHex = colorHex.length == 1 ? "0" + colorHex : colorHex;
-        console.log({colorHex})
         this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
     updatePosition(x, y) {
@@ -260,7 +304,12 @@ class RadarArrow {
 }
 
 const _player = new Promise(async function (resolve) {
-    ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
+    //ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
+    const result = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
+    ships = {}
+    result.forEach(ship => {
+        ships[ship._id] = ship
+    })
     resolve(Player);
 });
 

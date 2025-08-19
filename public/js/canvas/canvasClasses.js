@@ -154,7 +154,7 @@ class Arc {
     }
 }
 class Ellipse {
-    constructor(x, y, radiusX, radiusY, rotation, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
+    constructor(x, y, radiusX, radiusY, rotation = 0, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
         this.desc = CONST.ELLIPSE;
         this.x = x;
         this.y = y;
@@ -508,7 +508,7 @@ class Rubber {
     }
 }
 class Picture {
-    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation) {
+    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation = 0) {
         this.desc = CONST.PICTURE;
         this.img = img;
         this.src = src;

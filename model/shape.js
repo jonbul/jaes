@@ -20,7 +20,7 @@ const Shape = new mongoose.Schema(
         backgroundColor: String,
         borderColor: String,
         borderWidth: Number,
-        rorationInDegrees: Number,
+        rotation: Number,
     }
 )
 
