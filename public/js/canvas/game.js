@@ -18,22 +18,23 @@ import {
     Bullet,
     RadarArrow,
     ChargingBar,
-    _player
+    Player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-let Player;
+
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone, ship) {
+    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
         (async () => {
             this.radarZoom = 1;
-            Player = await _player;
+            //Player = await _player;
+
             window.game = this;
             this.username = username
             this.io = io;
@@ -49,6 +50,7 @@ class Game {
             this.players = {};
             this.bullets = {};
             this.keys = [];
+            this.shipsManager = shipsManager;
 
             this.createStaticCanvas();
             
@@ -56,16 +58,15 @@ class Game {
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
             }
-            this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
             
             if (!ship) {
-                const baseShips = this.ships.filter(s => !s.userId);
+                const baseShips = shipsManager.getGetenericShips();
                 const index = parseInt(Math.random() * baseShips.length)
                 ship = baseShips[index]
             }
 
 
-            this.player = new Player(this.username, ship._id, 0, 0, credits, ship);
+            this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
@@ -89,6 +90,7 @@ class Game {
             this.io.emit('playerData', this.player.getSortDetails());
         })();
     }
+
     reloadPlayer() {
         const x = this.player.x;
         const y = this.player.y;
@@ -400,7 +402,7 @@ class Game {
         const players = this.players;
         if (plDetails) {
             if (!players[plDetails.socketId]) {
-                players[plDetails.socketId] = new Player(plDetails.name, plDetails.shipId);
+                players[plDetails.socketId] = new Player(this.shipsManager, plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
                 players[plDetails.socketId].ioId = plDetails.ioId;
             }
@@ -502,7 +504,7 @@ class Game {
         const player = this.player;
         if (window.debug) {
             rotationAxis.x = player.x + player.width / 2;
-            rotationAxis.y = player.y + player.width / 2;
+            rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
             new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
@@ -517,7 +519,7 @@ class Game {
                     /****************************** */
                     const rotationAxis2 = {
                         x: target.x + target.width / 2,
-                        y: target.y + target.width / 2
+                        y: target.y + target.width / 2 // uses width to build a regular rect
                     }
                     new Line([
                         { x: rotationAxis.x, y: rotationAxis.y },

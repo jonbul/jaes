@@ -18,6 +18,7 @@
 <script type="module">
     import Game from '/js/canvas/game.js';
     import CharacterSelector from '/js/canvas/characterSelector.js';
+    import {ShipsManager} from '/js/canvas/gameClasses.js'
     window.socket = io();
     <% 
         let guest = false;
@@ -33,19 +34,24 @@
     
     const canvas = document.getElementById('canvas');
 
-    const ships = (await (await fetch("./game/userShips")).json()).userShips;
+    const userShips = (await (await fetch("./game/userShips")).json()).userShips;
     startBtn.style.display = '';
     startBtn.addEventListener("click", btnStart);
-    const charSelector = new CharacterSelector(document.getElementById("shipsBlock"), document.getElementById("nextShip"), document.getElementById("previousShip"), ships)
+    const charSelector = new CharacterSelector(document.getElementById("shipsBlock"), document.getElementById("nextShip"), document.getElementById("previousShip"), userShips)
 
     async function btnStart(e){
 
-        const ship = ships && ships.length ? charSelector.getCurrentShip() : null;
+        const ship = charSelector.getCurrentShip();
         document.getElementById("shipSelectorControl").style.display = 'none';
         document.getElementById("shipsBlock").style.display = 'none';
         startBtn.style.display = "none"
         e.preventDefault()
         canvas.style.display = ""
+
+        const res = await (await (fetch('/game/getShips'))).json()
+        const shipsManager = new ShipsManager(res);
+        
+
         if (isSmartphone) {
             document.body.requestFullscreen().then(n => {
                     screen.orientation.lock('landscape') // o 'portrait'
@@ -54,12 +60,12 @@
                             const h = Math.min(innerHeight, innerWidth)
                             const w = Math.max(innerHeight, innerWidth)
                             canvas.height = parseInt(canvas.width * h / w)
-                            new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone, ship);
+                            new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone, ship, shipsManager);
                         })
                         //.catch(err => console.error('No se pudo bloquear la orientación', err));
             });
         } else {
-            new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone, ship);
+            new Game(canvas, _username, socket, <%= guest %>, <%= credits %>, isSmartphone, ship, shipsManager);
         }
     }
 

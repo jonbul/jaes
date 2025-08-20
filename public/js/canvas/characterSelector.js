@@ -66,7 +66,7 @@ class CharacterSelector {
     }
 
     getCurrentShip() {
-        return this.selected ? this.ships[this.selected] : null;
+        return this.ships[this.selected];
     }
 }
 

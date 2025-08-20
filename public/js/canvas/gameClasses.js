@@ -15,20 +15,23 @@ import {
 } from './canvasClasses.js';
 import Forms from './canvasClasses.js';
 import { parseLayers, asyncRequest } from '../functions.js';
-let ships;
+
 window.forms = Forms;
 class Player {
-    constructor(username, shipId, x = 0, y = 0, credits, ship) {
+    constructor(shipsManager, username, shipId, x = 0, y = 0, credits) {
+        this.shipsManager = shipsManager;
         this.name = username;
-        this.shipId = ship && ship._id ? ship._id : shipId;
-        this.ship = ship || ships[shipId];
+        this.shipId = shipId;
+        this.ship = shipsManager.getShipById(shipId);
         this.credits = credits || 0;
         this.layers = parseLayers(this.ship.layers);
         this.x = x;
         this.y = y;
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
-        this.width = this.ship.canvas ? this.ship.canvas.width : this.ship.width;
-        this.height = this.ship.canvas ? this.ship.canvas.height : this.ship.height;
+        this.width = this.ship.width;
+        this.height = this.ship.height;
+        //this.width = this.ship.canvas ? this.ship.canvas.width : this.ship.width;
+        //this.height = this.ship.canvas ? this.ship.canvas.height : this.ship.height;
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
@@ -213,7 +216,7 @@ class RadarArrow {
         const target = this.target;
         const player = this.player;
         const xLength = (target.x + target.width / 2) - (player.x + player.width / 2);
-        const yLength = (target.y + target.width / 2) - (player.y + player.width / 2);
+        const yLength = (target.y + target.height / 2) - (player.y + player.height / 2);
 
         this.totalDistance = Math.sqrt(xLength ^ 2 + yLength ^ 2);
 
@@ -259,16 +262,29 @@ class RadarArrow {
         new Polygon(points, '#ff0000').draw(context, { rotationCenter, rotate: this.angleRadian });
     }
 }
+class ShipsManager {
+    constructor (ships) {
+        this.ships = ships;
+        this.shipsById = {}
+        ships.forEach(ship =>{
+            this.shipsById[ship._id] = ship;
 
-const _player = new Promise(async function (resolve) {
-    //ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-    const result = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-    ships = {}
-    result.forEach(ship => {
-        ships[ship._id] = ship
-    })
-    resolve(Player);
-});
+            if (ship.canvas) {
+                ship.width = ship.canvas.width
+                ship.height = ship.canvas.height
+            }
+        })
+    }
+    getShips() {
+        return this.ships;
+    }
+    getShipById(shipId) {
+        return this.shipsById[shipId];
+    }
+    getGetenericShips() {
+        return this.ships.filter(s => !s.userId)
+    }
+}
 
-export { Bullet, RadarArrow, ChargingBar, _player }
-export default { Bullet, RadarArrow, ChargingBar, _player }
+export { Bullet, RadarArrow, ChargingBar, Player, ShipsManager}
+export default { Bullet, RadarArrow, ChargingBar, Player , ShipsManager}
