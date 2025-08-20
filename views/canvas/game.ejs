@@ -1,14 +1,16 @@
 <% layout('layout') %>
 <div class="container">
-    <div id="shipsBlock">
+    <div id="shipSelector" class="container">
+        <div id="shipsBlock">
 
-    </div>
-    <div id="shipSelectorControl">
-        <button id="previousShip"><-</button>
-        <button id="nextShip">-></button>
-    </div>
-    <button style="display: none" id="startBtn">START</button>
-    <canvas style="display: none" class="mt-2" id="canvas" width="<%= canvasWidth %>" height="<%= canvasHeight %>"></canvas>
+        </div>
+        <div id="shipSelectorControl">
+            <button id="previousShip"><-</button>
+            <button id="nextShip">-></button>
+        </div>
+        <button style="display: none" id="startBtn">START</button>
+        </div>
+    <canvas style="" class="mt-2" id="canvas" width="<%= canvasWidth %>" height="<%= canvasHeight %>"></canvas>
     <h6>Volume</h6>
     <input type="range" min="0" max="100" id="audioVolume">
 </div>
@@ -37,6 +39,7 @@
     const userShips = (await (await fetch("./game/userShips")).json()).userShips;
     startBtn.style.display = '';
     startBtn.addEventListener("click", btnStart);
+    //startBtn.addEventListener("touchend", btnStart);
     const charSelector = new CharacterSelector(document.getElementById("shipsBlock"), document.getElementById("nextShip"), document.getElementById("previousShip"), userShips)
 
     async function btnStart(e){

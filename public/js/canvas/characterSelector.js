@@ -14,17 +14,20 @@ class CharacterSelector {
 
         btnNext.addEventListener("click", this.next.bind(this))
         btnPrevious.addEventListener("click", this.previous.bind(this))
+        //btnNext.addEventListener("touchend", this.next.bind(this))
+        //btnPrevious.addEventListener("touchend", this.previous.bind(this))
     }
 
     showShip(ship) {
-        const shipBlock = document.createElement("shipsBlock");
+        const shipBlock = document.createElement("div");
         this.mainDiv.appendChild(shipBlock);
-        shipBlock.id = "d-" + ship.id;
+        shipBlock.id = "d-" + ship._id;
         shipBlock.className = "shipBlock";
 
         shipBlock.style.display = "inline-block";
         shipBlock.style.textAlign = "center";
         shipBlock.style.border = "solid 1px";
+        shipBlock.style.widows = "100%";
         const canvas = document.createElement("canvas");
         const label = document.createElement("label");
         label.innerText = ship.name;
@@ -66,7 +69,10 @@ class CharacterSelector {
     }
 
     getCurrentShip() {
-        return this.ships[this.selected];
+        if (this.selected >= 0) {
+            return this.ships[this.selected];
+        }
+        return undefined;
     }
 }
 
