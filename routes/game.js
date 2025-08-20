@@ -1,4 +1,5 @@
 const Ship = require('../model/ship');
+const PaintingProject = require('../model/paintingProject');
 const resolutions = require('./constants').resolutions;
 const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
 const User = require('../model/user');
@@ -29,12 +30,30 @@ module.exports = (app, io, mongoose) => {
                 canvasWidth: resolutions[currentResolution].width,
                 canvasHeight: resolutions[currentResolution].height,
                 allowedPlayerTypes,
-                allowedPlayerType
+                allowedPlayerType,
             });
         } else {
             res.redirect('/');
         }
     });
+
+    app.get('/game/userShips', async (req, res) => {
+        req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
+        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+            if (req.session.passport && req.session.passport.user) {
+                res.send({
+                    userShips: await PaintingProject.find({userId: req.session.passport.user})
+                });
+            } else {
+                res.send({
+                    userShips: []
+                })
+            }
+        } else {
+            res.redirect('/');
+        }
+    });
+
     app.get('/game/status', (req, res) => {
         let user;
         if (!req.session.passport ||
@@ -94,7 +113,9 @@ module.exports = (app, io, mongoose) => {
     });
     app.get('/game/getShips', async (req, res) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            res.send(await Ship.find());
+            const s1 = await Ship.find();
+            const s2 = await PaintingProject.find();
+            res.send(s2.concat(s1));
         }
     });
 

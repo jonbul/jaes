@@ -12,15 +12,17 @@ import {
     Rect,
     Rubber,
     Text
-} from './canvasClasses.js'; import Forms from './canvasClasses.js';
+} from './canvasClasses.js';
+import Forms from './canvasClasses.js';
 import { parseLayers, asyncRequest } from '../functions.js';
-let ships;
+
 window.forms = Forms;
 class Player {
-    constructor(username, shipId, x = 0, y = 0, credits) {
+    constructor(shipsManager, username, shipId, x = 0, y = 0, credits) {
+        this.shipsManager = shipsManager;
         this.name = username;
         this.shipId = shipId;
-        this.ship = ships[shipId];
+        this.ship = shipsManager.getShipById(shipId);
         this.credits = credits || 0;
         this.layers = parseLayers(this.ship.layers);
         this.x = x;
@@ -28,6 +30,8 @@ class Player {
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
         this.width = this.ship.width;
         this.height = this.ship.height;
+        //this.width = this.ship.canvas ? this.ship.canvas.width : this.ship.width;
+        //this.height = this.ship.canvas ? this.ship.canvas.height : this.ship.height;
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
@@ -37,6 +41,7 @@ class Player {
         this.hide = false;
         this.isDead = false;
     }
+
     draw(context) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
@@ -87,7 +92,7 @@ class Player {
     }
 }
 class Bullet {
-    constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5) {
+    constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5, bulletCharge = 1) {
         this.socketId = socketId;
         this.x = x;
         this.y = y;
@@ -99,6 +104,7 @@ class Bullet {
         this.radiusX = radiusX;
         this.radiusY = radiusY;
         this.rotation = rotation;
+        this.bulletCharge = bulletCharge;
 
 
         const quad = parseInt(this.angle / (Math.PI / 2));
@@ -122,7 +128,11 @@ class Bullet {
         this.expX = this.moveX * this.range + this.x;
         this.expY = this.moveY * this.range + this.y;
 
-        this.arc = new Ellipse(this.x, this.y, this.radiusX, this.radiusY, this.rotation, '#ff0000')
+        const extraRadiusX = (this.bulletCharge - 1) * this.radiusX / 2;
+        const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
+        let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16,2)
+        colorHex = colorHex.length == 1 ? "0" + colorHex : colorHex;
+        this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
     updatePosition(x, y) {
         this.x = x;
@@ -145,7 +155,7 @@ class Bullet {
         this.arc.x = this.x;
         this.arc.y = this.y;
     }
-    getSortDetails() {
+    getSortDetails(bulletCharge) {
         return {
             x: this.x,
             y: this.y,
@@ -156,22 +166,57 @@ class Bullet {
             moveY: this.moveY,
             id: this.id,
             rotation: this.rotation,
-            shootingSpeed: this.shootingSpeed
+            shootingSpeed: this.shootingSpeed,
+            bulletCharge: this.bulletCharge
         }
     }
 }
 
+class ChargingBar {
+    constructor(player, context) {
+        this.player = player;
+
+        const canvas = context.canvas;
+
+        const width = context.canvas.width / 20;
+        const height = width / 5;
+        
+        let x = -Math.abs(player.width - width) / 2;
+        if (player.width > width) {
+            x *= -1;
+        }
+        const y = player.height + 10;
+
+        this.border = new Rect(x, y, width, height, '#ffffff00', '#000000', 3, 0)
+        this.bar = new Rect(x, y, 0, height, '#ff0000', '#000000', 0, 0)
+    }
+
+    draw(context, bulletChargeTs) {
+        if (!bulletChargeTs) return;
+        
+        const player = this.player;
+        const width = player.width;
+
+        const barWidth = (Date.now() - bulletChargeTs) * width / 10000;
+        this.bar.width = Math.min(barWidth, this.border.width);
+        
+        const options = {x: player.x, y: player.y};
+        
+        this.bar.draw(context, options);
+        this.border.draw(context, options);
+    }
+}
+
 class RadarArrow {
-    constructor(player, target, canvas) {
+    constructor(player, target) {
         this.player = player;
         this.target = target;
-        this.canvas = canvas;
     }
     getDistance() {
         const target = this.target;
         const player = this.player;
         const xLength = (target.x + target.width / 2) - (player.x + player.width / 2);
-        const yLength = (target.y + target.width / 2) - (player.y + player.width / 2);
+        const yLength = (target.y + target.height / 2) - (player.y + player.height / 2);
 
         this.totalDistance = Math.sqrt(xLength ^ 2 + yLength ^ 2);
 
@@ -191,7 +236,7 @@ class RadarArrow {
     }
     draw(context, distance) {
         this.getDistance();
-        const canvas = this.canvas;
+        const canvas = context.canvas;
 
         let multiplier = canvas.width*1.5 - distance;
         multiplier = multiplier < 0 ? 0 : multiplier;
@@ -217,11 +262,29 @@ class RadarArrow {
         new Polygon(points, '#ff0000').draw(context, { rotationCenter, rotate: this.angleRadian });
     }
 }
+class ShipsManager {
+    constructor (ships) {
+        this.ships = ships;
+        this.shipsById = {}
+        ships.forEach(ship =>{
+            this.shipsById[ship._id] = ship;
 
-const _player = new Promise(async function (resolve) {
-    ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-    resolve(Player);
-});
+            if (ship.canvas) {
+                ship.width = ship.canvas.width
+                ship.height = ship.canvas.height
+            }
+        })
+    }
+    getShips() {
+        return this.ships;
+    }
+    getShipById(shipId) {
+        return this.shipsById[shipId];
+    }
+    getGetenericShips() {
+        return this.ships.filter(s => !s.userId)
+    }
+}
 
-export { Bullet, RadarArrow, _player }
-export default { Bullet, RadarArrow, _player }
+export { Bullet, RadarArrow, ChargingBar, Player, ShipsManager}
+export default { Bullet, RadarArrow, ChargingBar, Player , ShipsManager}

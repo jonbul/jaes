@@ -20814,7 +20814,7 @@
           "backgroundColor": "rgba(106,100,115,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -20829,7 +20829,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         },
         {
@@ -20844,7 +20844,7 @@
           "backgroundColor": "rgba(158,249,255,1)",
           "borderColor": "#000000",
           "borderWidth": 0,
-          "rorationInDegrees": 0,
+          "rotationInDegrees": 0,
           "points": []
         }
       ],

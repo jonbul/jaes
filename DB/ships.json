@@ -12197,7 +12197,7 @@
                     "backgroundColor" : "rgba(106,100,115,1)",
                     "borderColor" : "#000000",
                     "borderWidth" : NumberInt(0),
-                    "rorationInDegrees" : NumberInt(0),
+                    "rotationInDegrees" : NumberInt(0),
                     "points" : [
 
                     ]
@@ -12212,7 +12212,7 @@
                     "backgroundColor" : "rgba(158,249,255,1)",
                     "borderColor" : "#000000",
                     "borderWidth" : NumberInt(0),
-                    "rorationInDegrees" : NumberInt(0),
+                    "rotationInDegrees" : NumberInt(0),
                     "points" : [
 
                     ]
@@ -12227,7 +12227,7 @@
                     "backgroundColor" : "rgba(158,249,255,1)",
                     "borderColor" : "#000000",
                     "borderWidth" : NumberInt(0),
-                    "rorationInDegrees" : NumberInt(0),
+                    "rotationInDegrees" : NumberInt(0),
                     "points" : [
 
                     ]

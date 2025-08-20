@@ -17,22 +17,24 @@ import {
 import {
     Bullet,
     RadarArrow,
-    _player
+    ChargingBar,
+    Player
 } from './gameClasses.js';
 import { KEYS } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-let Player;
+
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone) {
+    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
         (async () => {
             this.radarZoom = 1;
-            Player = await _player;
+            //Player = await _player;
+
             window.game = this;
             this.username = username
             this.io = io;
@@ -48,6 +50,7 @@ class Game {
             this.players = {};
             this.bullets = {};
             this.keys = [];
+            this.shipsManager = shipsManager;
 
             this.createStaticCanvas();
             
@@ -55,8 +58,16 @@ class Game {
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
             }
-            this.ships = (await asyncRequest({ url: '/game/getShips', method: 'GET' })).response;
-            this.player = new Player(this.username, parseInt(Math.random() * 5), 0, 0, credits);
+            
+            if (!ship) {
+                const baseShips = shipsManager.getGetenericShips();
+                const index = parseInt(Math.random() * baseShips.length)
+                ship = baseShips[index]
+            }
+
+
+            this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
+            this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
             this.players[socket.id] = this.player;
 
@@ -79,6 +90,7 @@ class Game {
             this.io.emit('playerData', this.player.getSortDetails());
         })();
     }
+
     reloadPlayer() {
         const x = this.player.x;
         const y = this.player.y;
@@ -99,9 +111,11 @@ class Game {
         const _this = this;
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
-            if (this.player.life > 0) this.player.life--;
+            if (this.player.life > 0)
+                this.player.life = Math.max(0, this.player.life - msg.bulletCharge);
             if (!this.player.life) {
                 this.io.emit('player died', msg);
+                this.bulletCharging = null;
                 this.player.dead();
                 setTimeout(() => {
                     this.player.hide = true;
@@ -375,7 +389,8 @@ class Game {
                 newBullet.shootingSpeed,
                 newBullet.rotation,
                 newBullet.radiusX,
-                newBullet.radiusY
+                newBullet.radiusY,
+                newBullet.bulletCharge
             );
             bullet.id = newBullet.id;
             this.bullets[bullet.id] = bullet;
@@ -387,7 +402,7 @@ class Game {
         const players = this.players;
         if (plDetails) {
             if (!players[plDetails.socketId]) {
-                players[plDetails.socketId] = new Player(plDetails.name, plDetails.shipId);
+                players[plDetails.socketId] = new Player(this.shipsManager, plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
                 players[plDetails.socketId].ioId = plDetails.ioId;
             }
@@ -428,6 +443,8 @@ class Game {
             this.context.rotate(globalRotation)
             this.context.translate(-translateX, -translateY)
         }
+        if (this.bulletCharging)
+            this.chargingBar.draw(this.context, this.bulletCharging);
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
         
@@ -487,7 +504,7 @@ class Game {
         const player = this.player;
         if (window.debug) {
             rotationAxis.x = player.x + player.width / 2;
-            rotationAxis.y = player.y + player.width / 2;
+            rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
             new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
@@ -502,7 +519,7 @@ class Game {
                     /****************************** */
                     const rotationAxis2 = {
                         x: target.x + target.width / 2,
-                        y: target.y + target.width / 2
+                        y: target.y + target.width / 2 // uses width to build a regular rect
                     }
                     new Line([
                         { x: rotationAxis.x, y: rotationAxis.y },
@@ -587,11 +604,13 @@ class Game {
         });
     }
     drawTexts() {
+
         const texts = [
             `X: ${parseInt(this.player.x * 100) / 100}`,
             `Y: ${parseInt(this.player.y * 100) / 100}`,
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
-            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,];
+            `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,
+        ];
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
         const textX = cornerX + this.lineHeight;
@@ -685,7 +704,8 @@ class Game {
         window.addEventListener('blur', this.leaveWindow.bind(this));
         if (this.isSmartphone) {
             
-            document.body.addEventListener('touchend', this.screenTouchEvent.bind(this));
+            document.body.addEventListener('touchstart', this.screenTouchEventStart.bind(this));
+            document.body.addEventListener('touchend', this.screenTouchEventEnd.bind(this));
             
             window.onorientationchange = this.toSmartphoneFullScreen.bind(this);
             
@@ -723,9 +743,13 @@ class Game {
 
     }
     keyDownEvent(event) {
+        if (this.keys[event.keyCode]) return;
         this.keys[event.keyCode] = true;
         if (this.keys[KEYS.TAB]) {
             event.preventDefault();
+        }
+        if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
+            this.bulletCharging = Date.now()
         }
     }
     keyUpEvent(event) {
@@ -739,14 +763,35 @@ class Game {
             this.radarZoom++;
         }
     }
-    screenTouchEvent(e) {
-        this.newBullet()
+    screenTouchEventStart() {
+        if (this.screenTouchEventStarted) return;
+        this.screenTouchEventStarted = true;
+
+        if (this.player && !this.player.isDead) {
+            this.bulletCharging = Date.now()
+        }
+    }
+    screenTouchEventEnd() {
+        if (this.player && !this.player.isDead) {
+            this.newBullet()
+        }
+        this.screenTouchEventStarted = false;
     }
     newBullet(){
+        // 1 every 100ms
+        if (Date.now() - (this.lastBulletTs || 0) <= 100) return;
         const bullet = this.player.createBullet();
         const msg = this.player.getCenteredPosition();
-        msg.bullet = bullet.getSortDetails();
+        
+        const bulletCharge = Math.ceil((Date.now() - this.bulletCharging) / 1000);
+        bullet.bulletCharge = bulletCharge;
+
+        msg.bullet = bullet.getSortDetails(bulletCharge);
+                
+        this.bulletCharging = null;
+        
         this.io.emit('newBullet', msg);
+        this.lastBulletTs = Date.now()
     }
     leaveWindow() {
         for (const keyCode in this.keys) {
@@ -767,7 +812,8 @@ class Game {
                     this.io.emit('player hit', {
                         bulletId: bullet.id,
                         playerId: playerHit.socketId,
-                        from: this.player.socketId
+                        from: this.player.socketId,
+                        bulletCharge: bullet.bulletCharge
                     });
                     delete this.player.bullets[bullet.id];
                     bulletsUpdated = true;
