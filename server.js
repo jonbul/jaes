@@ -16,8 +16,11 @@ const options = {
 };
 
 console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-
-console.log(fs.readFileSync('/file/hola.txt'))
+try {
+    console.log(fs.readFileSync('/file/hola.txt'))
+} catch(e) {
+    console.log(e);
+}
 console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
 const https = require('https').createServer(options, app);
 const io = require('socket.io').listen(https);
