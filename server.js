@@ -12,8 +12,8 @@ const fs = require('fs');
 // TODO move to server folder
 
 const options = {
-  key: fs.readFileSync('/home/jonbul/servers/ssl/privkey.pem'),
-  cert: fs.readFileSync('/home/jonbul/servers/ssl/fullchain.pem')
+  key: fs.readFileSync('/files/ssl/privkey.pem'),
+  cert: fs.readFileSync('/files/ssl/fullchain.pem')
 };
 
 console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
