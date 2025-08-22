@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     build: .
-    container_name: jaes
+    container_name: jaes-app
     ports:
       - "80:80"
       - "443:443"
