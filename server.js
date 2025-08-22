@@ -5,11 +5,6 @@ const app = express();
 const fs = require('fs');
 // SSL
 
-  //key: fs.readFileSync('ssl/_old/key.pem'),       // o ruta a tu .key real
-  //cert: fs.readFileSync('ssl/_old/cert.pem')      // o ruta a tu .crt real
-  //key: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/privkey.pem'),
-  //cert: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/fullchain.pem')
-// TODO move to server folder
 
 const options = {
   key: fs.readFileSync('/files/ssl/privkey.pem'),
