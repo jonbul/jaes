@@ -10,9 +10,10 @@ const fs = require('fs');
   //key: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/privkey.pem'),
   //cert: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/fullchain.pem')
 // TODO move to server folder
+
 const options = {
-  key: fs.readFileSync('ssl/privkey.pem'),
-  cert: fs.readFileSync('ssl/fullchain.pem')
+  key: fs.readFileSync('/home/jonbul/servers/ssl/privkey.pem'),
+  cert: fs.readFileSync('/home/jonbul/servers/ssl/fullchain.pem')
 };
 
 console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
