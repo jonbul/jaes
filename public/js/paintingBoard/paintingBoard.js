@@ -108,6 +108,7 @@ class PaintingBoard {
         }
     }
     loadEvents() {
+        this.setResizeObserver();
         this.resolutionChangeEvent();
         this.menus.resolution.height.addEventListener('change', this.resolutionChangeEvent.bind(this));
         this.menus.resolution.width.addEventListener('change', this.resolutionChangeEvent.bind(this));
@@ -124,6 +125,22 @@ class PaintingBoard {
         this.canvas.width = this.menus.resolution.width.value;
         const style = getComputedStyle(this.canvas);
         this.canvas.style.height = (this.canvas.height * parseFloat(style.width) / this.canvas.width) + 'px';
+    }
+    setResizeObserver() {
+        if (this.resizeObserver) return;
+
+        const resizeObserver = new ResizeObserver(onResize.bind(this));
+
+        resizeObserver.observe(this.canvas);
+
+        function onResize(entries) {
+            for(const entry of entries) {
+                if (entry.target.id === 'canvas') {
+                    console.log("RESIZE ", entry)
+                    this.resolutionChangeEvent();
+                }
+            }
+        }
     }
     onCanvasWheel(evt) {
         evt.stopImmediatePropagation();
@@ -291,13 +308,27 @@ class PaintingBoard {
         this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
     }
-    getCurrentPos(evt) {let currentPos;
-        if(this.menus.followGrid.checked && this.menus.gridSize.value) {
-            currentPos = new ClickXY(evt, this.menus.gridSize.value);
+    getCurrentPos(evt) {
+        const rect = this.canvas.getBoundingClientRect(); // Obtiene la posición del canvas
+        let x = Math.round(Math.max(evt.clientX - rect.left, 0)); // Calcula la posición relativa al canvas
+        let y = Math.round(Math.max(evt.clientY - rect.top, 0));
+
+        const style = getComputedStyle(this.canvas);
+        const styleHeight = parseFloat(style.height);
+        const styleWidth = parseFloat(style.width);
+
+        y *= (this.canvas.height / styleHeight);
+        x *= (this.canvas.width / styleWidth);
+        
+
+        let currentPos;
+        if (this.menus.followGrid.checked && this.menus.gridSize.value) {
+            currentPos = new ClickXY({ x, y }, this.menus.gridSize.value);
         } else {
-            currentPos = new ClickXY(evt);
+            currentPos = new ClickXY({ x, y });
         }
-        currentPos.x /= this.scale;
+
+        currentPos.x /= this.scale; // Ajusta por el escalado
         currentPos.y /= this.scale;
         return currentPos.getSimple();
     }
