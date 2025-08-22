@@ -17,7 +17,7 @@ const options = {
 
 console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
 try {
-    console.log(fs.readFileSync('/file/hola.txt'))
+    console.log(fs.readFileSync('/files/hola.txt'))
 } catch(e) {
     console.log(e);
 }
