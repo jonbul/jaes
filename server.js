@@ -9,11 +9,16 @@ const fs = require('fs');
   //cert: fs.readFileSync('ssl/_old/cert.pem')      // o ruta a tu .crt real
   //key: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/privkey.pem'),
   //cert: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/fullchain.pem')
-
+// TODO move to server folder
 const options = {
   key: fs.readFileSync('ssl/privkey.pem'),
   cert: fs.readFileSync('ssl/fullchain.pem')
 };
+
+console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+
+console.log(fs.readFileSync('/file/hola.txt'))
+console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
 const https = require('https').createServer(options, app);
 const io = require('socket.io').listen(https);
 //io.attach(serverHttps);
