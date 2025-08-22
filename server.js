@@ -16,13 +16,7 @@ const options = {
   cert: fs.readFileSync('/files/ssl/fullchain.pem')
 };
 
-console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-try {
-    console.log(fs.readFileSync('/files/hola.txt'))
-} catch(e) {
-    console.log(e);
-}
-console.log("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+
 const https = require('https').createServer(options, app);
 const io = require('socket.io').listen(https);
 //io.attach(serverHttps);
@@ -30,7 +24,9 @@ const io = require('socket.io').listen(https);
 
 const http = require('http');
 http.createServer((req, res) => {
-    const Location = "https://" + req.headers['host'].replace(":3001", ":3000") + req.url;
+    console.log(req.headers)
+    console.log(req.headers['host'])
+    const Location = "https://" + req.headers['host'] + req.url;
     console.log("Redirecting to: " + Location)
     res.writeHead(301, { Location });
     res.end();
