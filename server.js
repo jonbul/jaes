@@ -4,12 +4,30 @@ const session = require('express-session');
 const app = express();
 const fs = require('fs');
 // SSL
+
+
 const options = {
-  key: fs.readFileSync('ssl/key.pem'),       // o ruta a tu .key real
-  cert: fs.readFileSync('ssl/cert.pem')      // o ruta a tu .crt real
+  key: fs.readFileSync('/files/ssl/privkey.pem'),
+  cert: fs.readFileSync('/files/ssl/fullchain.pem')
 };
+
+
 const https = require('https').createServer(options, app);
-const io = require('socket.io').listen(https);;
+const io = require('socket.io').listen(https);
+//io.attach(serverHttps);
+
+
+const http = require('http');
+http.createServer((req, res) => {
+    console.log(req.headers)
+    console.log(req.headers['host'])
+    const Location = "https://" + req.headers['host'] + req.url;
+    console.log("Redirecting to: " + Location)
+    res.writeHead(301, { Location });
+    res.end();
+}).listen(3001);
+
+
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const validator = require('express-validator');
