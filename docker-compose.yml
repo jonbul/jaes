@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: mi-app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Montamos los certificados de Let's Encrypt en modo lectura
+      - /etc/letsencrypt/live/jonbul.ddns.net:/etc/letsencrypt/live/jonbul.ddns.net:ro
