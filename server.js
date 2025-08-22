@@ -4,9 +4,11 @@ const session = require('express-session');
 const app = express();
 const fs = require('fs');
 // SSL
-const options = {
+
   //key: fs.readFileSync('ssl/_old/key.pem'),       // o ruta a tu .key real
   //cert: fs.readFileSync('ssl/_old/cert.pem')      // o ruta a tu .crt real
+
+const options = {
   key: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/privkey.pem'),       // o ruta a tu .key real
   cert: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/fullchain.pem')      // o ruta a tu .crt real
 };
