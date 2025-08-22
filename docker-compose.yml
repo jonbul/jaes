@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     build: .
-    container_name: mi-app
+    container_name: jaes
     ports:
       - "80:80"
       - "443:443"
