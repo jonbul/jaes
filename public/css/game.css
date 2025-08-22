@@ -24,7 +24,7 @@
 
 #shipsBlock>.shipBlock {
     text-align: center;
-    border: 1px solid;
+    border: 0px solid;
     height: 200px;
     max-height: 200px;
 }

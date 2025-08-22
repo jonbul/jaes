@@ -1,14 +1,14 @@
 <% layout('layout') %>
 <div class="container">
     <div id="shipSelector" class="container">
-        <div id="shipsBlock">
-
-        </div>
         <div id="shipSelectorControl">
             <button id="previousShip"><-</button>
             <button id="nextShip">-></button>
         </div>
-        <button style="display: none" id="startBtn">START</button>
+        <div id="shipsBlock">
+
+        </div>
+        <p><button style="display: inline-block" id="startBtn">START</button></p>
         </div>
     <canvas style="" class="mt-2" id="canvas" width="<%= canvasWidth %>" height="<%= canvasHeight %>"></canvas>
     <h6>Volume</h6>
@@ -36,11 +36,20 @@
     
     const canvas = document.getElementById('canvas');
 
-    const userShips = (await (await fetch("./game/userShips")).json()).userShips;
-    startBtn.style.display = '';
+    let userShips = (await (await fetch("./game/userShips")).json()).userShips;
+
+    const res = await (await (fetch('/game/getShips'))).json()
+    const shipsManager = new ShipsManager(res);
+
+    if (!userShips.length) {
+        userShips = shipsManager.getGenericShips();
+    }
+
     startBtn.addEventListener("click", btnStart);
-    //startBtn.addEventListener("touchend", btnStart);
-    const charSelector = new CharacterSelector(document.getElementById("shipsBlock"), document.getElementById("nextShip"), document.getElementById("previousShip"), userShips)
+    const charSelector = new CharacterSelector(document.getElementById("shipsBlock"),
+                                                document.getElementById("nextShip"),
+                                                document.getElementById("previousShip"),
+                                                userShips || shipsManager.getGenericShips())
 
     async function btnStart(e){
 
@@ -50,9 +59,7 @@
         startBtn.style.display = "none"
         e.preventDefault()
         canvas.style.display = ""
-
-        const res = await (await (fetch('/game/getShips'))).json()
-        const shipsManager = new ShipsManager(res);
+        
         
 
         if (isSmartphone) {

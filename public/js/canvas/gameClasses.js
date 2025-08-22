@@ -281,7 +281,7 @@ class ShipsManager {
     getShipById(shipId) {
         return this.shipsById[shipId];
     }
-    getGetenericShips() {
+    getGenericShips() {
         return this.ships.filter(s => !s.userId)
     }
 }
