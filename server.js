@@ -5,8 +5,10 @@ const app = express();
 const fs = require('fs');
 // SSL
 const options = {
-  key: fs.readFileSync('ssl/key.pem'),       // o ruta a tu .key real
-  cert: fs.readFileSync('ssl/cert.pem')      // o ruta a tu .crt real
+  //key: fs.readFileSync('ssl/_old/key.pem'),       // o ruta a tu .key real
+  //cert: fs.readFileSync('ssl/_old/cert.pem')      // o ruta a tu .crt real
+  key: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/privkey.pem'),       // o ruta a tu .key real
+  cert: fs.readFileSync('/etc/letsencrypt/live/jonbul.ddns.net/fullchain.pem')      // o ruta a tu .crt real
 };
 const https = require('https').createServer(options, app);
 const io = require('socket.io').listen(https);
