@@ -9,7 +9,17 @@ const options = {
   cert: fs.readFileSync('ssl/cert.pem')      // o ruta a tu .crt real
 };
 const https = require('https').createServer(options, app);
-const io = require('socket.io').listen(https);;
+const io = require('socket.io').listen(https);
+//io.attach(serverHttps);
+
+
+const http = require('http');
+http.createServer((req, res) => {
+  res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+  res.end();
+}).listen(3001);
+
+
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const validator = require('express-validator');

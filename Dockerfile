@@ -14,7 +14,10 @@ RUN npm ci --only=production
 COPY . .
 
 # Exponer el puerto que tu app usará
+# HTTPS
 EXPOSE 3000
+# HTTP
+EXPOSE 3001
 
 # Definir variable de entorno opcional
 ENV NODE_ENV=production
