@@ -26,7 +26,7 @@ class CharacterSelector {
 
         shipBlock.style.display = "inline-block";
         shipBlock.style.textAlign = "center";
-        shipBlock.style.border = "solid 1px";
+        //shipBlock.style.border = "solid 1px";
         shipBlock.style.widows = "100%";
         const canvas = document.createElement("canvas");
         const label = document.createElement("label");
@@ -36,9 +36,13 @@ class CharacterSelector {
         const context = canvas.getContext("2d");
         const parsedLayers = parseLayers(ship.layers);
 
-
-        canvas.width = ship.canvas.width
-        canvas.height = ship.canvas.height
+        if (ship.canvas) {
+            canvas.width = ship.canvas.width
+            canvas.height = ship.canvas.height
+        } else {
+            canvas.width = ship.width
+            canvas.height = ship.height
+        }
         canvas.style.display = "block";
         canvas.style.maxWidth = "200px";
         canvas.style.minWidth = "200px";

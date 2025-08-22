@@ -60,7 +60,7 @@ class Game {
             }
             
             if (!ship) {
-                const baseShips = shipsManager.getGetenericShips();
+                const baseShips = shipsManager.getGenericShips();
                 const index = parseInt(Math.random() * baseShips.length)
                 ship = baseShips[index]
             }
