@@ -249,15 +249,15 @@ class RadarArrow {
         ];
 
         const arrowDistanceX = this.player.width / 2
-        const arrowDistanceY = this.player.width / 2
+        const arrowDistanceY = this.player.height / 2
 
         points.forEach(point => {
-            point.x += this.player.x + arrowDistanceX + multiplier * 0.04;
+            point.x += this.player.x + arrowDistanceX + multiplier * 0.10;
             point.y += this.player.y + arrowDistanceY - multiplier * 0.01;
         })
         const rotationCenter = {
             x: this.player.x + this.player.width / 2,
-            y: this.player.y + this.player.width / 2
+            y: this.player.y + this.player.height / 2
         }
         new Polygon(points, '#ff0000').draw(context, { rotationCenter, rotate: this.angleRadian });
     }

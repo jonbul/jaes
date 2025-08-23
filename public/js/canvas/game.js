@@ -502,9 +502,9 @@ class Game {
         /****************************** */
         const rotationAxis = {}
         const player = this.player;
-        if (window.debug) {
+        if (localStorage.getItem("debug")) {
             rotationAxis.x = player.x + player.width / 2;
-            rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
+            rotationAxis.y = player.y + player.height / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
             new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
@@ -515,11 +515,11 @@ class Game {
             const distance = parseInt(this.player.getDistanceToPlayer(target));
             const inScope = distance < this.canvas.width * 1.5;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
-                if (window.debug) {
+                if (localStorage.getItem("debug")) {
                     /****************************** */
                     const rotationAxis2 = {
                         x: target.x + target.width / 2,
-                        y: target.y + target.width / 2 // uses width to build a regular rect
+                        y: target.y + target.height / 2 // uses width to build a regular rect
                     }
                     new Line([
                         { x: rotationAxis.x, y: rotationAxis.y },
@@ -529,10 +529,10 @@ class Game {
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
-                const scope = {
+                /*const scope = {
                     from: this.canvas.width,
                     to: this.canvas.width * 2
-                }
+                }*/
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
         };
