@@ -10,5 +10,19 @@
         </div>
     </div>
     <link rel="stylesheet" href="/css/layout.css">
+    <script>
+        {
+            const debugParam = location.search.substr(1).split('&').filter(e => e.match(/^debug=(true|false)/))[0];
+            if (!!debugParam) {
+                const value = debugParam.split("=")[1];
+                if (value === "true") {
+                    localStorage.setItem("debug", "1");
+                } else {
+                    localStorage.removeItem('debug');
+                }
+            }
+        }
+        window.debug = !!localStorage.getItem("debug");
+    </script>
 </body>
 </html>
