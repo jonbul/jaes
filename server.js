@@ -1,3 +1,4 @@
+"use strict";
 const express = require('express');
 const {collectDefaultMetrics} = require('prom-client');
 const session = require('express-session');
@@ -6,10 +7,15 @@ const fs = require('fs');
 // SSL
 
 
-const options = {
-  key: fs.readFileSync('/files/ssl/privkey.pem'),
-  cert: fs.readFileSync('/files/ssl/fullchain.pem')
-};
+const options = {};
+try {
+    options.key = fs.readFileSync('/files/ssl/privkey.pem');
+    options.cert = fs.readFileSync('/files/ssl/fullchain.pem');
+} catch(e) {
+    console.warn("LOADING DEBUG CERTS!")
+    options.key = fs.readFileSync('sslDebug/key.pem');
+    options.cert = fs.readFileSync('sslDebug/cert.pem');
+}
 
 
 const https = require('https').createServer(options, app);
@@ -98,4 +104,33 @@ app.use(require('express-status-monitor')({
     websocket: io
 }));
 
+
+// This just .... shit useless for lazy way of live
+try {
+    const { networkInterfaces } = require('os');
+
+    const nets = networkInterfaces();
+    /*const results = Object.create(null); // Or just '{}', an empty object
+
+    for (const name of Object.keys(nets)) {
+    console.log({name})
+        for (const net of nets[name]) {
+            console.log({net})
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
+            const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+            if (net.family === familyV4Value && !net.internal) {
+                if (!results[name]) {
+                    results[name] = [];
+                }
+                results[name].push(net.address);
+            }
+        }
+    }
+    console.log(results)*/
+    console.log(`URL: https:\\\\${nets["enp24s0"][0].address}:${PORT}\\game?debug=true`);
+} catch(e) {
+    console.warn("CRAP!")
+    console.log(e.message)
+}
 https.listen(PORT, () => { console.log('Hello from port ' + PORT) });
