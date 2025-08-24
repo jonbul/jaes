@@ -20,14 +20,14 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS } from './constants.js';
+import { KEYS, CAMERA } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
+    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager, cameraMode = CAMERA.THIRD) {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
@@ -51,6 +51,7 @@ class Game {
             this.bullets = {};
             this.keys = [];
             this.shipsManager = shipsManager;
+            this.cameraMode = cameraMode;
 
             this.createStaticCanvas();
             
@@ -77,9 +78,11 @@ class Game {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
             } while (this.checkCollisionsWithPlayers());
-            const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
-            const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
-            this.context.translate(tX, tY);
+            if (cameraMode !== CAMERA.FIRST) {
+                const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
+                const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
+                this.context.translate(tX, tY);
+            }
             this.player.ioId = this.io.id;
             
             this.messagesManager = new MessagesManager(this);
@@ -227,7 +230,11 @@ class Game {
         }
         
         this.loadRadar();
-        this.drawAll();
+        if (this.cameraMode === CAMERA.FIRST) {
+            this.drawAll1stPerson();
+        } else {
+            this.drawAll();
+        }
         
         if(this.playerUpdated || this.player.moving || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
@@ -264,7 +271,6 @@ class Game {
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
-        const angle = player.rotate - Math.PI / 2 * quad;
         
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
@@ -289,12 +295,14 @@ class Game {
         player.x = Math.round(player.x * 100) / 100;
         player.y = Math.round(player.y * 100) / 100;
 
-        if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
-            if (!this.checkCollisionsWithPlayers()) {
-                this.context.translate(-moveX, -moveY);
-            } else {
-                player.x = tempPosition.x;
-                player.y = tempPosition.y;
+        if (this.cameraMode !== CAMERA.FIRST) {
+            if (player.speed || this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT]) {
+                if (!this.checkCollisionsWithPlayers()) {
+                    this.context.translate(-moveX, -moveY);
+                } else {
+                    player.x = tempPosition.x;
+                    player.y = tempPosition.y;
+                }
             }
         }
 
@@ -450,6 +458,88 @@ class Game {
         
         this.drawTexts();
     }
+    drawAll1stPerson() {
+        this.clear();
+        
+        this.drawBackground1stPerson();
+        //this.drawableBullets.draw(this.context);
+        const playersVisible = [];
+        for(const playerId in this.players) {
+            if (this.player.socketId === playerId) continue;
+                this.drawPlayer1stPersonIfVisible(this.players[playerId]);
+
+        }
+
+        /*this.animations.forEach(anim => {
+            if (anim.playing) {
+                anim.drawFrame(this.context, this.checkRectsCollision(anim, this.viewRect));
+            }
+        });*/
+
+
+
+
+
+
+
+        this.drawRadar1stPerson()
+        // this.drawArrows();
+    
+
+        if (this.bulletCharging)
+            this.chargingBar.draw(this.context, this.bulletCharging);
+
+        
+        this.drawTexts();
+    }
+
+    drawBackground1stPerson(){
+        new Rect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height,
+            '#1c2773'
+        ).draw(this.context);
+
+    }
+
+    drawPlayer1stPersonIfVisible(p2) {
+        
+        // 40 ° × π / 180 = 0,6981 rad --> due to 80º is de FOV 40º
+        const radLimit = 0.6981;
+
+
+        // #1 ->  get distance
+        const p1 = this.player;
+        const h = p1.getDistanceToPlayer(p2)
+
+        const cX = (p2.x + (p2.width / 2)) - (p1.x + (p1.width / 2));
+        const cY = (p2.y + (p2.height / 2)) - (p1.y + (p1.height / 2));
+
+        // aY is the angle between both players suposing p1.rotate = 0
+        const aY = Math.atan2(cY,cX); // angle with p2
+
+        // To aY the p1.rotate is applied and adjusted in case is not between 0 and 2*PI (360º)
+        let dif = Math.abs(aY - p1.rotate);
+        dif = (aY - p1.rotate);
+        if (dif > Math.PI * 2) {
+            dif -= Math.PI * 2
+        }
+
+        const visible = dif < radLimit && dif > radLimit * (-1)
+
+        console.log({aY, dif, visible})
+        if (visible) {
+            this.drawPlayer1stPerson(p2, dif)
+        }
+        return visible;
+    }
+
+    drawPlayer1stPerson(p2) {
+        p2.draw(this.context)
+    }
+
     drawBackground() {
         const currentCard = {
             x: parseInt(this.player.x / this.canvas.width),
@@ -506,7 +596,8 @@ class Game {
             rotationAxis.x = player.x + player.width / 2;
             rotationAxis.y = player.y + player.height / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
-            new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
+            if (this.cameraMode === CAMERA.THIRD)
+                new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
 
         /****************************** */
@@ -529,10 +620,6 @@ class Game {
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
-                /*const scope = {
-                    from: this.canvas.width,
-                    to: this.canvas.width * 2
-                }*/
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
         };
@@ -541,8 +628,8 @@ class Game {
         const player = this.player;
         // r is radar scale
         const r = this.canvas.width / 10;
-        const x = (this.canvas.width / 2) - r;
-        const y = (this.canvas.height / 2) - r;
+        const x = this.canvas.width - r - this.canvas.height * 0.05;
+        const y = this.canvas.height - r - this.canvas.height * 0.05;
         if (!this.radar) {
             const shapes = [
                 new Arc(x, y, r, 'rgba(0,0,0,0.5)', '#00ff00', 2),
@@ -554,6 +641,9 @@ class Game {
                 new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2)
             ];
             this.radar = new Layer('Radar', shapes);
+            this.radar.x = x;
+            this.radar.y = y;
+            this.radar.r = r;
         }
 
         // alncance del radar
@@ -576,7 +666,11 @@ class Game {
         };
     }
     drawRadar() {
-        this.radar.draw(this.context, {x: this.player.x, y: this.player.y});
+       const options = {
+            x: this.player.x - this.canvas.width / 2 + this.player.width / 2,
+            y: this.player.y - this.canvas.height / 2 + this.player.height / 2
+        }
+        this.radar.draw(this.context, options);
         const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
             arcPoint.x = point.x + this.player.x;
@@ -588,11 +682,25 @@ class Game {
         const rotationCenter = this.isSmartphone ? {x: this.radar.shapes[0].x, y: this.radar.shapes[0].y} : {};
         const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
         const options = {
-            x: this.player.x,
-            y: this.player.y,
+            x: this.player.x - this.canvas.width / 2 + this.player.width / 2,
+            y: this.player.y - this.canvas.height / 2 + this.player.height / 2,
             rotate,
             rotationCenter
         }
+        this.radar.draw(this.context, options);
+        
+        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');        
+        this.radarPoints.forEach(point => {
+            
+            arcPoint.x = point.x
+            arcPoint.y = point.y
+            arcPoint.draw(this.context, options);
+        });
+    }
+    drawRadar1stPerson() {
+        const options = {
+            rotate: -this.player.rotate - 90 * Math.PI / 180
+        };
         this.radar.draw(this.context, options);
         
         const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');        
@@ -611,8 +719,11 @@ class Game {
             `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,
         ];
-        const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
-        const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
+        let cornerX = this.cameraMode === CAMERA.FIRST ? 0 :
+                        this.player.x - this.canvas.width / 2 + this.player.width / 2;
+        let cornerY = this.cameraMode === CAMERA.FIRST ? 0 :
+                        this.player.y - this.canvas.height / 2 + this.player.height / 2;
+        
         const textX = cornerX + this.lineHeight;
         const textY = cornerY + this.lineHeight;
         texts.forEach((text, i) => {

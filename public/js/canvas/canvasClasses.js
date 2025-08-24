@@ -111,9 +111,17 @@ class Arc {
         this.borderWidth = parseInt(borderWidth);
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+        options.x = options.x ? options.x : 0;
+        options.y = options.y ? options.y : 0;
         context.translate(options.x, options.y);
 
-        if (options.rotationCenter && options.rotate) {
+        if (options.rotate) {
+            if (!options.rotationCenter) {
+                options.rotationCenter = {
+                    x: this.x,
+                    y: this.y,
+                }
+            }
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);

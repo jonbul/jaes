@@ -133,4 +133,13 @@ try {
     console.warn("CRAP!")
     console.log(e.message)
 }
-https.listen(PORT, () => { console.log('Hello from port ' + PORT) });
+run();
+
+function run() {
+    try {
+        https.listen(PORT, () => { console.log('Hello from port ' + PORT) });
+    } catch(e) {
+        console.error(e.message);
+        run();
+    }
+}
