@@ -42,11 +42,12 @@ class Player {
         this.isDead = false;
     }
 
-    draw(context) {
+    draw(context, options) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
+        options = options ? options:{ x: this.x, y: this.y, rotate: this.rotate, rotationCenter };
         this.layers.forEach(layer => {
-            layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
+            layer.draw(context, options);
         });
         this.nameShape.x = this.x;
         this.nameShape.y = this.y;

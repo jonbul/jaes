@@ -459,6 +459,8 @@ class Game {
         this.drawTexts();
     }
     drawAll1stPerson() {
+        this.context.resetTransform();
+
         this.clear();
         
         this.drawBackground1stPerson();
@@ -521,23 +523,43 @@ class Game {
         const aY = Math.atan2(cY,cX); // angle with p2
 
         // To aY the p1.rotate is applied and adjusted in case is not between 0 and 2*PI (360º)
-        let dif = Math.abs(aY - p1.rotate);
-        dif = (aY - p1.rotate);
-        if (dif > Math.PI * 2) {
-            dif -= Math.PI * 2
+        let dif = (aY - p1.rotate);
+
+        if (dif > 0) {
+            while (dif > Math.PI*2) {
+                dif -= Math.PI*2;
+            }
+        } else {
+            while (dif < -Math.PI*2) {
+                dif += Math.PI*2;
+            }
         }
 
-        const visible = dif < radLimit && dif > radLimit * (-1)
+        if (dif < -Math.PI) dif += Math.PI * 2
+        if (dif > Math.PI) dif -= Math.PI * 2
 
+        const visible = (dif < radLimit && dif > -radLimit)
+        console.clear();
         console.log({aY, dif, visible})
         if (visible) {
-            this.drawPlayer1stPerson(p2, dif)
+            this.drawPlayer1stPerson(p2, dif, radLimit)
         }
         return visible;
     }
 
-    drawPlayer1stPerson(p2) {
-        p2.draw(this.context)
+    drawPlayer1stPerson(p2, dif, radLimit) {
+        console.log(1, {p2, dif, radLimit})
+        const absDif = dif + radLimit;
+        const maxRad = radLimit * 2;
+        const x = (absDif * this.canvas.width / maxRad) - p2.width / 2;
+        const y = this.canvas.height / 2 - p2.height / 2;
+        const rotate = 2 * Math.PI - p2.rotate
+
+        console.log(1, {absDif, maxRad})
+        p2.layers.forEach(p2Layer => {
+            p2Layer.draw(this.context, {x, y})
+        })
+        //p2.draw(this.context, {x, y})
     }
 
     drawBackground() {
