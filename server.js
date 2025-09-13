@@ -6,10 +6,15 @@ const fs = require('fs');
 // SSL
 
 
-const options = {
-  key: fs.readFileSync('/files/ssl/privkey.pem'),
-  cert: fs.readFileSync('/files/ssl/fullchain.pem')
-};
+const options = {};
+try {
+    options.key = fs.readFileSync('/files/ssl/privkey.pem');
+    options.cert = fs.readFileSync('/files/ssl/fullchain.pem');
+} catch(e) {
+    console.warn("LOADING DEBUG CERTS!")
+    options.key = fs.readFileSync('sslDebug/key.pem');
+    options.cert = fs.readFileSync('sslDebug/cert.pem');
+}
 
 
 const https = require('https').createServer(options, app);

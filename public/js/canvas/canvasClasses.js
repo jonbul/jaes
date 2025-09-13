@@ -482,7 +482,13 @@ class Rubber {
         }
         context.stroke();
     }
-    drawResized(context, resizeSize = 100) {
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0, rotate: 0 }) {
+        context.translate(options.x, options.y);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
         let newPoints = [];
         this.points.forEach(p => {
             newPoints.push(p.x);
@@ -503,8 +509,13 @@ class Rubber {
         }
         context.lineWidth = this.borderWidth * 2;
         context.stroke();
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Picture {
