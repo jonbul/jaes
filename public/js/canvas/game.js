@@ -5,14 +5,14 @@ import {
     Line,
     Rect,
     Text
-/*    Rubber,
-    ClickXY,
-    Abstract,
-    Ellipse,
-    MasterJasonFile,
-    Pencil,
-    Picture,
-    Polygon*/
+    /*    Rubber,
+        ClickXY,
+        Abstract,
+        Ellipse,
+        MasterJasonFile,
+        Pencil,
+        Picture,
+        Polygon*/
 } from './canvasClasses.js';
 import {
     Bullet,
@@ -28,37 +28,35 @@ import MessagesManager from './messagesManagerClass.js';
 
 class Game {
     constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
+
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
+        this.canvas = canvas;
+        this.context = canvas.getContext('2d');
+        if (window.fullScreen) this.toFullScreen()
+
+        this.backgroundCards = [];
+        this.players = {};
+        this.bullets = {};
+        this.keys = [];
+        this.shipsManager = shipsManager;
+        this.radarZoom = 1;
+        window.game = this;
+        this.username = username
+
+        this.io = io;
+        this.loadEvents();
+
+        this.createStaticCanvas();
+
         (async () => {
-            this.radarZoom = 1;
-            //Player = await _player;
 
-            window.game = this;
-            this.username = username
-            this.io = io;
-            if (!canvas instanceof HTMLCanvasElement) {
-                throw 'Paramete 1 must be a Canvas HTML Element'
-            }
-            this.loadEvents();
-
-            this.canvas = canvas;
-            this.context = canvas.getContext('2d');
-
-            this.backgroundCards = [];
-            this.players = {};
-            this.bullets = {};
-            this.keys = [];
-            this.shipsManager = shipsManager;
-
-            this.createStaticCanvas();
-            
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
             }
-            
+
             if (!ship) {
                 const baseShips = shipsManager.getGenericShips();
                 const index = parseInt(Math.random() * baseShips.length)
@@ -81,7 +79,7 @@ class Game {
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
             this.player.ioId = this.io.id;
-            
+
             this.messagesManager = new MessagesManager(this);
             this.socketIOEvents();
 
@@ -131,7 +129,7 @@ class Game {
             }
             this.io.emit('removeBullet', msg.bulletId);
         });
-        this.io.on('sendHome', () => location.href='/');
+        this.io.on('sendHome', () => location.href = '/');
         this.io.on('getBackgroundCards', cards => {
             cards.forEach(card => {
                 const shapes = [];
@@ -151,17 +149,29 @@ class Game {
         })
     }
     beginInterval() {
-        setInterval(this.intervalMethod.bind(this), 1000/60);
+        setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
-    toSmartphoneFullScreen(e) {
-        if (this.isSmartphone) {
-            document.body.requestFullscreen().then(n => {
-                screen.orientation.lock('landscape')/* // o 'portrait'
-                    .then(() => {
-                        console.log('Orientación bloqueada')
-                    })
-                    .catch(err => console.error('No se pudo bloquear la orientación', err)*/
-            });
+    toFullScreen(e) {
+        /*document.body.requestFullscreen().then(n => {
+            screen.orientation.lock('landscape') // o 'portrait'
+                .then(() => {
+                    console.log('Orientación bloqueada')
+                })
+                .catch(err => console.error('No se pudo bloquear la orientación', err)
+        });*/
+
+        if (this.inFullScreen) {
+            document.exitFullscreen();
+            this.inFullScreen = false;
+        } else {
+            var canvas = this.canvas;
+            if (canvas.requestFullScreen)
+                canvas.requestFullScreen();
+            else if (canvas.webkitRequestFullScreen)
+                canvas.webkitRequestFullScreen();
+            else if (canvas.mozRequestFullScreen)
+                canvas.mozRequestFullScreen();
+            this.inFullScreen = true;
         }
     }
     onPlayerDied(msg) {
@@ -186,12 +196,12 @@ class Game {
     }
     intervalMethod() {
 
-        this.fullScreen = this.isSmartphone || window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
-        if (this.fullScreen) {
+        /*this.fullScreen = this.isSmartphone || window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
+        if (window.fullScreen) {
             document.body.classList.add('fullscreen');
         } else {
             document.body.classList.remove('fullscreen');
-        }
+        }*/
         if (this.isSmartphone) {
             this.movementSmarphone();
             //this.movement();
@@ -225,11 +235,11 @@ class Game {
                 this.drawableBullets.shapes.push(bullet);
             }
         }
-        
+
         this.loadRadar();
         this.drawAll();
-        
-        if(this.playerUpdated || this.player.moving || this.player.speed) {
+
+        if (this.playerUpdated || this.player.moving || this.player.speed) {
             this.io.emit('playerData', this.player.getSortDetails());
         }
         this.playerUpdated = false;
@@ -265,7 +275,7 @@ class Game {
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
         const angle = player.rotate - Math.PI / 2 * quad;
-        
+
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
         switch (quad) {
@@ -306,7 +316,7 @@ class Game {
             x: player.x,
             y: player.y
         }
-        
+
         player.speed = 0;
         if (this.deviceorientation) {
             if (screen.orientation.angle === 90) {
@@ -363,8 +373,8 @@ class Game {
     }
     gameBroadcast(data) {
         const playersData = data.players;
-        
-        for(const idp in playersData) {
+
+        for (const idp in playersData) {
             if (playersData[idp].socketId !== this.player.socketId) {
                 this.updatePlayers(playersData[idp]);
             } else if (this.player.credits < playersData[idp].credits) {
@@ -373,7 +383,7 @@ class Game {
             }
         }
         data.kills.forEach(this.onPlayerDied.bind(this));
-        
+
         this.comingNewBullets(data.newBullets);
         data.bulletsToRemove.forEach(bulletId => {
             delete this.bullets[bulletId];
@@ -425,7 +435,7 @@ class Game {
             this.context.translate(translateX, translateY)
             this.context.rotate(-globalRotation)
             this.context.translate(-translateX, -translateY)
-        } 
+        }
         this.drawBackground();
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context);
@@ -437,7 +447,7 @@ class Game {
             }
         });
         this.drawArrows();
-    
+
         if (this.isSmartphone) {
             this.context.translate(translateX, translateY)
             this.context.rotate(globalRotation)
@@ -447,7 +457,7 @@ class Game {
             this.chargingBar.draw(this.context, this.bulletCharging);
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
-        
+
         this.drawTexts();
     }
     drawBackground() {
@@ -457,7 +467,7 @@ class Game {
         }
         if (this.player.x < 0) currentCard.x -= 1;
         if (this.player.y < 0) currentCard.y -= 1;
-        
+
         const tempCardList = []
         const n = 2;
         const data = [];
@@ -474,7 +484,7 @@ class Game {
         }
 
         if (data.length) { // TODO update to WebSocket
-            this.io.emit('getBackgroundCards', {socketId: socket.id, data})
+            this.io.emit('getBackgroundCards', { socketId: socket.id, data })
         }
 
         new Rect(
@@ -570,13 +580,13 @@ class Game {
                     const radarX = (xLength * r / radarScope) + x;
                     const radarY = (yLength * r / radarScope) + y;
                     // Coordenadas respecto al centro del radar
-                    this.radarPoints.push({x: radarX, y: radarY});
+                    this.radarPoints.push({ x: radarX, y: radarY });
                 }
-            } 
+            }
         };
     }
     drawRadar() {
-        this.radar.draw(this.context, {x: this.player.x, y: this.player.y});
+        this.radar.draw(this.context, { x: this.player.x, y: this.player.y });
         const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
             arcPoint.x = point.x + this.player.x;
@@ -585,7 +595,7 @@ class Game {
         })
     }
     drawRadarSmartphone() {
-        const rotationCenter = this.isSmartphone ? {x: this.radar.shapes[0].x, y: this.radar.shapes[0].y} : {};
+        const rotationCenter = this.isSmartphone ? { x: this.radar.shapes[0].x, y: this.radar.shapes[0].y } : {};
         const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
         const options = {
             x: this.player.x,
@@ -594,10 +604,10 @@ class Game {
             rotationCenter
         }
         this.radar.draw(this.context, options);
-        
-        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');        
+
+        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
-            
+
             arcPoint.x = point.x
             arcPoint.y = point.y
             arcPoint.draw(this.context, options);
@@ -702,13 +712,12 @@ class Game {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
         window.addEventListener('blur', this.leaveWindow.bind(this));
+        this.canvas.addEventListener('dblclick', this.toFullScreen.bind(this))
         if (this.isSmartphone) {
-            
+
             document.body.addEventListener('touchstart', this.screenTouchEventStart.bind(this));
             document.body.addEventListener('touchend', this.screenTouchEventEnd.bind(this));
-            
-            window.onorientationchange = this.toSmartphoneFullScreen.bind(this);
-            
+
             addEventListener("deviceorientation", (e) => {
                 this.deviceorientation = e
             })
@@ -762,6 +771,8 @@ class Game {
         } else if (event.keyCode === KEYS.MINUS && this.radarZoom < 10) {
             this.radarZoom++;
         }
+
+        if (event.keyCode === KEYS.F11) this.toFullScreen()
     }
     screenTouchEventStart() {
         if (this.screenTouchEventStarted) return;
@@ -777,19 +788,19 @@ class Game {
         }
         this.screenTouchEventStarted = false;
     }
-    newBullet(){
+    newBullet() {
         // 1 every 100ms
         if (Date.now() - (this.lastBulletTs || 0) <= 100) return;
         const bullet = this.player.createBullet();
         const msg = this.player.getCenteredPosition();
-        
-        const bulletCharge = Math.ceil((Date.now() - this.bulletCharging) / 1000);
+
+        const bulletCharge = Math.min(Math.ceil((Date.now() - this.bulletCharging) / 1000), 10);
         bullet.bulletCharge = bulletCharge;
 
         msg.bullet = bullet.getSortDetails(bulletCharge);
-                
+
         this.bulletCharging = null;
-        
+
         this.io.emit('newBullet', msg);
         this.lastBulletTs = Date.now()
     }

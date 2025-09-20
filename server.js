@@ -24,10 +24,10 @@ const io = require('socket.io').listen(https);
 
 const http = require('http');
 http.createServer((req, res) => {
-    console.log(req.headers)
-    console.log(req.headers['host'])
+    //console.log(req.headers)
+    //console.log(req.headers['host'])
     const Location = "https://" + req.headers['host'] + req.url;
-    console.log("Redirecting to: " + Location)
+    //console.log("Redirecting to: " + Location)
     res.writeHead(301, { Location });
     res.end();
 }).listen(3001);

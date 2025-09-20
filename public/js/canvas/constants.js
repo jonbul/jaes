@@ -21,7 +21,8 @@ const KEYS = {
     RIGHT: 39,
     DOWN: 40,
     PLUS: 107,
-    MINUS: 109
+    MINUS: 109,
+    F11: 122
 }
 const KILLWORDS = [
     'KILLED',
