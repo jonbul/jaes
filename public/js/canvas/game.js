@@ -32,9 +32,10 @@ class Game {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
+        this.inFullScreen = window.innerHeight == parseInt(getComputedStyle(canvas).height);
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
-        if (window.fullScreen) this.toFullScreen()
+        //if (window.fullScreen) this.toFullScreen()
 
         this.backgroundCards = [];
         this.players = {};
@@ -159,10 +160,11 @@ class Game {
                 })
                 .catch(err => console.error('No se pudo bloquear la orientación', err)
         });*/
-
+        if (e && Math.max(e.clientX, e.clientY) > 200)
+            return;
         if (this.inFullScreen) {
-            document.exitFullscreen();
-            this.inFullScreen = false;
+            this.inFullScreen = false
+            document.exitFullscreen()
         } else {
             var canvas = this.canvas;
             if (canvas.requestFullScreen)

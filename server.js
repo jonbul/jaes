@@ -26,7 +26,8 @@ const http = require('http');
 http.createServer((req, res) => {
     //console.log(req.headers)
     //console.log(req.headers['host'])
-    const Location = "https://" + req.headers['host'] + req.url;
+    const host = req.headers['host'].replace(/^(\d+\.\d+\.\d+\.\d+):3001$/, "$1:3000")
+    const Location = "https://" + host + req.url;
     //console.log("Redirecting to: " + Location)
     res.writeHead(301, { Location });
     res.end();

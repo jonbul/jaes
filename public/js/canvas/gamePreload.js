@@ -34,6 +34,10 @@ const charSelector = new CharacterSelector(document.getElementById("shipsBlock")
     userShips || shipsManager.getGenericShips())
 
 async function btnStart(e) {
+    if (isSmartphone && window.innerHeight > window.innerWidth) {
+            alert("Rotate!")
+            return;
+    }
 
     const ship = charSelector.getCurrentShip();
     document.getElementById("shipSelectorControl").style.display = 'none';
@@ -41,7 +45,8 @@ async function btnStart(e) {
     startBtn.style.display = "none"
     e.preventDefault()
     canvas.style.display = ""
-    new Game(canvas,
+
+    const launch = () => new Game(canvas,
             _username,
             socket,
             guest,
@@ -49,4 +54,11 @@ async function btnStart(e) {
             isSmartphone,
             ship,
             shipsManager);
+
+    if (!isSmartphone) {
+        launch()
+    } else {
+        canvas.style.backgroundColor = "#000"
+        canvas.requestFullscreen().then(launch)
+    }
 }
