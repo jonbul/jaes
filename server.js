@@ -19,13 +19,10 @@ try {
 
 const https = require('https').createServer(options, app);
 const io = require('socket.io').listen(https);
-//io.attach(serverHttps);
 
 
 const http = require('http');
 http.createServer((req, res) => {
-    //console.log(req.headers)
-    //console.log(req.headers['host'])
     let host;
     if (/^(\d+\.\d+\.\d+\.\d+):3001$/.test(location.host)) {
         host = req.headers['host'].replace(/^(\d+\.\d+\.\d+\.\d+):3001$/, "$1:3000")
@@ -33,7 +30,6 @@ http.createServer((req, res) => {
         host = req.headers['host']
     }
     const Location = "https://" + host + req.url;
-    //console.log("Redirecting to: " + Location)
     res.writeHead(301, { Location });
     res.end();
 }).listen(3001);
