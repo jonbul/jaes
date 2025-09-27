@@ -25,16 +25,27 @@ module.exports = (app, io, mongoose) => {
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
-                credits: user ? user.credits :0 || 0,
-                isAdmin: sUser.admin,
-                canvasWidth: resolutions[currentResolution].width,
-                canvasHeight: resolutions[currentResolution].height,
-                allowedPlayerTypes,
-                allowedPlayerType,
+                isAdmin: sUser.admin
             });
         } else {
             res.redirect('/');
         }
+    });
+    
+    app.get('/game/data', async (req, res) => {
+        req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
+        
+        const sUser = req.session.passport ? req.session.passport.user : {};
+
+        const user = sUser ? await User.findOne({ username: sUser.username }) : {};
+        res.send({
+            title: 'Game',
+            username: sUser.username || '',
+            credits: user ? user.credits :0 || 0,
+            canvasWidth: resolutions[currentResolution].width,
+            canvasHeight: resolutions[currentResolution].height,
+            guestsAllowed: allowedPlayerType === allowedPlayerTypes.All
+        });
     });
 
     app.get('/game/userShips', async (req, res) => {
