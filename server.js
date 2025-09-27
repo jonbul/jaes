@@ -24,7 +24,7 @@ const io = require('socket.io').listen(https);
 const http = require('http');
 http.createServer((req, res) => {
     let host;
-    if (/^(\d+\.\d+\.\d+\.\d+):3001$/.test(location.host)) {
+    if (/^(\d+\.\d+\.\d+\.\d+):3001$/.test(req.headers['host'])) {
         host = req.headers['host'].replace(/^(\d+\.\d+\.\d+\.\d+):3001$/, "$1:3000")
     } else {
         host = req.headers['host']
