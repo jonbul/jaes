@@ -20,7 +20,7 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS } from './constants.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
@@ -455,8 +455,31 @@ class Game {
             this.context.rotate(globalRotation)
             this.context.translate(-translateX, -translateY)
         }
-        if (this.bulletCharging)
+        if (this.bulletCharging) {
+            console.log("bulletCharging " + this.bulletCharging)
             this.chargingBar.draw(this.context, this.bulletCharging);
+            //Overflow
+            const chargingTime = (Date.now() - this.bulletCharging) / 1000;
+            const chargeOverflow = Math.min(chargingTime - CHARGE_TIME, CHARGE_TIME_OVERFLOW);
+            if (chargeOverflow > 0) {
+                const maxRadius = Math.max(this.player.height, this.player.width) / 2
+                const radius = chargeOverflow * maxRadius / CHARGE_TIME_OVERFLOW;
+                new Arc(this.player.x, this.player.y, radius, "#ffffff50")
+                    .draw(this.context, {
+                        x: this.player.width / 2,
+                        y: this.player.height / 2
+                    })
+                if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
+                    this.bulletCharging=null;
+                    this.io.emit('player hit', {
+                        bulletId: null,
+                        playerId: this.player.socketId,
+                        from: this.player.socketId,
+                        bulletCharge: this.player.life
+                    });
+                }
+            }
+        }
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
 
@@ -796,7 +819,9 @@ class Game {
         const bullet = this.player.createBullet();
         const msg = this.player.getCenteredPosition();
 
-        const bulletCharge = Math.min(Math.ceil((Date.now() - this.bulletCharging) / 1000), 10);
+        const chargingTime = Math.ceil((Date.now() - this.bulletCharging) / 1000);
+
+        const bulletCharge = Math.min(chargingTime, CHARGE_TIME) * (10 / CHARGE_TIME);
         bullet.bulletCharge = bulletCharge;
 
         msg.bullet = bullet.getSortDetails(bulletCharge);

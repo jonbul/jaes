@@ -176,8 +176,6 @@ class ChargingBar {
     constructor(player, context) {
         this.player = player;
 
-        const canvas = context.canvas;
-
         const width = context.canvas.width / 20;
         const height = width / 5;
         
