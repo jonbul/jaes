@@ -456,10 +456,12 @@ class Game {
             this.context.translate(-translateX, -translateY)
         }
         if (this.bulletCharging) {
-            this.chargingBar.draw(this.context, this.bulletCharging);
+            const chargingTimeSec = (Date.now() - this.bulletCharging) / 1000;
+            const chargeRate = Math.min(1, chargingTimeSec / CHARGE_TIME);
+
+            this.chargingBar.draw(this.context, chargeRate);
             //Overflow
-            const chargingTime = (Date.now() - this.bulletCharging) / 1000;
-            const chargeOverflow = Math.min(chargingTime - CHARGE_TIME, CHARGE_TIME_OVERFLOW);
+            const chargeOverflow = Math.min(chargingTimeSec - CHARGE_TIME, CHARGE_TIME_OVERFLOW);
             if (chargeOverflow > 0) {
                 const maxRadius = Math.max(this.player.height, this.player.width) / 2
                 const radius = chargeOverflow * maxRadius / CHARGE_TIME_OVERFLOW;
@@ -469,7 +471,7 @@ class Game {
                         y: this.player.height / 2
                     })
                 if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
-                    this.bulletCharging=null;
+                    this.bulletCharging = null;
                     this.io.emit('player hit', {
                         bulletId: null,
                         playerId: this.player.socketId,
