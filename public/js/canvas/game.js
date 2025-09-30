@@ -183,8 +183,8 @@ class Game {
         const explossion = new Animation({
             frames: explossionFrames.frames,
             layer: explossionFrames.layer,
-            x: this.players[msg.playerId].x,
-            y: this.players[msg.playerId].y,
+            x: this.players[msg.playerId].x + this.players[msg.playerId].width / 2,
+            y: this.players[msg.playerId].y + this.players[msg.playerId].height / 2,
             width: 100,
             height: 100
         });
@@ -456,7 +456,6 @@ class Game {
             this.context.translate(-translateX, -translateY)
         }
         if (this.bulletCharging) {
-            console.log("bulletCharging " + this.bulletCharging)
             this.chargingBar.draw(this.context, this.bulletCharging);
             //Overflow
             const chargingTime = (Date.now() - this.bulletCharging) / 1000;
@@ -537,7 +536,7 @@ class Game {
         /****************************** */
         const rotationAxis = {}
         const player = this.player;
-        if (window.debug) {
+        if (localStorage.getItem("debug")) {
             rotationAxis.x = player.x + player.width / 2;
             rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
@@ -550,7 +549,7 @@ class Game {
             const distance = parseInt(this.player.getDistanceToPlayer(target));
             const inScope = distance < this.canvas.width * 1.5;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
-                if (window.debug) {
+                if (localStorage.getItem("debug")) {
                     /****************************** */
                     const rotationAxis2 = {
                         x: target.x + target.width / 2,

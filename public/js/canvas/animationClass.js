@@ -39,22 +39,22 @@ class Animation {
 
 
 function getExplossionFrames() {
-    const arc1 = new Arc(50, 50, 0, '#ff0000');
-    const arc2 = new Arc(25, 25, 0, '#ff0000');
-    const arc3 = new Arc(25, 75, 0, '#ff0000');
-    const arc4 = new Arc(75, 25, 0, '#ff0000');
-    const arc5 = new Arc(75, 75, 0, '#ff0000');
+    const arc1 = new Arc(0, 0, 0, '#ff0000');
+    const arc2 = new Arc(-25, -25, 0, '#ff0000');
+    const arc3 = new Arc(-25, 25, 0, '#ff0000');
+    const arc4 = new Arc(25, -25, 0, '#ff0000');
+    const arc5 = new Arc(25, 25, 0, '#ff0000');
     const shapes = [arc1, arc2, arc3, arc4, arc5];
     const layer = new Layer('', shapes);
-    const incArc = (e) => e.radius++;
+    const incArc = (e, increment) => e.radius+=increment;
     const toWhite = (e) => e.backgroundColor = '#ffffff';
     const toRed = (e) => e.backgroundColor = '#ff0000';
-    const incArcWhite = (e) => {
-        incArc(e);
+    const incArcWhite = (e, increment) => {
+        incArc(e, increment);
         toWhite(e);
     }
-    const incArcRed = (e) => {
-        incArc(e);
+    const incArcRed = (e, increment) => {
+        incArc(e, increment);
         toRed(e);
     }
     const restart = () => {
@@ -65,21 +65,20 @@ function getExplossionFrames() {
         arc5.radius = 0;
     }
     const frames = [[restart]];
+    const increment = 1;
 
     for(let i = 0; i < 49; i++) {
-        addActionInFrame(i*10, incArcRed.bind(null, arc1)) ;
-        addActionInFrame(i*10 + 5, incArcWhite.bind(null, arc1)) ;
-    }
+        addActionInFrame(i*10, incArcRed.bind(null, arc1, increment)) ;
+        addActionInFrame(i*10 + 5, incArcWhite.bind(null, arc1, increment)) ;
 
-    for(let i = 0; i < 49; i++) {
         addActionInFrame(i*10 + 5, toRed.bind(null, arc2)) ;
-        addActionInFrame(i*10, incArcWhite.bind(null, arc2)) ;
+        addActionInFrame(i*10, incArcWhite.bind(null, arc2, increment)) ;
         addActionInFrame(i*10 + 5, toRed.bind(null, arc3)) ;
-        addActionInFrame(i*10, incArcWhite.bind(null, arc3)) ;
+        addActionInFrame(i*10, incArcWhite.bind(null, arc3, increment)) ;
         addActionInFrame(i*10 + 5, toRed.bind(null, arc4)) ;
-        addActionInFrame(i*10, incArcWhite.bind(null, arc4)) ;
+        addActionInFrame(i*10, incArcWhite.bind(null, arc4, increment)) ;
         addActionInFrame(i*10 + 5, toRed.bind(null, arc5)) ;
-        addActionInFrame(i*10, incArcWhite.bind(null, arc5)) ;
+        addActionInFrame(i*10, incArcWhite.bind(null, arc5, increment)) ;
     }
 
     return {layer, frames}
