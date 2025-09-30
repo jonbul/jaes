@@ -20,7 +20,7 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS } from './constants.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from './constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
@@ -183,8 +183,8 @@ class Game {
         const explossion = new Animation({
             frames: explossionFrames.frames,
             layer: explossionFrames.layer,
-            x: this.players[msg.playerId].x,
-            y: this.players[msg.playerId].y,
+            x: this.players[msg.playerId].x + this.players[msg.playerId].width / 2,
+            y: this.players[msg.playerId].y + this.players[msg.playerId].height / 2,
             width: 100,
             height: 100
         });
@@ -455,8 +455,32 @@ class Game {
             this.context.rotate(globalRotation)
             this.context.translate(-translateX, -translateY)
         }
-        if (this.bulletCharging)
-            this.chargingBar.draw(this.context, this.bulletCharging);
+        if (this.bulletCharging) {
+            const chargingTimeSec = (Date.now() - this.bulletCharging) / 1000;
+            const chargeRate = Math.min(1, chargingTimeSec / CHARGE_TIME);
+
+            this.chargingBar.draw(this.context, chargeRate);
+            //Overflow
+            const chargeOverflow = Math.min(chargingTimeSec - CHARGE_TIME, CHARGE_TIME_OVERFLOW);
+            if (chargeOverflow > 0) {
+                const maxRadius = Math.max(this.player.height, this.player.width) / 2
+                const radius = chargeOverflow * maxRadius / CHARGE_TIME_OVERFLOW;
+                new Arc(this.player.x, this.player.y, radius, "#ffffff50")
+                    .draw(this.context, {
+                        x: this.player.width / 2,
+                        y: this.player.height / 2
+                    })
+                if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
+                    this.bulletCharging = null;
+                    this.io.emit('player hit', {
+                        bulletId: null,
+                        playerId: this.player.socketId,
+                        from: this.player.socketId,
+                        bulletCharge: this.player.life
+                    });
+                }
+            }
+        }
 
         this.isSmartphone ? this.drawRadarSmartphone() : this.drawRadar();
 
@@ -514,7 +538,7 @@ class Game {
         /****************************** */
         const rotationAxis = {}
         const player = this.player;
-        if (window.debug) {
+        if (localStorage.getItem("debug")) {
             rotationAxis.x = player.x + player.width / 2;
             rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
@@ -527,7 +551,7 @@ class Game {
             const distance = parseInt(this.player.getDistanceToPlayer(target));
             const inScope = distance < this.canvas.width * 1.5;
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
-                if (window.debug) {
+                if (localStorage.getItem("debug")) {
                     /****************************** */
                     const rotationAxis2 = {
                         x: target.x + target.width / 2,
@@ -796,7 +820,9 @@ class Game {
         const bullet = this.player.createBullet();
         const msg = this.player.getCenteredPosition();
 
-        const bulletCharge = Math.min(Math.ceil((Date.now() - this.bulletCharging) / 1000), 10);
+        const chargingTime = Math.ceil((Date.now() - this.bulletCharging) / 1000);
+
+        const bulletCharge = Math.min(chargingTime, CHARGE_TIME) * (10 / CHARGE_TIME);
         bullet.bulletCharge = bulletCharge;
 
         msg.bullet = bullet.getSortDetails(bulletCharge);

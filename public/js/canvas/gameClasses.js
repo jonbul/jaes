@@ -176,8 +176,6 @@ class ChargingBar {
     constructor(player, context) {
         this.player = player;
 
-        const canvas = context.canvas;
-
         const width = context.canvas.width / 20;
         const height = width / 5;
         
@@ -191,13 +189,12 @@ class ChargingBar {
         this.bar = new Rect(x, y, 0, height, '#ff0000', '#000000', 0, 0)
     }
 
-    draw(context, bulletChargeTs) {
-        if (!bulletChargeTs) return;
+    draw(context, chargeRate) {
+        if (!chargeRate) return;
         
         const player = this.player;
-        const width = player.width;
 
-        const barWidth = (Date.now() - bulletChargeTs) * width / 10000;
+        const barWidth = this.border.width * chargeRate;
         this.bar.width = Math.min(barWidth, this.border.width);
         
         const options = {x: player.x, y: player.y};
