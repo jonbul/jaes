@@ -1,6 +1,6 @@
 const PaintingProject = require('../model/paintingProject');
 
-const CONTROLLER = '/paintingBoard'
+const CONTROLLER = '/paintingBoard2'
 module.exports = (app) => {
     app.get(CONTROLLER, async (req, res) => {
         const id = req.query.id;
@@ -12,7 +12,7 @@ module.exports = (app) => {
         let user;
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;
-            res.render('paintingBoard/paintingBoard', {
+            res.render('paintingBoard2/paintingBoard2', {
                 title: 'PaintingBoard',
                 username: user.username,
                 isAdmin: user.admin,

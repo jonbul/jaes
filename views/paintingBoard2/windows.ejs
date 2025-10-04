@@ -1,0 +1,83 @@
+<!--TOOLS-->
+<span class="window" id="toolsWindow" style="vertical-align: top; top: 30px; left: 200px;" rowspan="2">
+    <span class="windowBar">Tools</span><br>
+    <span class="windowContent">
+        Width<br>
+        <input type="number" id="boardW" min="0" /><br>
+        Height<br>
+        <input type="number" id="boardH" min="0" /><br>
+        Vertical Grid<br>
+        <input type="number" id="gridV" value="20" min="0" /><br>
+        Horizontal Grid<br>
+        <input type="number" id="gridH" value="20" min="0" /><br>
+
+        <input type="checkbox" id="followGrid" value="true">Draw on grid<br>
+
+        <span id="toolList">
+            <input type="radio" name="action" value="rect" checked="true">Rect<input type="Number" min="0"
+                id="rectRotate" value="0" style="width: 50px;"><br>
+            <input type="radio" name="action" value="arc">Circle<br>
+            <input type="radio" name="action" value="semiarc">Semi Circle<br>
+            <input type="radio" name="action" value="ellipse">Ellipse<br>
+            <input type="radio" name="action" value="line">Line<br>
+            <input type="radio" name="action" value="poligon">Poligon<br>
+            <input type="radio" name="action" value="pencil">Pencil<br>
+            <input type="radio" name="action" value="closedpencil">Closed Pencil<br>
+            <input type="radio" name="action" value="rubber">Rubber<br>
+            <input type="radio" name="action" value="colorpicker">ColorPicker<br>
+            <input type="file" value="Load Local Image" onchange="loadImage(this)" multiple /><br>
+        </span>
+        <br>
+        MousePos<br><input type="text" id="txtMousePos" /><br>
+        <input type="text" id="txtPressedKey" /><br>
+    </span>
+</span>
+<!--COLOR-->
+<span class="window" style=" top: 30px; left: 200px;">
+    <span class="windowBar">Color</span><br>
+    <span class="windowContent">
+        <table>
+            <tr>
+                <td>
+                    R<input type="range" id="colorRed" min="0" max="255" style="orient:vertical;" value="0"
+                        onchange="getColor()" /><br>
+                    G<input type="range" id="colorGreen" min="0" max="255" style="orient:vertical;" value="0"
+                        onchange="getColor()" /><br>
+                    B<input type="range" id="colorBlue" min="0" max="255" style="orient:vertical;" value="0"
+                        onchange="getColor()" /><br>
+                    A<input type="range" id="colorAlpha" min="0" max="100" style="orient:vertical;" value="100"
+                        onchange="getColor()" /><br>
+                </td>
+                <td id="colorResult" style="width: 20px; mouse: pointer">
+                    <input type="color" id="backgroundColor" onchange="setColor(this.value)" />
+                </td>
+            </tr>
+        </table>
+        <input type="color" id="borderColor" />
+        <input type="Number" id="borderWidth" min="0" value="1" style="width: 50px;" />Border Width<br>
+        <input type="Button" id="btnBgColor" value="Set BackGround Color" style="width:100%;" onclick="setBgColor()" />
+    </span>
+</span>
+<!--LAYERS-->
+<span class="window" id="layerWindow" style="top: 30px; left: 1600px;">
+    <span class="windowBar">Layers</span><br>
+    <span class="windowContent">
+        <span style="display: block; min-height: 200px;">
+            <ul style="list-style-type: none;" id="enabledLayersList"></ul>
+        </span>
+        <canvas id="layerExampleCanvas"></canvas>
+    </span>
+</span>
+<!--ELEMENTS-->
+<span class="window" id="elemWindow" style="top: 450px; left:1000px;">
+    <span class="windowBar">Elements</span><br>
+    <span class="windowContent">
+        <select size="1" value="0" id="layerList" onchange="redoElemTable()"></select>
+        <button type="button" class="fa fa-plus" id="createLayer"></button><br>
+
+        <!--span style="border-style: ridge; display: block; max-height: 600px;"-->
+        <!--table id="elemsEditorTable"></table-->
+        <div style="list-style-type: none;" id="shapeList"></div>
+        <!--/span-->
+    </span>
+</span>
