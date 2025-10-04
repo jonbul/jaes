@@ -26,24 +26,28 @@
     height: auto;
 }
 
-.list-group-item {
+.shapeItem {
     align-items: center;
     display: flex;
     padding: 0;
 }
 
-.list-group-item > div {
+.shapeItem.active {
+    background-color: #747fd6;
+}
+
+.shapeItem > div {
     align-items: center;
     display: flex;
 }
 
-.list-group-item > .moveShapesBlock {
+.shapeItem > .moveShapesBlock {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.list-group-item > .moveShapesBlock > button {
+.shapeItem button {
     background-color: #00000000;
    border-style: none; 
    padding: 5 0;
