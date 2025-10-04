@@ -26,7 +26,7 @@ class PaintingBoard {
         this.context = canvas.getContext('2d');
         window.context = this.context;
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
-        this.scale = 1;
+        this.scale = 100;
 
         this.menus = {
             backgroundColor: document.getElementById('backgroundColor'),
@@ -119,8 +119,8 @@ class PaintingBoard {
     loadEvents() {
         this.setResizeObserver();
         this.resolutionChangeEvent();
-        this.menus.resolution.height.addEventListener('change', this.resolutionChangeEvent.bind(this));
-        this.menus.resolution.width.addEventListener('change', this.resolutionChangeEvent.bind(this));
+        this.menus.resolution.height.addEventListener('input', this.resolutionChangeEvent.bind(this));
+        this.menus.resolution.width.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
@@ -154,14 +154,13 @@ class PaintingBoard {
     onCanvasWheel(evt) {
         evt.stopImmediatePropagation();
         evt.preventDefault()
-        const currentPos = this.getCurrentPos(evt);
-        const res = this.menus.resolution;
         if( evt.deltaY < 0) {
-            this.scale *= 2;
+            this.scale += 5;
         } else {
-            this.scale /= 2;
+            this.scale -= 5;
         }
-        this.resolutionChangeEvent();
+        this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
+        this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
     }
     loadColorEvents() {
         this.menus.backgroundColor.addEventListener('input', this.updateBgColor.bind(this));
@@ -362,8 +361,6 @@ class PaintingBoard {
             currentPos = new ClickXY({ x, y });
         }
 
-        currentPos.x /= this.scale; // Ajusta por el escalado
-        currentPos.y /= this.scale;
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
