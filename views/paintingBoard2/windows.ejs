@@ -14,16 +14,16 @@
         <input type="checkbox" id="followGrid" value="true">Draw on grid<br>
 
         <span id="toolList">
-            <input type="radio" name="action" value="rect" checked="true">Rect<input type="Number" min="0"
+            <input type="radio" name="action" value="Rect" checked="true">Rect<input type="Number" min="0"
                 id="rectRotate" value="0" style="width: 50px;"><br>
-            <input type="radio" name="action" value="arc">Circle<br>
-            <input type="radio" name="action" value="semiarc">Semi Circle<br>
-            <input type="radio" name="action" value="ellipse">Ellipse<br>
-            <input type="radio" name="action" value="line">Line<br>
-            <input type="radio" name="action" value="poligon">Poligon<br>
-            <input type="radio" name="action" value="pencil">Pencil<br>
-            <input type="radio" name="action" value="closedpencil">Closed Pencil<br>
-            <input type="radio" name="action" value="rubber">Rubber<br>
+            <input type="radio" name="action" value="Arc">Circle<br>
+            <input type="radio" name="action" value="Semiarc">Semi Circle<br>
+            <input type="radio" name="action" value="Ellipse">Ellipse<br>
+            <input type="radio" name="action" value="Line">Line<br>
+            <input type="radio" name="action" value="Polygon">Poligon<br>
+            <input type="radio" name="action" value="Pencil">Pencil<br>
+            <input type="radio" name="action" value="Abstract">Abstract<br>
+            <input type="radio" name="action" value="Rubber">Rubber<br>
             <input type="radio" name="action" value="colorpicker">ColorPicker<br>
             <input type="file" value="Load Local Image" onchange="loadImage(this)" multiple /><br>
         </span>
@@ -39,17 +39,13 @@
         <table>
             <tr>
                 <td>
-                    R<input type="range" id="colorRed" min="0" max="255" style="orient:vertical;" value="0"
-                        onchange="getColor()" /><br>
-                    G<input type="range" id="colorGreen" min="0" max="255" style="orient:vertical;" value="0"
-                        onchange="getColor()" /><br>
-                    B<input type="range" id="colorBlue" min="0" max="255" style="orient:vertical;" value="0"
-                        onchange="getColor()" /><br>
-                    A<input type="range" id="colorAlpha" min="0" max="100" style="orient:vertical;" value="100"
-                        onchange="getColor()" /><br>
+                    R<input type="range" id="colorRed" min="0" max="255" value="0" /><br>
+                    G<input type="range" id="colorGreen" min="0" max="255" value="0" /><br>
+                    B<input type="range" id="colorBlue" min="0" max="255" value="0" /><br>
+                    A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
                 </td>
-                <td id="colorResult" style="width: 20px; mouse: pointer">
-                    <input type="color" id="backgroundColor" onchange="setColor(this.value)" />
+                <td id="colorResult" style="width: 20px; cursor: pointer">
+                    <input type="color" id="backgroundColor"/>
                 </td>
             </tr>
         </table>
@@ -68,11 +64,12 @@
         <canvas id="layerExampleCanvas"></canvas>
     </span>
 </span>
+
 <!--ELEMENTS-->
 <span class="window" id="elemWindow" style="top: 450px; left:1000px;">
     <span class="windowBar">Elements</span><br>
     <span class="windowContent">
-        <select size="1" value="0" id="layerList" onchange="redoElemTable()"></select>
+        <select size="1" value="0" id="layerList"></select>
         <button type="button" class="fa fa-plus" id="createLayer"></button><br>
 
         <!--span style="border-style: ridge; display: block; max-height: 600px;"-->

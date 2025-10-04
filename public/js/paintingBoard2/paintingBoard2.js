@@ -29,7 +29,11 @@ class PaintingBoard {
         this.scale = 1;
 
         this.menus = {
-            background: document.getElementById('backgroundColor'),
+            backgroundColor: document.getElementById('backgroundColor'),
+            colorRed: document.getElementById('colorRed'),
+            colorGreen: document.getElementById('colorGreen'),
+            colorBlue: document.getElementById('colorBlue'),
+            opacity: document.getElementById('colorAlpha'),
             borderColor: document.getElementById('borderColor'),
             borderWidth: document.getElementById('borderWidth'),
             followGrid: document.getElementById('followGrid'),
@@ -38,7 +42,6 @@ class PaintingBoard {
             gridH: document.getElementById('gridH'),
             layerList: document.getElementById('layerList'),
             layerExampleCanvas: document.getElementById('layerExampleCanvas'),
-            opacity: document.getElementById('colorAlpha'),
             resolution: {
                 height: document.getElementById('boardH'),
                 width: document.getElementById('boardW')
@@ -161,17 +164,43 @@ class PaintingBoard {
         this.resolutionChangeEvent();
     }
     loadColorEvents() {
-        this.menus.background.addEventListener('change', this.updateBgColor.bind(this));
-        this.menus.opacity.addEventListener('change', this.updateBgColor.bind(this));
+        this.menus.backgroundColor.addEventListener('input', this.updateBgColor.bind(this));
+        this.menus.opacity.addEventListener('input', this.updateBgColor.bind(this));
+
+        this.menus.colorRed.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+        this.menus.colorGreen.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+        this.menus.colorBlue.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+
         this.updateBgColor();
     }
     updateBgColor() {
-        const coloSplitted = this.menus.background.value.match(/\w{2}/g);
+        const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
         const r = parseInt(coloSplitted[0], 16);
         const g = parseInt(coloSplitted[1], 16);
         const b = parseInt(coloSplitted[2], 16);
         const a = this.menus.opacity.value;
         this.menus.bgColor = `rgba(${r},${g},${b},${a})`;
+
+        this.menus.colorRed.value = r; 
+        this.menus.colorGreen.value = g;
+        this.menus.colorBlue.value = b;
+    }
+    updateBgColorFromRadio() {
+        const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
+        const r = this.menus.colorRed.value;
+        const g = this.menus.colorGreen.value;
+        const b = this.menus.colorBlue.value;
+        const a = this.menus.opacity.value;
+        const bgColor = `rgba(${r},${g},${b},${a})`;
+        this.menus.bgColor = bgColor;
+        this.menus.backgroundColor.value = `#${this.toHex(r)+this.toHex(g)+this.toHex(b)}`;
+    }
+    toHex(n) {
+        let r = parseInt(n).toString(16);
+        if (r.length === 1) {
+            r = "0" + r;
+        }
+        return r;
     }
     loadLayerComponentsEvents() {
 
@@ -207,7 +236,9 @@ class PaintingBoard {
         this.updateShapeList();
     }
     createLayer() {
-        const nLayer = new Layer(document.getElementById('newLayerName').value);
+        //const layername = document.getElementById('newLayerName').value
+        const layername = prompt("Layer name")
+        const nLayer = new Layer(layername);
         this.layers.push(nLayer);
 
         const option = document.createElement('option');
@@ -215,7 +246,7 @@ class PaintingBoard {
         option.innerHTML = nLayer.name;
         this.menus.layerList.appendChild(option);
 
-        $('#newLayerModal').modal('hide')
+        //document.getElementById('newLayerModal').modal('hide')
     }
     removeLayer(layerList) {
         if (this.layers.length === 1) return;
@@ -375,7 +406,7 @@ class PaintingBoard {
         if (evt.target === this.canvas && this.selectedTool === CONST.COLORPICKER) {
             const colorData = this.getCurrentPositionColor(evt);
 
-            this.menus.background.value = colorData.hex;
+            this.menus.backgroundColor.value = colorData.hex;
             this.menus.opacity.value = colorData.alpha;
 
 
