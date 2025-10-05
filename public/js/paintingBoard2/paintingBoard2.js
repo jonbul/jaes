@@ -98,7 +98,7 @@ class PaintingBoard {
 
             try {
                 if (!layer.error)
-                layer.draw(this.context);
+                    layer.draw(this.context);
             } catch (e) {
                 layer.error = true;
                 console.error(`Error drawing layer '${layer.name}'`)
@@ -268,9 +268,9 @@ class PaintingBoard {
         //document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
         //this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
         this.layerChange();
-        this.refreshLayerManager();
+        this.loadLayerManager();
     }
-    refreshLayerManager() {
+    loadLayerManager() {
         console.log("refreshLayerManager")
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
@@ -279,6 +279,7 @@ class PaintingBoard {
             const layerBlock = document.createElement("div");
             layerBlock.classList.add("layersManager_layer");
             layersManager.appendChild(layerBlock);
+            layerBlock.layer = layer;
 
             const layerHead = document.createElement("div");
             layerHead.classList.add("layersManager_layer_head")
@@ -288,6 +289,7 @@ class PaintingBoard {
             layerTitle.classList.add("layersManager_layer_title")
             layerTitle.innerText = layer.name
             layerHead.appendChild(layerTitle);
+            layerTitle.addEventListener("mousedown", layersManager_layerMousedown.bind(this, layer, layerBlock));
 
             // region layer buttons
 
@@ -295,19 +297,19 @@ class PaintingBoard {
             tools.classList.add("layersManager_layer_tools")
             layerHead.appendChild(tools);
 
-            const layerUpBtn = document.createElement("button");
-            layerUpBtn.classList.add("btnLayerUp") 
+            /*const layerUpBtn = document.createElement("button");
+            layerUpBtn.classList.add("btnLayerUp")
             layerUpBtn.innerHTML = "&#708;"
             tools.appendChild(layerUpBtn);
             const layerDownBtn = document.createElement("button");
             layerDownBtn.classList.add("btnLayerDown")
             layerDownBtn.innerHTML = "&#709;";
-            tools.appendChild(layerDownBtn);
+            tools.appendChild(layerDownBtn);*/
 
             const layerHideBtn = document.createElement("button");
             layerHideBtn.classList.add("btnLayerHide")
             layerHideBtn.innerHTML = "&#9215;";
-            layerHideBtn.style.color ="#000"
+            layerHideBtn.style.color = "#000"
             tools.appendChild(layerHideBtn);
 
             const layerRename = document.createElement("button");
@@ -332,20 +334,144 @@ class PaintingBoard {
                 const shapeHead = document.createElement("div");
                 shapeHead.classList.add("layersManager_shapes_head")
                 layerShapesBlock.appendChild(shapeHead);
+                shapeHead.shape = shape;
+                shapeHead.layer = layer;
+                shapeHead.addEventListener("mouseover", layersManager_shapeOver.bind(this, shape));
 
                 const shapeTitle = document.createElement("span");
                 shapeTitle.classList.add("layersManager_shapes_title")
                 shapeTitle.innerText = shape.desc
                 shapeHead.appendChild(shapeTitle);
+                shapeTitle.addEventListener("mousedown", layersManager_shapeMousedown.bind(this, shape, shapeHead));
 
 
-            // region shape buttons
+                // region shape buttons
 
 
 
-            // endregion shape buttons
+                // endregion shape buttons
             }
         }
+
+        function layersManager_shapeMousedown(shape, shapeDiv, evt) {
+            if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+            console.log(evt.target);
+            this.movingShape = { shape, div: shapeDiv };
+            shapeDiv.previousParent = shapeDiv.parentElement;
+            shapeDiv.previousNextSibling = shapeDiv.nextSibling;
+            shapeDiv.classList.add("moving");
+
+            document.body.appendChild(shapeDiv);
+
+            shapeDiv.style.left = evt.clientX + 20 + "px";
+            shapeDiv.style.top = evt.clientY + 20 + "px";
+        }
+        function layersManager_layerMousedown(layer, layerDiv, evt) {
+            if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+            console.log(evt.target);
+            this.movingLayer = { layer, div: layerDiv };
+            layerDiv.previousParent = layerDiv.parentElement;
+            layerDiv.previousNextSibling = layerDiv.nextSibling;
+            layerDiv.classList.add("moving");
+
+            document.body.appendChild(layerDiv);
+
+            layerDiv.style.left = evt.clientX + 20 + "px";
+            layerDiv.style.top = evt.clientY + 20 + "px";
+            console.log({ target: evt.target, currentTarget: evt.currentTarget });
+
+
+        }
+        function layersManager_shapeOver(shape, evt) {
+            const color = shape.backgroundColor;
+            shape.backgroundColor = "rgba(255,255,0,0.5)"
+            shape.draw(this.context);
+            shape.backgroundColor = color;
+        }
+    }
+    layersManagerMouseUp(evt) {
+        const movingShape = this.movingShape;
+        const movingLayer = this.movingLayer;
+        this.movingShape = undefined;
+        this.movingLayer = undefined;
+        console.log({ target: evt.target, currentTarget: evt.currentTarget })
+        if (!movingLayer & !movingShape) return;
+
+        const layersManager = this.menus.layersManager;
+
+        if (movingShape) {
+            movingShape.div.classList.remove("moving");
+
+            let overElem = evt.target;
+            try {
+                while (!overElem.classList.contains("layersManager_shapes_head")
+                    && !overElem.classList.contains("layersManager_layer_shapes")
+                    && overElem !== layersManager) {
+                    overElem = overElem.parentElement
+                }
+            } catch (e) {
+                overElem = layersManager;
+            }
+            if (overElem === layersManager) {
+                if (movingShape.div.previousNextSibling) {
+                    const previousNextSibling = movingShape.div.previousNextSibling;
+                    previousNextSibling.parentElement.insertBefore(movingShape.div, previousNextSibling)
+                } else {
+                    movingShape.div.previousParent.appendChild(movingShape.div)
+                }
+            } else if (overElem.classList.contains("layersManager_layer_shapes")) {
+                if (!overElem.childElementCount) {
+                    overElem.appendChild(movingShape.div)
+                } else {
+                    overElem.insertBefore(movingShape.div, overElem.firstElementChild)
+                }
+            } else {
+                overElem.parentElement.insertBefore(movingShape.div, overElem)
+            }
+
+
+        } else if (movingLayer) {
+            movingLayer.div.classList.remove("moving");
+
+            let overElem = evt.target;
+            try {
+                while (!overElem.classList.contains("layersManager_layer")
+                    && overElem != layersManager) {
+                    overElem = overElem.parentElement
+                }
+            } catch (e) {
+                overElem = layersManager;
+            }
+            if (overElem === layersManager) {
+                if (movingLayer.div.previousNextSibling) {
+                    const previousNextSibling = movingLayer.div.previousNextSibling;
+                    previousNextSibling.parentElement.insertBefore(movingLayer.div, previousNextSibling)
+                } else {
+                    movingLayer.div.previousParent.appendChild(movingLayer.div)
+                }
+            } else {
+                overElem.parentElement.insertBefore(movingLayer.div, overElem)
+            }
+        }
+        console.log("mouseUp", evt)
+    }
+    layersManagerMouseMove(evt) {
+        const movingShape = this.movingShape;
+        const movingLayer = this.movingLayer;
+        if (!movingLayer & !movingShape) return
+
+        const x = evt.clientX + 20;
+        const y = evt.clientY + 20;
+
+        if (movingShape) {
+            movingShape.div.style.left = x + "px"
+            movingShape.div.style.top = y + "px"
+        } else if (movingLayer) {
+            movingLayer.div.style.left = x + "px"
+            movingLayer.div.style.top = y + "px"
+        }
+
+
     }
     visibleLayerChange() {
         //this.currentLayer.visible = this.menus.visibleLayer.checked;
@@ -366,7 +492,7 @@ class PaintingBoard {
         new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
         try {
             this.currentLayer.draw(context);
-        } catch(e) {
+        } catch (e) {
             console.error(`Error drawing layer '${this.currentLayer.name}'`)
             console.error(e)
         }
@@ -495,6 +621,8 @@ class PaintingBoard {
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
+        document.body.addEventListener('mouseup', this.layersManagerMouseUp.bind(this));
+        document.body.addEventListener('mousemove', this.layersManagerMouseMove.bind(this));
         this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
@@ -762,7 +890,7 @@ class PaintingBoard {
             case 0:
                 arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
                 drawingObj.extraShapes = [
-                    new Line(arc.x, arc.y, currentPos.x, currentPos.y, '#000000', 1)];
+                    new Line([{ x: arc.x, y: arc.y }, { x: currentPos.x, y: currentPos.y }], '#000000', 1)];
                 break;
             case 1:
                 let c1 = currentPos.x - arc.x;//Base

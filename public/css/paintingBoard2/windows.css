@@ -56,10 +56,18 @@
                 border: solid 1px black;
                 margin: 5px;
 
+                .layersManager_layer_title,
+                .layersManager_shapes_title {
+                    cursor: grabbing;
+                }
+
                 >.layersManager_layer {
-                    &:first-child .btnLayerUp{
+                    background-color: #fff;
+
+                    &:first-child .btnLayerUp {
                         display: none;
                     }
+
                     &:last-child .btnLayerDown {
                         display: none;
                     }
@@ -70,12 +78,15 @@
                         padding: 5px;
                         border-bottom: solid 1px black;
                         border-top: solid 1px black;
+
                         >.layersManager_layer_tools {
                             display: inline-block;
                             float: right;
+
                             >button {
                                 background-color: #fff;
                                 border-style: none;
+
                                 &:hover {
                                     background-color: #cccccc;
                                 }
@@ -83,25 +94,54 @@
                                 &.btnShowShapes:before {
                                     content: "\002B"
                                 }
+
                                 &.btnShowShapes.open:before {
                                     content: "\002D" !important
                                 }
                             }
                         }
                     }
+
                     >.layersManager_layer_shapes {
+                        min-height: 30px;
 
                         >.layersManager_shapes_head {
 
                             padding: 5px 20px;
-                            
-                            >span.layersManager_shapes_title {
 
-                            }
+                            >span.layersManager_shapes_title {}
                         }
                     }
                 }
             }
         }
+    }
+}
+
+.layersManager_layer {
+    background-color: #fff;
+
+    &.moving {
+        width: 200px;
+        z-index: 9999999;
+        position: absolute;
+
+        .layersManager_layer_tools,
+        .layersManager_layer_shapes {
+            display: none;
+        }
+
+    }
+}
+
+.layersManager_shapes_head {
+    background-color: #fff;
+
+    &.moving {
+        width: 200px;
+        z-index: 9999999;
+        position: absolute;
+
+
     }
 }
