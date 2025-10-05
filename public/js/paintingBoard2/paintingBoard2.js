@@ -95,7 +95,14 @@ class PaintingBoard {
     canvasInterval() {
         this.clear();
         this.layers.forEach(layer => {
-            layer.draw(this.context);
+
+            try {
+                if (!layer.error)
+                layer.draw(this.context);
+            } catch (e) {
+                layer.error = true;
+                console.error(`Error drawing layer '${layer.name}'`)
+            }
         });
         if (this.drawingObj) {
             this.drawingObj.shape.draw(this.context);
@@ -278,7 +285,11 @@ class PaintingBoard {
         this.menus.layerExampleCanvas.height = this.canvas.height;
         const context = this.menus.layerExampleCanvas.getContext('2d');
         new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
-        this.currentLayer.draw(context);
+        try {
+            this.currentLayer.draw(context);
+        } catch(e) {
+            console.error(`Error drawing layer '${this.currentLayer.name}'`)
+        }
         this.updateShapeList();
     }
     createLayer() {
@@ -347,7 +358,11 @@ class PaintingBoard {
             shapeList.appendChild(block);
             const canvas = block.querySelector('canvas');
             const context = canvas.getContext('2d');
-            if (shape.drawResized) shape.drawResized(context, 100);
+            try {
+                if (shape.drawResized) shape.drawResized(context, 100);
+            } catch (e) {
+                console.error(`Error drawing shape '${shape.name}' in layer '${currentLayer.name}'`)
+            }
 
             block.addEventListener('click', this.selectShape.bind(this))
             block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
