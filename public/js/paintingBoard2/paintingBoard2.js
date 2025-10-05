@@ -8,7 +8,6 @@ import {
     Ellipse,
     Layer,
     Line,
-    MasterJasonFile,
     Pencil,
     Picture,
     Polygon,
@@ -19,7 +18,7 @@ import {
 
 class PaintingBoard {
     constructor(canvas, project) {
-        //set max Height
+        //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
         canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20}px)`
 
@@ -263,7 +262,7 @@ class PaintingBoard {
         });
         this.menus.layerList.addEventListener('change', this.layerChange.bind(this));
         document.getElementById('createLayer').addEventListener('click', this.createLayer.bind(this));
-        //document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this, this.menus.layerList));
+        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this, this.menus.layerList));
         //document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
         //document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
         //this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));

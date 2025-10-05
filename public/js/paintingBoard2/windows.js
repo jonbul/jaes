@@ -14,6 +14,7 @@ import {
         Picture,
         Polygon*/
 } from '../canvas/canvasClasses.js';
+import CONST from '../canvas/constants.js';
 
 let eventsLoaded = false;
 let bool_movingWin = false;
@@ -130,19 +131,17 @@ function getMousePosition(evt) {
 }
 
 function clickedWinBar(evt) {
-    //evt.target.style.zIndex = 1;
-
-    bool_movingWin = true;
-    selWin = this.parentElement;
-    selWin.style.zIndex = 2;
-    selWin.difX = evt.clientX - parseInt(selWin.style.left)
-    selWin.difY = evt.clientY - parseInt(selWin.style.top)
+    if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+        bool_movingWin = true;
+        selWin = this.parentElement;
+        selWin.style.zIndex = 2;
+        selWin.difX = evt.clientX - parseInt(selWin.style.left)
+        selWin.difY = evt.clientY - parseInt(selWin.style.top)
+    }
 }
 
-function movedWinBar(evt, win) {
+function movedWinBar(evt) {
     if (bool_movingWin) {
-        let w = parseInt(window.getComputedStyle(selWin).width);
-        let h = parseInt(window.getComputedStyle(selWin).height);
         let mouse = getMousePosition(evt)
         mouse = new ClickXY({ x: parseInt(evt.clientX), y: parseInt(evt.clientY) });
 
@@ -156,7 +155,7 @@ function movedWinBar(evt, win) {
     }
 }
 
-function unclickedWinBar(evt) {
+function unclickedWinBar() {
     bool_movingWin = false;
     selElem = null;
     if (bool_movingWin) {
