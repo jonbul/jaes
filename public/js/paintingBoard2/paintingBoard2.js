@@ -303,6 +303,13 @@ class PaintingBoard {
             layerDownBtn.classList.add("btnLayerDown")
             layerDownBtn.innerHTML = "&#709;";
             tools.appendChild(layerDownBtn);
+
+            const layerHideBtn = document.createElement("button");
+            layerHideBtn.classList.add("btnLayerHide")
+            layerHideBtn.innerHTML = "&#9215;";
+            layerHideBtn.style.color ="#000"
+            tools.appendChild(layerHideBtn);
+
             const layerRename = document.createElement("button");
             layerRename.classList.add("btnLayerEdit")
             layerRename.innerHTML = "&#128393;";
@@ -330,6 +337,13 @@ class PaintingBoard {
                 shapeTitle.classList.add("layersManager_shapes_title")
                 shapeTitle.innerText = shape.desc
                 shapeHead.appendChild(shapeTitle);
+
+
+            // region shape buttons
+
+
+
+            // endregion shape buttons
             }
         }
     }
