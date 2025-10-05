@@ -538,9 +538,45 @@ class Picture {
         var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
         context.rotate(this.rotation);
-        context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        context.drawImage(this.img, this.x, this.y, this.width, this.height);
         context.rotate(2 * Math.PI - this.rotation);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+        }
+    }
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.rotate(this.rotation);
+        let resizedWidth;
+        let resizedHeight;
+        if (this.width > this.height) {
+            resizedWidth = resizeSize;
+            resizedHeight = this.height * resizedWidth / this.width;
+        } else {
+            resizedHeight = resizeSize;
+            resizedWidth = this.width * resizedHeight / this.height;
+        }
+        //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        context.drawImage(this.img, this.x, this.y, resizedWidth, resizedHeight);
+        context.rotate(2 * Math.PI - this.rotation);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+        }
     }
     getImageFromSrc(src) {
         var image = new Image();
@@ -575,9 +611,11 @@ class Text {
 }
 
 class ClickXY {
-    constructor(data ={x: 0,y: 0}, round = 1) {
-        this.x = Math.round(data.x / round) * round;
-        this.y = Math.round(data.y / round) * round;
+    constructor(data ={x: 0,y: 0}, round = {x: 1,y: 1}) {
+        const roundX = round.x || 1;
+        const roundY = round.y || 1;
+        this.x = Math.round(data.x / roundX) * roundX;
+        this.y = Math.round(data.y / roundY) * roundY;
     }
     getSimple() {
         return {

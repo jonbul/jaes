@@ -323,7 +323,7 @@ class PaintingBoard {
 
         let currentPos;
         if (this.menus.followGrid.checked && this.menus.gridSize.value) {
-            currentPos = new ClickXY({ x, y }, this.menus.gridSize.value);
+            currentPos = new ClickXY({ x, y }, {x: this.menus.gridSize.value, y: this.menus.gridSize.value});
         } else {
             currentPos = new ClickXY({ x, y });
         }

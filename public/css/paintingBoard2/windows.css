@@ -1,27 +1,38 @@
-.window {
-    position: absolute;
-    /*top:220px;
+.paintingBoardWindowed {
+    .window {
+        position: absolute;
+        /*top:220px;
                 left: 160px;*/
-    background-color: white;
-    border-style: ridge;
-    /*min-height: 200px;*/
-    z-index: 1;
-    max-height: 1000px;
-    cursor: default;
-}
+        background-color: white;
+        border-style: ridge;
+        /*min-height: 200px;*/
+        z-index: 1;
+        max-height: 1000px;
+        cursor: default;
+    }
 
-.windowBar {
-    background-color: blue;
-    width: 100%;
-    display: inline-block;
-    color: white;
-}
+    .windowBar {
+        background-color: blue;
+        width: 100%;
+        display: inline-block;
+        color: white;
+    }
 
-.windowContent {
-    resize: vertical;
-    overflow-y: scroll;
-    border-style: ridge;
-    display: block;
-    min-height: 200px;
-    background-color: #cccccc;
+    .windowContent {
+        resize: vertical;
+        overflow-y: scroll;
+        border-style: ridge;
+        display: block;
+        min-height: 200px;
+        background-color: #cccccc;
+    }
+
+
+    label[for=imageLoader] {
+        cursor: pointer
+    }
+
+    #imageLoader {
+        display: none;
+    }
 }

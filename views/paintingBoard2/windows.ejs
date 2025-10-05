@@ -25,7 +25,8 @@
             <input type="radio" name="action" value="Abstract">Abstract<br>
             <input type="radio" name="action" value="Rubber">Rubber<br>
             <input type="radio" name="action" value="colorpicker">ColorPicker<br>
-            <input type="file" value="Load Local Image" onchange="loadImage(this)" multiple /><br>
+            <label for="imageLoader">LoadImage</label>
+            <input id="imageLoader" type="file" value="Load Local Image" multiple style="display:none" /><br>
         </span>
         <br>
         MousePos<br><input type="text" id="txtMousePos" /><br>
@@ -55,7 +56,7 @@
     </span>
 </span>
 <!--LAYERS-->
-<span class="window" id="layerWindow" style="top: 30px; left: 1600px;">
+<span class="window" id="layerWindow" style="top: 30px; left: 600px;">
     <span class="windowBar">Layers</span><br>
     <span class="windowContent">
         <span style="display: block; min-height: 200px;">

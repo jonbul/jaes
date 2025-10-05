@@ -48,6 +48,7 @@ class PaintingBoard {
             rotation: document.getElementById('rectRotate'),
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
+            imageLoader:  document.getElementById('imageLoader'),
         }
 
         if (!project) {
@@ -126,8 +127,42 @@ class PaintingBoard {
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-
+        this.menus.imageLoader.addEventListener("change", this.loadImageEvent.bind(this))
     }
+    loadImageEvent(evt) {
+        const f = evt.target.files[0];
+        const reader = new FileReader();
+        reader.onloadend = loadImageFinish.bind(this)
+        reader.readAsDataURL(f);
+        const _this = this;
+
+        function loadImageFinish(evt) {
+
+            const img = new Image();
+
+            img.onload = imageOnload.bind(null, img)
+
+            img.src = evt.target.result;
+        }
+
+        function imageOnload (img) {
+                const elem = new Picture();
+                elem.img = img;
+                elem.src = img.src;
+                elem.sx = 0;
+                elem.sy = 0;
+                elem.sw = img.width;
+                elem.sh = img.height;
+                elem.x = 0;
+                elem.y = 0;
+                elem.width = img.width;
+                elem.height = img.height;
+                _this.getCurrentLayer().shapes.push(elem);
+                _this.updateShapeList();
+                _this.menus.imageLoader.value = ""
+            }
+    }
+
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
@@ -217,8 +252,11 @@ class PaintingBoard {
     visibleLayerChange() {
         //this.currentLayer.visible = this.menus.visibleLayer.checked;
     }
+    getCurrentLayer() {
+        return this.layers[this.menus.layerList.selectedIndex]
+    }
     layerChange() {
-        this.currentLayer = this.layers[this.menus.layerList.selectedIndex];
+        this.currentLayer = this.getCurrentLayer();
 
         //this.menus.visibleLayer.checked = this.currentLayer.visible;
         this.layerPreviewUpdate();
@@ -297,7 +335,7 @@ class PaintingBoard {
             shapeList.appendChild(block);
             const canvas = block.querySelector('canvas');
             const context = canvas.getContext('2d');
-            shape.drawResized(context);
+            if (shape.drawResized) shape.drawResized(context, 100);
 
             block.addEventListener('click', this.selectShape.bind(this))
             block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
@@ -351,6 +389,7 @@ class PaintingBoard {
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
         this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
+        this.canvas.addEventListener('contextmenu', event => event.preventDefault());
     }
     getCurrentPos(evt) {
         const rect = this.canvas.getBoundingClientRect(); // Obtiene la posición del canvas
@@ -365,49 +404,59 @@ class PaintingBoard {
         x *= (this.canvas.width / styleWidth);
 
 
-        let currentPos;
-        if (this.menus.followGrid.checked && this.menus.gridSize.value) {
-            currentPos = new ClickXY({ x, y }, this.menus.gridSize.value);
-        } else {
-            currentPos = new ClickXY({ x, y });
-        }
+        const round = !this.menus.followGrid.checked ? undefined : {
+            x: this.menus.gridH.value || 1,
+            y: this.menus.gridV.value || 1,
+        };
+        let currentPos = new ClickXY({ x, y }, round);
 
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
-        const currentPos = this.getCurrentPos(evt);
-        switch (this.selectedTool) {
-            case CONST.PENCIL:
-            case CONST.ABSTRACT:
-            case CONST.ARC:
-            case CONST.ELLIPSE:
-            case CONST.RECT:
-            case CONST.LINE:
-            case CONST.RUBBER:
-                this.drawingObj = {
-                    tool: this.selectedTool,
-                    shape: undefined,
-                    startPosition: currentPos,
-                    initialized: false
-                };
-                this.canvasMouseMove(evt);
-                break;
-            case CONST.POLYGON:
-                if (!this.drawingObj) {
+        if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+            const currentPos = this.getCurrentPos(evt);
+            switch (this.selectedTool) {
+                case CONST.PENCIL:
+                case CONST.ABSTRACT:
+                case CONST.ARC:
+                case CONST.ELLIPSE:
+                case CONST.RECT:
+                case CONST.LINE:
+                case CONST.RUBBER:
                     this.drawingObj = {
                         tool: this.selectedTool,
-                        shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
+                        shape: undefined,
                         startPosition: currentPos,
+                        initialized: false
                     };
+                    this.canvasMouseMove(evt);
+                    break;
+                case CONST.POLYGON:
+                    if (!this.drawingObj) {
+                        this.drawingObj = {
+                            tool: this.selectedTool,
+                            shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
+                            startPosition: currentPos,
+                        };
+                    }
+                    const points = this.drawingObj.shape.points;
+                    if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
+                        points.push(currentPos);
+                    }
+                    break;
+                case CONST.SEMIARC:
+                    this.semiArcClick(evt);
+                    break;
+            }
+        } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
+            evt.stopImmediatePropagation();
+            evt.stopPropagation();
+            if (this.drawingObj && this.selectedTool === CONST.POLYGON) {
+                this.drawingObj.shape.points.pop();
+                if (!this.drawingObj.shape.points.length) {
+                    this.drawingObj = null;
                 }
-                const points = this.drawingObj.shape.points;
-                if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
-                    points.push(currentPos);
-                }
-                break;
-            case CONST.SEMIARC:
-                this.semiArcClick(evt);
-                break;
+            }
         }
     }
     canvasMouseUp(evt) {
