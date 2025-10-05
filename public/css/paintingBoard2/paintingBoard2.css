@@ -3,6 +3,17 @@
     user-select: none; 
 }
 
+#projectTitleBar {
+    padding-left:5px;
+    #projectName {
+        border-top: none;
+        border-right: none;
+        border-radius: 100px;
+        outline: none;
+    }
+
+}
+
 #canvasBorder {
     display: inline-block;
     max-width: 100% !important;

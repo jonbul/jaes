@@ -1,5 +1,6 @@
 "use strict";
 import CanvasClasses from './canvas/canvasClasses.js';
+import CONST from './canvas/constants.js';
 function asyncRequest({ url, method, data }) {
     return new Promise((resolve, reject) => {
         var xhttp = new XMLHttpRequest();
@@ -71,6 +72,12 @@ function parseLayers(layers) {
             const newShape = new CanvasClasses[shape.desc]();
             for (const prop in shape) newShape[prop] = shape[prop]
             newLayer.shapes.push(newShape);
+
+            if (CONST.PICTURE === newShape.desc) {
+                const img = new Image()
+                img.src = newShape.src;
+                newShape.img = img;
+            }
         });
         parsedLayers.push(newLayer);
     });

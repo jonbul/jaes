@@ -35,6 +35,7 @@ const PaintingProject = new mongoose.Schema(
                     borderColor: String,
                     borderWidth: Number,
                     rotation: Number,
+                    src: String,
                 }]
             }
         ]

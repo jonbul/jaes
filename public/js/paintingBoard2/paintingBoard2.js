@@ -102,6 +102,7 @@ class PaintingBoard {
             } catch (e) {
                 layer.error = true;
                 console.error(`Error drawing layer '${layer.name}'`)
+                console.error(e)
             }
         });
         if (this.drawingObj) {
@@ -289,6 +290,7 @@ class PaintingBoard {
             this.currentLayer.draw(context);
         } catch(e) {
             console.error(`Error drawing layer '${this.currentLayer.name}'`)
+            console.error(e)
         }
         this.updateShapeList();
     }
@@ -362,6 +364,7 @@ class PaintingBoard {
                 if (shape.drawResized) shape.drawResized(context, 100);
             } catch (e) {
                 console.error(`Error drawing shape '${shape.name}' in layer '${currentLayer.name}'`)
+                console.error(e)
             }
 
             block.addEventListener('click', this.selectShape.bind(this))
@@ -806,7 +809,7 @@ class PaintingBoard {
             height: this.menus.resolution.height.value
         };
         const response = await asyncRequest({
-            url: '/paintingBoard/save',
+            url: '/paintingBoard2/save',
             method: 'POST',
             data: {
                 id: this.projectId,
