@@ -19,6 +19,11 @@ import {
 
 class PaintingBoard {
     constructor(canvas, project) {
+        //set max Height
+        const canvasBorder = document.getElementById("canvasBorder");
+        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20}px)`
+
+
         windowsEvents(canvas);
         window._this = this;
         this.canvas = canvas;
@@ -48,7 +53,7 @@ class PaintingBoard {
             rotation: document.getElementById('rectRotate'),
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
-            imageLoader:  document.getElementById('imageLoader'),
+            imageLoader: document.getElementById('imageLoader'),
         }
 
         if (!project) {
@@ -145,22 +150,27 @@ class PaintingBoard {
             img.src = evt.target.result;
         }
 
-        function imageOnload (img) {
-                const elem = new Picture();
-                elem.img = img;
-                elem.src = img.src;
-                elem.sx = 0;
-                elem.sy = 0;
-                elem.sw = img.width;
-                elem.sh = img.height;
-                elem.x = 0;
-                elem.y = 0;
-                elem.width = img.width;
-                elem.height = img.height;
-                _this.getCurrentLayer().shapes.push(elem);
-                _this.updateShapeList();
-                _this.menus.imageLoader.value = ""
+        function imageOnload(img) {
+            if (confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)) {
+                _this.menus.resolution.width.value = img.width;
+                _this.menus.resolution.height.value = img.height;
+                (_this.resolutionChangeEvent.bind(_this))();
             }
+            const elem = new Picture();
+            elem.img = img;
+            elem.src = img.src;
+            elem.sx = 0;
+            elem.sy = 0;
+            elem.sw = img.width;
+            elem.sh = img.height;
+            elem.x = 0;
+            elem.y = 0;
+            elem.width = img.width;
+            elem.height = img.height;
+            _this.getCurrentLayer().shapes.push(elem);
+            _this.updateShapeList();
+            _this.menus.imageLoader.value = ""
+        }
     }
 
     resolutionChangeEvent() {
@@ -184,15 +194,17 @@ class PaintingBoard {
         }
     }
     onCanvasWheel(evt) {
-        evt.stopImmediatePropagation();
-        evt.preventDefault()
-        if (evt.deltaY < 0) {
-            this.scale += 5;
-        } else {
-            this.scale -= 5;
+        if (evt.ctrlKey) {
+            evt.stopImmediatePropagation();
+            evt.preventDefault()
+            if (evt.deltaY < 0) {
+                this.scale += 5;
+            } else {
+                this.scale -= 5;
+            }
+            this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
+            this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         }
-        this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
-        this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
     }
     loadColorEvents() {
         this.menus.backgroundColor.addEventListener('input', this.updateBgColor.bind(this));
