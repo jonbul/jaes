@@ -53,6 +53,7 @@ class PaintingBoard {
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
+            layersManager: document.getElementById('layersManager'),
         }
 
         if (!project) {
@@ -267,6 +268,70 @@ class PaintingBoard {
         //document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
         //this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
         this.layerChange();
+        this.refreshLayerManager();
+    }
+    refreshLayerManager() {
+        console.log("refreshLayerManager")
+        const layersManager = this.menus.layersManager;
+        layersManager.innerHTML = "";
+
+        for (let layer of this.layers) {
+            const layerBlock = document.createElement("div");
+            layerBlock.classList.add("layersManager_layer");
+            layersManager.appendChild(layerBlock);
+
+            const layerHead = document.createElement("div");
+            layerHead.classList.add("layersManager_layer_head")
+            layerBlock.appendChild(layerHead);
+
+            const layerTitle = document.createElement("span");
+            layerTitle.classList.add("layersManager_layer_title")
+            layerTitle.innerText = layer.name
+            layerHead.appendChild(layerTitle);
+
+            // region layer buttons
+
+            const tools = document.createElement("div");
+            tools.classList.add("layersManager_layer_tools")
+            layerHead.appendChild(tools);
+
+            const layerUpBtn = document.createElement("button");
+            layerUpBtn.classList.add("btnLayerUp") 
+            layerUpBtn.innerHTML = "&#708;"
+            tools.appendChild(layerUpBtn);
+            const layerDownBtn = document.createElement("button");
+            layerDownBtn.classList.add("btnLayerDown")
+            layerDownBtn.innerHTML = "&#709;";
+            tools.appendChild(layerDownBtn);
+            const layerRename = document.createElement("button");
+            layerRename.classList.add("btnLayerEdit")
+            layerRename.innerHTML = "&#128393;";
+            tools.appendChild(layerRename);
+            const btnDeleteLayer = document.createElement("button");
+            btnDeleteLayer.classList.add("btnDeleteLayer")
+            btnDeleteLayer.innerHTML = "&Cross;";
+            tools.appendChild(btnDeleteLayer);
+            const btnShowShapes = document.createElement("button");
+            btnShowShapes.classList.add("btnShowShapes")
+            tools.appendChild(btnShowShapes);
+            // endregion layer buttons
+
+
+            const layerShapesBlock = document.createElement("div");
+            layerShapesBlock.classList.add("layersManager_layer_shapes")
+            layerBlock.appendChild(layerShapesBlock);
+
+            for (let shape of layer.shapes) {
+                const shapeHead = document.createElement("div");
+                shapeHead.classList.add("layersManager_shapes_head")
+                layerShapesBlock.appendChild(shapeHead);
+
+                const shapeTitle = document.createElement("span");
+                shapeTitle.classList.add("layersManager_shapes_title")
+                shapeTitle.innerText = shape.desc
+                shapeHead.appendChild(shapeTitle);
+            }
+        }
     }
     visibleLayerChange() {
         //this.currentLayer.visible = this.menus.visibleLayer.checked;

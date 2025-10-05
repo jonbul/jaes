@@ -2,13 +2,9 @@
 <span class="window" id="toolsWindow" style="vertical-align: top; top: 30px; left: 200px;" rowspan="2">
     <span class="windowBar">Tools</span><br>
     <span class="windowContent">
-        Width<br>
-        <input type="number" id="boardW" min="0" /><br>
-        Height<br>
-        <input type="number" id="boardH" min="0" /><br>
-        Vertical Grid<br>
-        <input type="number" id="gridV" value="20" min="0" /><br>
-        Horizontal Grid<br>
+        Grid<br>
+        <input type="number" id="gridV" value="20" min="0" />
+        x
         <input type="number" id="gridH" value="20" min="0" /><br>
 
         <input type="checkbox" id="followGrid" value="true">Draw on grid<br>
@@ -59,9 +55,7 @@
 <span class="window" id="layerWindow" style="top: 30px; left: 60px;">
     <span class="windowBar">Layers</span><br>
     <span class="windowContent">
-        <span style="display: block; min-height: 200px;">
-            <ul style="list-style-type: none;" id="enabledLayersList"></ul>
-        </span>
+        <div style="list-style-type: none;" id="layersManager"></div>
         <canvas id="layerExampleCanvas"></canvas>
     </span>
 </span>

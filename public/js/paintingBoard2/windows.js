@@ -86,12 +86,12 @@ function windowsEvents(canvas) {
     for (let window of document.getElementsByClassName("window")) {
         window.style.zIndex = i++;
         windows.push(window)
+        window.onmousedown = clickedWin;
     }
 
 
     let windowBars = document.getElementsByClassName("windowBar");
     for (let windowBar of windowBars) {
-        //let win = windowBar.parentElement;
         windowBar.parentElement.style.zIndex = 1;
         windowBar.onmousedown = clickedWinBar;
     }
@@ -115,8 +115,6 @@ function getMousePosition(evt) {
     } else if (evt.touches[0].clientX != undefined) {
         click = new ClickXY(parseInt(evt.touches[0].clientX - boardL), parseInt(evt.touches[0].clientY - boardT));
     }
-    //click.x += scrollX;//document.scrollingElement.scrollLeft;
-    //click.y += scrollY;//document.scrollingElement.scrollTop;
     if (document.getElementById("followGrid").checked && !bool_movingWin) {
         let gridH = document.getElementById("gridH").value;
         let gridV = document.getElementById("gridV").value;
@@ -133,7 +131,12 @@ function getMousePosition(evt) {
 function clickedWinBar(evt) {
     if (evt.button === CONST.MOUSE_KEYS.LEFT) {
         bool_movingWin = true;
-        selWin = this.parentElement;
+    }
+}
+
+function clickedWin(evt) {
+    if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+        selWin = evt.currentTarget;
         selWin.style.zIndex = 2;
         selWin.difX = evt.clientX - parseInt(selWin.style.left)
         selWin.difY = evt.clientY - parseInt(selWin.style.top)
