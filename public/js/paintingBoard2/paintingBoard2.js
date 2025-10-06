@@ -15,6 +15,7 @@ import {
     Rubber,
     Text
 } from '../canvas/canvasClasses.js';
+import LayerManager  from './layerManager.js'
 
 class PaintingBoard {
     constructor(canvas, project) {
@@ -275,202 +276,7 @@ class PaintingBoard {
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
 
-        for (let layer of this.layers) {
-            const layerBlock = document.createElement("div");
-            layerBlock.classList.add("layersManager_layer");
-            layersManager.appendChild(layerBlock);
-            layerBlock.layer = layer;
-
-            const layerHead = document.createElement("div");
-            layerHead.classList.add("layersManager_layer_head")
-            layerBlock.appendChild(layerHead);
-
-            const layerTitle = document.createElement("span");
-            layerTitle.classList.add("layersManager_layer_title")
-            layerTitle.innerText = layer.name
-            layerHead.appendChild(layerTitle);
-            layerTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, layer, layerBlock));
-
-            // region layer buttons
-
-            const tools = document.createElement("div");
-            tools.classList.add("layersManager_layer_tools")
-            layerHead.appendChild(tools);
-
-            /*const layerUpBtn = document.createElement("button");
-            layerUpBtn.classList.add("btnLayerUp")
-            layerUpBtn.innerHTML = "&#708;"
-            tools.appendChild(layerUpBtn);
-            const layerDownBtn = document.createElement("button");
-            layerDownBtn.classList.add("btnLayerDown")
-            layerDownBtn.innerHTML = "&#709;";
-            tools.appendChild(layerDownBtn);*/
-
-            const layerHideBtn = document.createElement("button");
-            layerHideBtn.classList.add("btnLayerHide")
-            layerHideBtn.innerHTML = "&#9215;";
-            layerHideBtn.style.color = "#000"
-            tools.appendChild(layerHideBtn);
-
-            const layerRename = document.createElement("button");
-            layerRename.classList.add("btnLayerEdit")
-            layerRename.innerHTML = "&#128393;";
-            tools.appendChild(layerRename);
-            layerRename.addEventListener('click', editLayer.bind(this.layer))
-            const btnDeleteLayer = document.createElement("button");
-            btnDeleteLayer.classList.add("btnDeleteLayer")
-            btnDeleteLayer.innerHTML = "&Cross;";
-            tools.appendChild(btnDeleteLayer);
-            const btnShowShapes = document.createElement("button");
-            btnShowShapes.classList.add("btnShowShapes")
-            tools.appendChild(btnShowShapes);
-            // endregion layer buttons
-
-
-            const layerShapesBlock = document.createElement("div");
-            layerShapesBlock.classList.add("layersManager_layer_shapes")
-            layerBlock.appendChild(layerShapesBlock);
-
-            for (let shape of layer.shapes) {
-                const shapeHead = document.createElement("div");
-                shapeHead.classList.add("layersManager_shapes_head")
-                layerShapesBlock.appendChild(shapeHead);
-                shapeHead.shape = shape;
-                shapeHead.layer = layer;
-                shapeHead.addEventListener("mouseover", layersManager_shapeOver.bind(this, shape));
-
-                const shapeTitle = document.createElement("span");
-                shapeTitle.classList.add("layersManager_shapes_title")
-                shapeTitle.innerText = shape.name || shape.desc
-                shapeTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, shape, shapeHead));
-
-                shapeHead.appendChild(shapeTitle);
-
-
-                // region shape buttons
-
-
-
-                // endregion shape buttons
-            }
-        }
-
-        function editLayer(layer) {
-            const newName = prompt("New layer name", layer.name);
-            if (newName) layer.name = newName;
-        }
-
-        function editShape(layer) {
-            const newName = prompt("New layer name", layer.name);
-            if (newName) layer.name = newName;
-        }
-
-        function layersManager_layerShapeMousedown(object, div, evt) {
-            if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
-            console.log(evt.target);
-            if (object instanceof Layer) {
-                this.movingLayer = { layer: object, div };
-            } else {
-                this.movingShape = { shape: object, div };
-            }
-            div.previousParent = div.parentElement;
-            div.previousNextSibling = div.nextSibling;
-            div.classList.add("moving");
-
-            document.body.appendChild(div);
-
-            div.style.left = evt.clientX + 20 + "px";
-            div.style.top = evt.clientY + 20 + "px";
-        }
-        function layersManager_shapeOver(shape, evt) {
-            const color = shape.backgroundColor;
-            shape.backgroundColor = "rgba(255,255,0,0.5)"
-            shape.draw(this.context);
-            shape.backgroundColor = color;
-        }
-    }
-    layersManagerMouseUp(evt) {
-        const movingShape = this.movingShape;
-        const movingLayer = this.movingLayer;
-        this.movingShape = undefined;
-        this.movingLayer = undefined;
-        console.log({ target: evt.target, currentTarget: evt.currentTarget })
-        if (!movingLayer & !movingShape) return;
-
-        const layersManager = this.menus.layersManager;
-
-        if (movingShape) {
-            movingShape.div.classList.remove("moving");
-
-            let overElem = evt.target;
-            try {
-                while (!overElem.classList.contains("layersManager_shapes_head")
-                    && !overElem.classList.contains("layersManager_layer_shapes")
-                    && overElem !== layersManager) {
-                    overElem = overElem.parentElement
-                }
-            } catch (e) {
-                overElem = layersManager;
-            }
-            if (overElem === layersManager) {
-                if (movingShape.div.previousNextSibling) {
-                    const previousNextSibling = movingShape.div.previousNextSibling;
-                    previousNextSibling.parentElement.insertBefore(movingShape.div, previousNextSibling)
-                } else {
-                    movingShape.div.previousParent.appendChild(movingShape.div)
-                }
-            } else if (overElem.classList.contains("layersManager_layer_shapes")) {
-                if (!overElem.childElementCount) {
-                    overElem.appendChild(movingShape.div)
-                } else {
-                    overElem.insertBefore(movingShape.div, overElem.firstElementChild)
-                }
-            } else {
-                overElem.parentElement.insertBefore(movingShape.div, overElem)
-            }
-
-
-        } else if (movingLayer) {
-            movingLayer.div.classList.remove("moving");
-
-            let overElem = evt.target;
-            try {
-                while (!overElem.classList.contains("layersManager_layer")
-                    && overElem != layersManager) {
-                    overElem = overElem.parentElement
-                }
-            } catch (e) {
-                overElem = layersManager;
-            }
-            if (overElem === layersManager) {
-                if (movingLayer.div.previousNextSibling) {
-                    const previousNextSibling = movingLayer.div.previousNextSibling;
-                    previousNextSibling.parentElement.insertBefore(movingLayer.div, previousNextSibling)
-                } else {
-                    movingLayer.div.previousParent.appendChild(movingLayer.div)
-                }
-            } else {
-                overElem.parentElement.insertBefore(movingLayer.div, overElem)
-            }
-        }
-        console.log("mouseUp", evt)
-    }
-    layersManagerMouseMove(evt) {
-        const movingShape = this.movingShape;
-        const movingLayer = this.movingLayer;
-        if (!movingLayer & !movingShape) return
-
-        const x = evt.clientX + 20;
-        const y = evt.clientY + 20;
-
-        if (movingShape) {
-            movingShape.div.style.left = x + "px"
-            movingShape.div.style.top = y + "px"
-        } else if (movingLayer) {
-            movingLayer.div.style.left = x + "px"
-            movingLayer.div.style.top = y + "px"
-        }
-
+        this.layerManager = new LayerManager(this)
 
     }
     visibleLayerChange() {
@@ -621,8 +427,6 @@ class PaintingBoard {
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
-        document.body.addEventListener('mouseup', this.layersManagerMouseUp.bind(this));
-        document.body.addEventListener('mousemove', this.layersManagerMouseMove.bind(this));
         this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
