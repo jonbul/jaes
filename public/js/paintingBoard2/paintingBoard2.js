@@ -289,7 +289,7 @@ class PaintingBoard {
             layerTitle.classList.add("layersManager_layer_title")
             layerTitle.innerText = layer.name
             layerHead.appendChild(layerTitle);
-            layerTitle.addEventListener("mousedown", layersManager_layerMousedown.bind(this, layer, layerBlock));
+            layerTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, layer, layerBlock));
 
             // region layer buttons
 
@@ -316,6 +316,7 @@ class PaintingBoard {
             layerRename.classList.add("btnLayerEdit")
             layerRename.innerHTML = "&#128393;";
             tools.appendChild(layerRename);
+            layerRename.addEventListener('click', editLayer.bind(this.layer))
             const btnDeleteLayer = document.createElement("button");
             btnDeleteLayer.classList.add("btnDeleteLayer")
             btnDeleteLayer.innerHTML = "&Cross;";
@@ -340,9 +341,10 @@ class PaintingBoard {
 
                 const shapeTitle = document.createElement("span");
                 shapeTitle.classList.add("layersManager_shapes_title")
-                shapeTitle.innerText = shape.desc
+                shapeTitle.innerText = shape.name || shape.desc
+                shapeTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, shape, shapeHead));
+
                 shapeHead.appendChild(shapeTitle);
-                shapeTitle.addEventListener("mousedown", layersManager_shapeMousedown.bind(this, shape, shapeHead));
 
 
                 // region shape buttons
@@ -353,34 +355,32 @@ class PaintingBoard {
             }
         }
 
-        function layersManager_shapeMousedown(shape, shapeDiv, evt) {
-            if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
-            console.log(evt.target);
-            this.movingShape = { shape, div: shapeDiv };
-            shapeDiv.previousParent = shapeDiv.parentElement;
-            shapeDiv.previousNextSibling = shapeDiv.nextSibling;
-            shapeDiv.classList.add("moving");
-
-            document.body.appendChild(shapeDiv);
-
-            shapeDiv.style.left = evt.clientX + 20 + "px";
-            shapeDiv.style.top = evt.clientY + 20 + "px";
+        function editLayer(layer) {
+            const newName = prompt("New layer name", layer.name);
+            if (newName) layer.name = newName;
         }
-        function layersManager_layerMousedown(layer, layerDiv, evt) {
+
+        function editShape(layer) {
+            const newName = prompt("New layer name", layer.name);
+            if (newName) layer.name = newName;
+        }
+
+        function layersManager_layerShapeMousedown(object, div, evt) {
             if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
             console.log(evt.target);
-            this.movingLayer = { layer, div: layerDiv };
-            layerDiv.previousParent = layerDiv.parentElement;
-            layerDiv.previousNextSibling = layerDiv.nextSibling;
-            layerDiv.classList.add("moving");
+            if (object instanceof Layer) {
+                this.movingLayer = { layer: object, div };
+            } else {
+                this.movingShape = { shape: object, div };
+            }
+            div.previousParent = div.parentElement;
+            div.previousNextSibling = div.nextSibling;
+            div.classList.add("moving");
 
-            document.body.appendChild(layerDiv);
+            document.body.appendChild(div);
 
-            layerDiv.style.left = evt.clientX + 20 + "px";
-            layerDiv.style.top = evt.clientY + 20 + "px";
-            console.log({ target: evt.target, currentTarget: evt.currentTarget });
-
-
+            div.style.left = evt.clientX + 20 + "px";
+            div.style.top = evt.clientY + 20 + "px";
         }
         function layersManager_shapeOver(shape, evt) {
             const color = shape.backgroundColor;
