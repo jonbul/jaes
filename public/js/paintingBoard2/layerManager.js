@@ -127,7 +127,6 @@ function editShape(layer) {
 
 function layersManager_layerShapeMousedown(item, div, evt) {
     if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
-    console.log(evt.target);
 
     this.movingItem = { item, div };
 
@@ -151,7 +150,6 @@ function layersManager_shapeOver(shape, evt) {
 function layersManagerMouseUp(evt) {
     const movingItem = this.movingItem;
     this.movingItem = undefined;
-    console.log({ target: evt.target, currentTarget: evt.currentTarget })
     if (!movingItem) return;
 
     const layersManager = this.layersManagerDiv;
@@ -161,11 +159,19 @@ function layersManagerMouseUp(evt) {
 
         let overElem = evt.target;
         try {
-            while (!overElem.classList.contains("layersManager_shapes_head")
-                && !overElem.classList.contains("layersManager_layer_shapes")
-                && !overElem.classList.contains("layersManager_layer")
-                && overElem !== layersManager) {
-                overElem = overElem.parentElement
+            const classToFind = movingItem.div.className;
+            let forceExit = false;
+            while (!overElem.classList.contains(classToFind)
+                && overElem !== layersManager && !forceExit) {
+                
+                    if (classToFind === "layersManager_shapes_head") {
+                    if (overElem.className === "layersManager_layer_shapes") {
+                        forceExit = true;
+                    }
+                } else {
+                    overElem = overElem.parentElement;
+                }
+
             }
         } catch (e) {
             overElem = layersManager;
@@ -187,7 +193,6 @@ function layersManagerMouseUp(evt) {
             overElem.parentElement.insertBefore(movingItem.div, overElem)
         }
     }
-    console.log("mouseUp", evt)
 }
 function layersManagerMouseMove(evt) {
     const movingItem = this.movingItem;
