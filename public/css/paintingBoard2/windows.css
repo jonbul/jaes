@@ -62,9 +62,14 @@
                 }
 
                 >.layersManager_layer {
+
                     background-color: #fff;
 
-                    
+                    &.selected {
+                        >.layersManager_layer_head, >.layersManager_layer_head * {
+                            background-color: #8888ff !important;
+                        }
+                    }
 
 
 
@@ -73,35 +78,7 @@
                         border-bottom: solid 1px black;
                         border-top: solid 1px black;
 
-                        >.layersManager_layer_tools {
-                            display: inline-block;
-                            float: right;
 
-                            >button {
-                                background-color: #fff;
-                                border-style: none;
-                                outline: none;
-
-                                &:hover {
-                                    background-color: #cccccc;
-                                }
-
-                                &.btnShowShapes{
-
-                                    &:before {
-                                        content: "\002B"
-                                    }
-
-                                    &.btnShowSpes.closed:before {
-                                        content: "\002D" !important
-                                    }
-                                    
-                                }
-                                &.btnLayerHide[hide=true] {
-                                    color: #888;
-                                }
-                            }
-                        }
                     }
 
                     >.layersManager_layer_shapes {
@@ -117,6 +94,39 @@
                             padding: 5px 20px;
 
                             >span.layersManager_shapes_title {}
+                        }
+                    }
+
+                    /* All buttons */
+                    .layersManager_layer_tools,
+                    .layersManager_shape_tools {
+                        display: inline-block;
+                        float: right;
+
+                        >button {
+                            background-color: #fff;
+                            border-style: none;
+                            outline: none;
+
+                            &:hover {
+                                background-color: #cccccc;
+                            }
+
+                            &.btnShowShapes {
+
+                                &:before {
+                                    content: "\002B"
+                                }
+
+                                &.btnShowSpes.closed:before {
+                                    content: "\002D" !important
+                                }
+
+                            }
+
+                            &.btnLayerHide[hide=true] {
+                                color: #888;
+                            }
                         }
                     }
                 }

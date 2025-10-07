@@ -7,11 +7,15 @@ class LayerManager {
         this.layers = paintingBoard.layers
         this.layersManagerDiv = paintingBoard.menus.layersManager;
         this.context = paintingBoard.context
+        const exampleCanvas = this.layersManagerDiv.parentElement.querySelector("canvas");
+        this.exampleCanvasContext = exampleCanvas.getContext("2d");
+        this.movingItem = undefined;
 
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
 
         if (this.layers) {
+            this.currentLayer = this.layers[0];
             for (let layer of this.layers) {
                 this.createLayer(layer)
             }
@@ -28,6 +32,9 @@ class LayerManager {
         layerBlock.classList.add("layersManager_layer");
         this.layersManagerDiv.appendChild(layerBlock);
         layerBlock.layer = layer;
+        layerBlock.addEventListener("mousedown", selectLayer.bind(this, layer, this.exampleCanvasContext));
+        layerBlock.classList.toggle("selected", this.currentLayer === layer);
+
 
         const layerHead = document.createElement("div");
         layerHead.classList.add("layersManager_layer_head")
@@ -104,6 +111,25 @@ class LayerManager {
 
         // region shape buttons
 
+        const tools = document.createElement("div");
+        tools.classList.add("layersManager_shape_tools")
+        shapeHead.appendChild(tools);
+
+        // shape visibility toggle button
+
+        // shape rename button
+        const shapeRename = document.createElement("button");
+        shapeRename.classList.add("btnShapeEdit")
+        shapeRename.innerHTML = "&#128393;";
+        tools.appendChild(shapeRename);
+        shapeRename.addEventListener('click', editShape.bind(null, shape, shapeTitle))
+
+        // shape delete button
+        const btnDeleteShape = document.createElement("button");
+        btnDeleteShape.classList.add("btnDeleteShape")
+        btnDeleteShape.innerHTML = "&Cross;";
+        tools.appendChild(btnDeleteShape);
+        btnDeleteShape.addEventListener('click', deleteShape.bind(this, shape, layer.shapes, shapeHead));
 
 
         // endregion shape buttons
@@ -115,10 +141,24 @@ class LayerManager {
     }
 }
 
+// region Layer events functions
+
+function selectLayer(layer, exampleCanvasContext, evt) {
+    if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+    this.paintingBoard.currentLayer = layer;
+    const layersManagerDiv = this.layersManagerDiv;
+    for (let child of layersManagerDiv.children) {
+        child.classList.remove("selected")
+    }
+    evt.currentTarget.classList.add("selected")
+    layer.draw(exampleCanvasContext);
+
+}
+
 function hideLayerShapes(btn, layerShapesBlock) {
     layerShapesBlock.classList.toggle("hidden");
     btn.classList.toggle("closed");
-}    
+}
 
 function deleteLayer(layer, layers, layerBlock) {
     if (confirm("Delete layer " + layer.name + "?")) {
@@ -142,10 +182,44 @@ function editLayer(layer, layerTitle) {
     }
 }
 
-function editShape(layer) {
-    const newName = prompt("New layer name", layer.name);
-    if (newName) layer.name = newName;
+function layerToggleVisible(layer, btn) {
+    layer.visible = !layer.visible;
+    if (layer.visible) {
+        btn.removeAttribute("hide")
+    } else {
+        btn.setAttribute("hide", "true")
+    }
 }
+
+function layersManager_shapeOver(shape, evt) {
+    const color = shape.backgroundColor;
+    shape.backgroundColor = "rgba(255,255,0,0.5)"
+    shape.draw(this.context);
+    shape.backgroundColor = color;
+}
+
+// endregion Layer events functions
+// region Shape events functions
+
+function editShape(shape, shapeTitle) {
+    const newName = prompt("New shape name", shape.name);
+    if (newName) {
+        shape.name = newName;
+        if (shapeTitle) {
+            shapeTitle.innerText = newName;
+        }
+    }
+}
+
+function deleteShape(shape, shapes, shapeBlock) {
+    if (confirm("Delete shape " + shape.name + "?")) {
+        shapes.splice(shapes.indexOf(shape), 1);
+        shapeBlock.remove();
+    }
+}
+
+// endregion Shape events functions
+
 
 function layersManager_layerShapeMousedown(item, div, evt) {
     if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
@@ -160,21 +234,6 @@ function layersManager_layerShapeMousedown(item, div, evt) {
 
     div.style.left = evt.clientX + 20 + "px";
     div.style.top = evt.clientY + 20 + "px";
-}
-function layersManager_shapeOver(shape, evt) {
-    const color = shape.backgroundColor;
-    shape.backgroundColor = "rgba(255,255,0,0.5)"
-    shape.draw(this.context);
-    shape.backgroundColor = color;
-}
-
-function layerToggleVisible(layer, btn) {
-    layer.visible = !layer.visible;
-    if (layer.visible) {
-        btn.removeAttribute("hide")
-    } else {
-        btn.setAttribute("hide", "true")
-    }
 }
 
 
