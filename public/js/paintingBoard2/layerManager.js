@@ -13,12 +13,16 @@ class LayerManager {
 
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
+        this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
+
             for (let layer of this.layers) {
                 this.createLayer(layer)
             }
+
+            this.selectLayer(this.layers[0]);
         }
     }
 
@@ -32,9 +36,10 @@ class LayerManager {
         layerBlock.classList.add("layersManager_layer");
         this.layersManagerDiv.appendChild(layerBlock);
         layerBlock.layer = layer;
-        layerBlock.addEventListener("mousedown", selectLayer.bind(this, layer, this.exampleCanvasContext));
-        layerBlock.classList.toggle("selected", this.currentLayer === layer);
-
+        layerBlock.addEventListener("mousedown", this.selectLayer.bind(this, layer));
+        if (this.currentLayer === layer) {
+            this.selectLayer(layer, { currentTarget: layerBlock, button: CONST.MOUSE_KEYS.LEFT });  
+        }
 
         const layerHead = document.createElement("div");
         layerHead.classList.add("layersManager_layer_head")
@@ -87,14 +92,18 @@ class LayerManager {
         btnShowShapes.addEventListener('click', hideLayerShapes.bind(null, btnShowShapes, layerShapesBlock));
 
         for (let shape of layer.shapes) {
-            layerShapesBlock.appendChild(this.createShape(shape, layer));
+            layerShapesBlock.appendChild(this._createShapeInternal(shape, layer));
         }
         if (this.layers.indexOf(layer) === -1) {
             this.layers.push(layer)
         }
     }
-
-    createShape(shape, layer) {
+    createShape(shape) {
+        const shapeDiv = this._createShapeInternal(shape);
+        this.currentLayerDiv.querySelector(".layersManager_layer_shapes").appendChild(shapeDiv);
+        this.updateExampleCanvas();
+    }
+    _createShapeInternal(shape, layer = this.currentLayer) {
         const shapeHead = document.createElement("div");
         shapeHead.classList.add("layersManager_shapes_head")
         shapeHead.shape = shape;
@@ -139,21 +148,32 @@ class LayerManager {
         }
         return shapeHead
     }
+    selectLayer(layer, evt) {
+        if (!evt || evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+        this.currentLayer = layer;
+        this.currentLayerDiv = evt.currentTarget;
+        const layersManagerDiv = this.layersManagerDiv;
+        for (let child of layersManagerDiv.children) {
+            child.classList.remove("selected")
+        }
+        evt.currentTarget.classList.add("selected")
+
+        this.updateExampleCanvas();
+
+    }
+    updateExampleCanvas() {
+        if (this.currentLayer) {
+            const resolution = this.paintingBoard.menus.resolution;
+
+            this.exampleCanvasContext.canvas.width = resolution.width.value;
+            this.exampleCanvasContext.canvas.height = resolution.height.value;
+            this.currentLayer.draw(this.exampleCanvasContext);
+        }
+    }
 }
 
 // region Layer events functions
 
-function selectLayer(layer, exampleCanvasContext, evt) {
-    if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
-    this.paintingBoard.currentLayer = layer;
-    const layersManagerDiv = this.layersManagerDiv;
-    for (let child of layersManagerDiv.children) {
-        child.classList.remove("selected")
-    }
-    evt.currentTarget.classList.add("selected")
-    layer.draw(exampleCanvasContext);
-
-}
 
 function hideLayerShapes(btn, layerShapesBlock) {
     layerShapesBlock.classList.toggle("hidden");
@@ -191,11 +211,12 @@ function layerToggleVisible(layer, btn) {
     }
 }
 
-function layersManager_shapeOver(shape, evt) {
-    const color = shape.backgroundColor;
-    shape.backgroundColor = "rgba(255,255,0,0.5)"
-    shape.draw(this.context);
-    shape.backgroundColor = color;
+function layersManager_shapeOver(shape) {
+    this.shapeOver = shape;
+}
+
+function layersManager_shapeOut(shape) {
+    this.shapeOver = null;
 }
 
 // endregion Layer events functions

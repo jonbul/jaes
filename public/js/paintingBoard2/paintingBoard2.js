@@ -45,7 +45,6 @@ class PaintingBoard {
             gridV: document.getElementById('gridV'),
             gridH: document.getElementById('gridH'),
             layerList: document.getElementById('layerList'),
-            layerExampleCanvas: document.getElementById('layerExampleCanvas'),
             resolution: {
                 height: document.getElementById('boardH'),
                 width: document.getElementById('boardW')
@@ -114,6 +113,13 @@ class PaintingBoard {
                 });
             }
         }
+        if (this.layerManager.shapeOver) {
+            const shapeOver = this.layerManager.shapeOver;
+            const color = shapeOver.backgroundColor;
+            shapeOver.backgroundColor = "rgba(255,255,0,0.5)"
+            this.layerManager.shapeOver.draw(this.context);
+            shapeOver.backgroundColor = color;
+        }
 
         const gridV = parseInt(this.menus.gridV.value);
         const gridH = parseInt(this.menus.gridH.value);
@@ -138,6 +144,7 @@ class PaintingBoard {
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
+        this.loadLayerManager();
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
@@ -260,16 +267,8 @@ class PaintingBoard {
             const option = document.createElement('option');
             option.setAttribute('name', layer.name);
             option.innerHTML = layer.name;
-            this.menus.layerList.appendChild(option);
         });
-        this.menus.layerList.addEventListener('change', this.layerChange.bind(this));
-        document.getElementById('createLayer').addEventListener('click', this.createLayer.bind(this));
-        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this, this.menus.layerList));
-        //document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
-        //document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
-        //this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
-        this.layerChange();
-        this.loadLayerManager();
+        
     }
     loadLayerManager() {
         console.log("refreshLayerManager")
@@ -278,146 +277,6 @@ class PaintingBoard {
 
         this.layerManager = new LayerManager(this)
 
-    }
-    visibleLayerChange() {
-        //this.currentLayer.visible = this.menus.visibleLayer.checked;
-    }
-    getCurrentLayer() {
-        return this.layers[this.menus.layerList.selectedIndex]
-    }
-    layerChange() {
-        this.currentLayer = this.getCurrentLayer();
-
-        //this.menus.visibleLayer.checked = this.currentLayer.visible;
-        this.layerPreviewUpdate();
-    }
-    layerPreviewUpdate() {
-        this.menus.layerExampleCanvas.width = this.canvas.width;
-        this.menus.layerExampleCanvas.height = this.canvas.height;
-        const context = this.menus.layerExampleCanvas.getContext('2d');
-        new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
-        try {
-            this.currentLayer.draw(context);
-        } catch (e) {
-            console.error(`Error drawing layer '${this.currentLayer.name}'`)
-            console.error(e)
-        }
-        this.updateShapeList();
-    }
-    createLayer() {
-        //const layername = document.getElementById('newLayerName').value
-        const layername = prompt("Layer name")
-        const nLayer = new Layer(layername);
-        this.layers.push(nLayer);
-
-        const option = document.createElement('option');
-        option.setAttribute('name', nLayer.name);
-        option.innerHTML = nLayer.name;
-        this.menus.layerList.appendChild(option);
-
-        //document.getElementById('newLayerModal').modal('hide')
-    }
-    removeLayer(layerList) {
-        if (this.layers.length === 1) return;
-        this.layers.pop(layerList.selectedIndex);
-        layerList.removeChild(layerList.selectedOptions[0]);
-        this.currentLayer = this.layers[0];
-        this.layerPreviewUpdate();
-    }
-    moveUpLayer() {
-        const currentIndex = this.menus.layerList.selectedIndex;
-        if (currentIndex <= 0) return;
-        //Array
-        const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex - 1];
-        this.layers[currentIndex - 1] = tempLayer;
-        //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex], this.menus.layerList[currentIndex - 1]);
-    }
-    moveDownLayer() {
-        const currentIndex = this.menus.layerList.selectedIndex;
-        if (currentIndex >= this.layers.length - 1) return;
-        //Array
-        const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex + 1];
-        this.layers[currentIndex + 1] = tempLayer;
-        //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex + 1], this.menus.layerList[currentIndex]);
-    }
-    updateShapeList() {
-        const shapeList = document.getElementById('shapeList');
-        const currentLayer = this.currentLayer;
-        shapeList.innerHTML = '';
-        currentLayer.shapes.forEach(shape => {
-            const block = document.createElement('div');
-            //block.className = "list-group-item list-group-item-action";
-            block.className = "shapeItem";
-            block.setAttribute('data-toggle', 'list');
-            block.setAttribute('name', 'shape');
-            block.innerHTML = `
-            <div class="moveShapesBlock">
-                <button title="Move Up Shape" class="moveUpShape"><i class="fas fa-chevron-up"></i></button>
-                <button title="Move Down Shape" class="moveDownShape"><i class="fas fa-chevron-down"></i></button>
-            </div>
-            <div class="previewBlock">
-            <canvas width="100" height="100"></canvas>
-            <label class="shapeDesc">${shape.desc}</label>
-            </div>
-            <div class="deleteBlock">
-            <button title="Remove Shape" class="removeShape"><i class="fas fa-trash"></i></button>
-            `;
-
-            shapeList.appendChild(block);
-            const canvas = block.querySelector('canvas');
-            const context = canvas.getContext('2d');
-            try {
-                if (shape.drawResized) shape.drawResized(context, 100);
-            } catch (e) {
-                console.error(`Error drawing shape '${shape.name}' in layer '${currentLayer.name}'`)
-                console.error(e)
-            }
-
-            block.addEventListener('click', this.selectShape.bind(this))
-            block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
-            block.querySelector('.moveUpShape').addEventListener('click', this.moveUpShape.bind(this, shape));
-            block.querySelector('.moveDownShape').addEventListener('click', this.moveDownShape.bind(this, shape));
-
-        });
-    }
-    selectShape(evt) {
-        if (evt.target.classList.contains('active')) {
-            evt.target.classList.remove('active')
-        } else {
-            const shapeList = document.getElementById('shapeList');
-
-            for (let shape of shapeList.children) {
-                shape.classList.remove('active')
-            }
-            evt.target.classList.add('active')
-        }
-    }
-    removeShape(shape, evt) {
-        const index = this.currentLayer.shapes.indexOf(shape);
-        this.currentLayer.shapes.splice(index, 1);
-        this.layerPreviewUpdate();
-    }
-    moveUpShape(shape, evt) {
-        const shapes = this.currentLayer.shapes;
-        const index = shapes.indexOf(shape);
-        if (index === 0) return;
-        const temp = shapes[index];
-        shapes[index] = shapes[index - 1];
-        shapes[index - 1] = temp;
-        this.layerPreviewUpdate();
-    }
-    moveDownShape(shape, evt) {
-        const shapes = this.currentLayer.shapes;
-        const index = shapes.indexOf(shape);
-        if (index === shapes.length - 1) return;
-        const temp = shapes[index];
-        shapes[index] = shapes[index + 1];
-        shapes[index + 1] = temp;
-        this.layerPreviewUpdate();
     }
     toolClickEvent() {
         const selectedTool = this.menus.toolList.querySelector('input:checked')
@@ -550,9 +409,9 @@ class PaintingBoard {
             }
         }
 
-        this.currentLayer.shapes.push(this.drawingObj.shape);
+        /*this.currentLayer.shapes.push(this.drawingObj.shape);*/
+        this.layerManager.createShape(this.drawingObj.shape);
         this.drawingObj = undefined;
-        this.layerChange();
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
@@ -596,7 +455,6 @@ class PaintingBoard {
                 this.currentLayer.shapes.push(shape);
             }
             this.drawingObj = undefined;
-            this.layerChange();
         }
     }
     drawingPencil(evt, drawingObj) {
@@ -767,7 +625,6 @@ class PaintingBoard {
 
                 this.currentLayer.shapes.push(this.drawingObj.shape);
                 this.drawingObj = undefined;
-                this.layerChange();
                 break;
         }
         if (this.drawingObj)
