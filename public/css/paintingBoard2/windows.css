@@ -18,6 +18,15 @@
             color: white;
         }
 
+        #layerWindow_buttons {
+            margin: 5px 0 0 0;
+            padding: 0 5px 5px 5px;
+
+            >input {
+                width: 100%;
+            }
+        }
+
         .windowContent {
             resize: vertical;
             overflow-y: scroll;
@@ -66,7 +75,9 @@
                     background-color: #fff;
 
                     &[selected=true] {
-                        >.layersManager_layer_head, >.layersManager_layer_head * {
+
+                        >.layersManager_layer_head,
+                        >.layersManager_layer_head * {
                             background-color: #8888ff !important;
                         }
                     }
@@ -104,6 +115,8 @@
                         float: right;
 
                         >button {
+                            width: 25px;
+                            height: 25px;
                             background-color: #fff;
                             border-style: none;
                             outline: none;
@@ -118,7 +131,7 @@
                                     content: "\002B"
                                 }
 
-                                &.btnShowSpes.closed:before {
+                                &.closed:before {
                                     content: "\002D" !important
                                 }
 

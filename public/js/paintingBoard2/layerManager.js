@@ -14,6 +14,7 @@ class LayerManager {
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
+        document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -109,6 +110,7 @@ class LayerManager {
         shapeHead.shape = shape;
         shapeHead.layer = layer;
         shapeHead.addEventListener("mouseover", layersManager_shapeOver.bind(this, shape));
+        shapeHead.addEventListener("mouseout", layersManager_shapeOut.bind(this, shape));
 
         const shapeTitle = document.createElement("span");
         shapeTitle.classList.add("layersManager_shapes_title")
@@ -170,6 +172,13 @@ class LayerManager {
             this.currentLayer.draw(this.exampleCanvasContext);
         }
     }
+
+    addNewLayer() {
+        const layer = new Layer("Layer " + (this.layers.length + 1));
+        editLayer(layer);
+        this.createLayer(layer);
+        this.selectLayer(layer, { currentTarget: this.layersManagerDiv.lastChild, button: CONST.MOUSE_KEYS.LEFT });
+    }
 }
 
 // region Layer events functions
@@ -186,9 +195,9 @@ function deleteLayer(layer, layers, layerBlock) {
         layerBlock.remove();
     }
     if (!layers.length) {
-        const layer = new Layer("Layer 1");
-        editLayer(layer);
-        this.createLayer(layer);
+        this.addNewLayer();
+    } else {
+        this.selectLayer(layers[layers.length - 1], { currentTarget: this.layersManagerDiv.lastChild, button: CONST.MOUSE_KEYS.LEFT });
     }
 }
 
@@ -216,7 +225,9 @@ function layersManager_shapeOver(shape) {
 }
 
 function layersManager_shapeOut(shape) {
-    this.shapeOver = null;
+    if (this.shapeOver === shape) {
+        this.shapeOver = null;
+    }
 }
 
 // endregion Layer events functions
