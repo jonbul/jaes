@@ -154,9 +154,9 @@ class LayerManager {
         this.currentLayerDiv = evt.currentTarget;
         const layersManagerDiv = this.layersManagerDiv;
         for (let child of layersManagerDiv.children) {
-            child.classList.remove("selected")
+            child.removeAttribute("selected")
         }
-        evt.currentTarget.classList.add("selected")
+        evt.currentTarget.setAttribute("selected", "true")
 
         this.updateExampleCanvas();
 

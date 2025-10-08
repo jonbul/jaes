@@ -65,7 +65,7 @@
 
                     background-color: #fff;
 
-                    &.selected {
+                    &[selected=true] {
                         >.layersManager_layer_head, >.layersManager_layer_head * {
                             background-color: #8888ff !important;
                         }
