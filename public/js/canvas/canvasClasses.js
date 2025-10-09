@@ -22,8 +22,9 @@ class MasterJasonFile {
 }
 //Shapes
 class Rect {
-    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rotation = 0) {
+    constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rotation = 0, name) {
         this.desc = CONST.RECT;
+        this.name = name || this.desc;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -99,8 +100,9 @@ class Rect {
     }
 }
 class Arc {
-    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
+    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name) {
         this.desc = CONST.ARC;
+        this.name = name || this.desc;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -154,8 +156,9 @@ class Arc {
     }
 }
 class Ellipse {
-    constructor(x, y, radiusX, radiusY, rotation = 0, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI) {
+    constructor(x, y, radiusX, radiusY, rotation = 0, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name) {
         this.desc = CONST.ELLIPSE;
+        this.name = name || this.desc;
         this.x = x;
         this.y = y;
 
@@ -218,8 +221,9 @@ class Ellipse {
     }
 }
 class Line {
-    constructor(points = [], borderColor = '#ffffff', borderWidth = 1) {
+    constructor(points = [], borderColor = '#ffffff', borderWidth = 1, name) {
         this.desc = CONST.LINE;
+        this.name = name || this.desc;
         this.points = points;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
@@ -267,6 +271,7 @@ class Line {
 class Polygon {
     constructor(points = [], backgroundColor, borderColor, borderWidth) {
         this.desc = CONST.POLYGON;
+        this.name = this.desc;
         this.points = points;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
@@ -337,8 +342,9 @@ class Polygon {
     }
 }
 class Pencil {
-    constructor(points = [], color, borderWidth = 1) {
+    constructor(points = [], color, borderWidth = 1, name) {
         this.desc = CONST.PENCIL;
+        this.name = name || this.desc;
         this.points = points;
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
@@ -392,8 +398,9 @@ class Pencil {
     }
 }
 class Abstract {
-    constructor(points, backgroundColor, borderColor, borderWidth) {
+    constructor(points, backgroundColor, borderColor, borderWidth, name) {
         this.desc = CONST.ABSTRACT;
+        this.name = name || this.desc;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -467,8 +474,9 @@ class Abstract {
     }
 }
 class Rubber {
-    constructor(points, borderWidth) {
+    constructor(points, borderWidth, name) {
         this.desc = CONST.RUBBER;
+        this.name = name || this.desc;
         if (points !== undefined) {
             this.points = points;
         } else {
@@ -519,8 +527,9 @@ class Rubber {
     }
 }
 class Picture {
-    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation = 0) {
+    constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation = 0, name) {
         this.desc = CONST.PICTURE;
+        this.name = name || this.desc;
         this.img = img;
         this.src = src;
         this.x = x;
@@ -538,9 +547,45 @@ class Picture {
         var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
         context.rotate(this.rotation);
-        context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        context.drawImage(this.img, this.x, this.y, this.width, this.height);
         context.rotate(2 * Math.PI - this.rotation);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+        }
+    }
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.rotate(this.rotation);
+        let resizedWidth;
+        let resizedHeight;
+        if (this.width > this.height) {
+            resizedWidth = resizeSize;
+            resizedHeight = this.height * resizedWidth / this.width;
+        } else {
+            resizedHeight = resizeSize;
+            resizedWidth = this.width * resizedHeight / this.height;
+        }
+        //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
+        context.drawImage(this.img, this.x, this.y, resizedWidth, resizedHeight);
+        context.rotate(2 * Math.PI - this.rotation);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+        }
     }
     getImageFromSrc(src) {
         var image = new Image();
@@ -575,9 +620,11 @@ class Text {
 }
 
 class ClickXY {
-    constructor(data ={x: 0,y: 0}, round = 1) {
-        this.x = Math.round(data.x / round) * round;
-        this.y = Math.round(data.y / round) * round;
+    constructor(data ={x: 0,y: 0}, round = {x: 1,y: 1}) {
+        const roundX = round.x || 1;
+        const roundY = round.y || 1;
+        this.x = Math.round(data.x / roundX) * roundX;
+        this.y = Math.round(data.y / roundY) * roundY;
     }
     getSimple() {
         return {

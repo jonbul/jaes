@@ -1,6 +1,6 @@
-import {asyncRequest, showAlert, parseLayers} from '../functions.js';
+import { asyncRequest, showAlert, parseLayers } from '../functions.js';
 import CONST from '../canvas/constants.js';
-import CanvasClasses from '../canvas/canvasClasses.js';
+import windowsEvents from './windows.js';
 import {
     Abstract,
     Arc,
@@ -8,7 +8,6 @@ import {
     Ellipse,
     Layer,
     Line,
-    MasterJasonFile,
     Pencil,
     Picture,
     Polygon,
@@ -16,40 +15,52 @@ import {
     Rubber,
     Text
 } from '../canvas/canvasClasses.js';
+import LayerManager from './layerManager.js'
 
 class PaintingBoard {
     constructor(canvas, project) {
+        //set CANVAS max Height
+        const canvasBorder = document.getElementById("canvasBorder");
+        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20}px)`
+
+
+        windowsEvents(canvas);
         window._this = this;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         window.context = this.context;
         this.cleanBoard = new Rect(0, 0, canvas.width, canvas.height, '#ffffff', undefined, 0, 0);
-        this.scale = 1;
+        this.scale = 100;
 
         this.menus = {
-            background: document.getElementById('background-color'),
-            borderColor: document.getElementById('border-color'),
-            borderWidth: document.getElementById('border-width'),
-            currentPosition: document.getElementById('currentPosition'),
+            backgroundColor: document.getElementById('backgroundColor'),
+            colorRed: document.getElementById('colorRed'),
+            colorGreen: document.getElementById('colorGreen'),
+            colorBlue: document.getElementById('colorBlue'),
+            opacity: document.getElementById('colorAlpha'),
+            borderColor: document.getElementById('borderColor'),
+            borderWidth: document.getElementById('borderWidth'),
             followGrid: document.getElementById('followGrid'),
-            gridSize: document.getElementById('gridSize'),
+            txtMousePos: document.getElementById('txtMousePos'),
+            gridV: document.getElementById('gridV'),
+            gridH: document.getElementById('gridH'),
             layerList: document.getElementById('layerList'),
-            layerExampleCanvas: document.getElementById('layerExampleCanvas'),
-            opacity: document.getElementById('opacity'),
             resolution: {
-                height: document.getElementById('canvasHeight'),
-                width: document.getElementById('canvasWidth')
+                height: document.getElementById('boardH'),
+                width: document.getElementById('boardW')
             },
-            rotation: document.getElementById('rotation'),
+            rotation: document.getElementById('rectRotate'),
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
+            imageLoader: document.getElementById('imageLoader'),
+            layersManager: document.getElementById('layersManager'),
         }
 
         if (!project) {
             this.layers = [];
             this.currentLayer = new Layer('Layer', this.currentLayer);
             this.layers.push(this.currentLayer);
-            this.project = { layers: this.layers};
+            this.project = { layers: this.layers };
             this.project.dateCreated = Date.now();
             this.menus.resolution.width.value = canvas.width;
             this.menus.resolution.height.value = canvas.height;
@@ -65,7 +76,7 @@ class PaintingBoard {
             this.canvas.height = project.canvas.height;
         }
 
-        this.selectedTool = this.menus.toolList.querySelector('.active').value;
+        this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
 
         this.loadEvents();
         this.interval = setInterval(this.canvasInterval.bind(this));
@@ -84,7 +95,15 @@ class PaintingBoard {
     canvasInterval() {
         this.clear();
         this.layers.forEach(layer => {
-            layer.draw(this.context);
+
+            try {
+                if (!layer.error)
+                    layer.draw(this.context);
+            } catch (e) {
+                layer.error = true;
+                console.error(`Error drawing layer '${layer.name}'`)
+                console.error(e)
+            }
         });
         if (this.drawingObj) {
             this.drawingObj.shape.draw(this.context);
@@ -94,37 +113,85 @@ class PaintingBoard {
                 });
             }
         }
-        
-        const gridSize = parseInt(this.menus.gridSize.value);
-        if (gridSize) {
-            for(let i = 1; gridSize * i < this.canvas.width; i++) {
-                const pos = gridSize * i;
-                new Line([{x: pos ,y: 0} ,{x: pos , y: this.canvas.height}], 'rgba(0,0,0,0.5)', 1 ).draw(this.context);
+        if (this.layerManager.shapeOver) {
+            const shapeOver = this.layerManager.shapeOver;
+            const color = shapeOver.backgroundColor;
+            shapeOver.backgroundColor = "rgba(255,255,0,0.5)"
+            this.layerManager.shapeOver.draw(this.context);
+            shapeOver.backgroundColor = color;
+        }
+
+        const gridV = parseInt(this.menus.gridV.value);
+        const gridH = parseInt(this.menus.gridH.value);
+        if (gridV) {
+            for (let i = 1; gridV * i < this.canvas.width; i++) {
+                const pos = gridV * i;
+                new Line([{ x: pos, y: 0 }, { x: pos, y: this.canvas.height }], 'rgba(0,0,0,0.5)', 1).draw(this.context);
             }
-            for(let i = 1; gridSize * i < this.canvas.height; i++) {
-                const pos = gridSize * i;
-                new Line([{x: 0, y: pos}, {x: this.canvas.width, y: pos}], 'rgba(0,0,0,0.5)', 1).draw(this.context);
+        }
+        if (gridH) {
+            for (let i = 1; gridH * i < this.canvas.height; i++) {
+                const pos = gridH * i;
+                new Line([{ x: 0, y: pos }, { x: this.canvas.width, y: pos }], 'rgba(0,0,0,0.5)', 1).draw(this.context);
             }
         }
     }
     loadEvents() {
         this.setResizeObserver();
         this.resolutionChangeEvent();
-        this.menus.resolution.height.addEventListener('change', this.resolutionChangeEvent.bind(this));
-        this.menus.resolution.width.addEventListener('change', this.resolutionChangeEvent.bind(this));
+        this.menus.resolution.height.addEventListener('input', this.resolutionChangeEvent.bind(this));
+        this.menus.resolution.width.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
+        this.loadLayerManager();
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-
+        this.menus.imageLoader.addEventListener("change", this.loadImageEvent.bind(this))
     }
+    loadImageEvent(evt) {
+        const f = evt.target.files[0];
+        if (f) {
+            const reader = new FileReader();
+            reader.onloadend = loadImageFinish.bind(this)
+            reader.readAsDataURL(f);
+            const _this = this;
+        }
+
+        function loadImageFinish(evt) {
+
+            const img = new Image();
+
+            img.onload = imageOnload.bind(this, img)
+
+            img.src = evt.target.result;
+        }
+
+        function imageOnload(img) {
+            if (confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)) {
+                _this.menus.resolution.width.value = img.width;
+                _this.menus.resolution.height.value = img.height;
+                (_this.resolutionChangeEvent.bind(_this))();
+            }
+            const elem = new Picture();
+            elem.img = img;
+            elem.src = img.src;
+            elem.sx = 0;
+            elem.sy = 0;
+            elem.sw = img.width;
+            elem.sh = img.height;
+            elem.x = 0;
+            elem.y = 0;
+            elem.width = img.width;
+            elem.height = img.height;
+            this.layerManager.createShape(elem);
+        }
+    }
+
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
-        const style = getComputedStyle(this.canvas);
-        this.canvas.style.height = (this.canvas.height * parseFloat(style.width) / this.canvas.width) + 'px';
     }
     setResizeObserver() {
         if (this.resizeObserver) return;
@@ -134,7 +201,7 @@ class PaintingBoard {
         resizeObserver.observe(this.canvas);
 
         function onResize(entries) {
-            for(const entry of entries) {
+            for (const entry of entries) {
                 if (entry.target.id === 'canvas') {
                     console.log("RESIZE ", entry)
                     this.resolutionChangeEvent();
@@ -143,29 +210,56 @@ class PaintingBoard {
         }
     }
     onCanvasWheel(evt) {
-        evt.stopImmediatePropagation();
-        evt.preventDefault()
-        const currentPos = this.getCurrentPos(evt);
-        const res = this.menus.resolution;
-        if( evt.deltaY < 0) {
-            this.scale *= 2;
-        } else {
-            this.scale /= 2;
+        if (evt.ctrlKey) {
+            evt.stopImmediatePropagation();
+            evt.preventDefault()
+            if (evt.deltaY < 0) {
+                this.scale += 5;
+            } else {
+                this.scale -= 5;
+            }
+            this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
+            this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         }
-        this.resolutionChangeEvent();
     }
     loadColorEvents() {
-        this.menus.background.addEventListener('change', this.updateBgColor.bind(this));
-        this.menus.opacity.addEventListener('change', this.updateBgColor.bind(this));
+        this.menus.backgroundColor.addEventListener('input', this.updateBgColor.bind(this));
+        this.menus.opacity.addEventListener('input', this.updateBgColor.bind(this));
+
+        this.menus.colorRed.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+        this.menus.colorGreen.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+        this.menus.colorBlue.addEventListener('input', this.updateBgColorFromRadio.bind(this));
+
         this.updateBgColor();
     }
     updateBgColor() {
-        const coloSplitted = this.menus.background.value.match(/\w{2}/g);
+        const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
         const r = parseInt(coloSplitted[0], 16);
         const g = parseInt(coloSplitted[1], 16);
         const b = parseInt(coloSplitted[2], 16);
         const a = this.menus.opacity.value;
         this.menus.bgColor = `rgba(${r},${g},${b},${a})`;
+
+        this.menus.colorRed.value = r;
+        this.menus.colorGreen.value = g;
+        this.menus.colorBlue.value = b;
+    }
+    updateBgColorFromRadio() {
+        const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
+        const r = this.menus.colorRed.value;
+        const g = this.menus.colorGreen.value;
+        const b = this.menus.colorBlue.value;
+        const a = this.menus.opacity.value;
+        const bgColor = `rgba(${r},${g},${b},${a})`;
+        this.menus.bgColor = bgColor;
+        this.menus.backgroundColor.value = `#${this.toHex(r) + this.toHex(g) + this.toHex(b)}`;
+    }
+    toHex(n) {
+        let r = parseInt(n).toString(16);
+        if (r.length === 1) {
+            r = "0" + r;
+        }
+        return r;
     }
     loadLayerComponentsEvents() {
 
@@ -173,140 +267,28 @@ class PaintingBoard {
             const option = document.createElement('option');
             option.setAttribute('name', layer.name);
             option.innerHTML = layer.name;
-            this.menus.layerList.appendChild(option);
         });
-        this.menus.layerList.addEventListener('change', this.layerChange.bind(this));
-        document.getElementById('createLayer').addEventListener('click', this.createLayer.bind(this));
-        document.getElementById('removeLayer').addEventListener('click', this.removeLayer.bind(this, this.menus.layerList));
-        document.getElementById('moveUpLayer').addEventListener('click', this.moveUpLayer.bind(this));
-        document.getElementById('moveDownLayer').addEventListener('click', this.moveDownLayer.bind(this));
-        this.menus.visibleLayer.addEventListener('change', this.visibleLayerChange.bind(this));
-        this.layerChange();
-    }
-    visibleLayerChange() {
-        this.currentLayer.visible = this.menus.visibleLayer.checked;
-    }
-    layerChange() {
-        this.currentLayer = this.layers[this.menus.layerList.selectedIndex];
-        
-        this.menus.visibleLayer.checked = this.currentLayer.visible;
-        this.layerPreviewUpdate();
-    }
-    layerPreviewUpdate() {
-        this.menus.layerExampleCanvas.width = this.canvas.width;
-        this.menus.layerExampleCanvas.height = this.canvas.height;
-        const context = this.menus.layerExampleCanvas.getContext('2d');
-        new Rect(0, 0, this.menus.layerExampleCanvas.width, this.menus.layerExampleCanvas.height, '#FFFFFF').draw(context);
-        this.currentLayer.draw(context);
-        this.updateShapeList();
-    }
-    createLayer() {
-        const nLayer = new Layer(document.getElementById('newLayerName').value);
-        this.layers.push(nLayer);
 
-        const option = document.createElement('option');
-        option.setAttribute('name', nLayer.name);
-        option.innerHTML = nLayer.name;
-        this.menus.layerList.appendChild(option);
+    }
+    loadLayerManager() {
+        console.log("refreshLayerManager")
+        const layersManager = this.menus.layersManager;
+        layersManager.innerHTML = "";
 
-        $('#newLayerModal').modal('hide')
-    }
-    removeLayer(layerList) {
-        if (this.layers.length === 1) return;
-        this.layers.pop(layerList.selectedIndex);
-        layerList.removeChild(layerList.selectedOptions[0]);
-        this.currentLayer = this.layers[0];
-        this.layerPreviewUpdate();
-    }
-    moveUpLayer() {
-        const currentIndex = this.menus.layerList.selectedIndex;
-        if (currentIndex <= 0) return;
-        //Array
-        const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex - 1];
-        this.layers[currentIndex - 1] = tempLayer;
-        //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex], this.menus.layerList[currentIndex - 1]);
-    }
-    moveDownLayer() {
-        const currentIndex = this.menus.layerList.selectedIndex;
-        if (currentIndex >= this.layers.length - 1) return;
-        //Array
-        const tempLayer = this.layers[currentIndex];
-        this.layers[currentIndex] = this.layers[currentIndex + 1];
-        this.layers[currentIndex + 1] = tempLayer;
-        //Select
-        this.menus.layerList.insertBefore(this.menus.layerList[currentIndex + 1], this.menus.layerList[currentIndex]);
-    }
-    updateShapeList() {
-        const shapeList = document.getElementById('shapeList');
-        const currentLayer = this.currentLayer;
-        shapeList.innerHTML = '';
-        currentLayer.shapes.forEach(shape => {
-            const block = document.createElement('div');
-            block.className = "list-group-item list-group-item-action pl-2 pr-2";
-            block.setAttribute('data-toggle', 'list');
-            block.setAttribute('name', 'shape');
-            block.innerHTML = `<div class="col-12">
-            <canvas width="100" height="100"></canvas>
-            <label class="shapeDesc">${shape.desc}</label>
-            </div>
-            <div class="col-12">
-            <button title="Remove Shape" class="btn btn-light removeShape"><i class="fas fa-trash"></i></button>
-            <button title="Move Up Shape" class="btn btn-light moveUpShape"><i class="fas fa-chevron-up"></i></button>
-            <button title="Move Down Shape" class="btn btn-light moveDownShape"><i class="fas fa-chevron-down"></i></button>
-            </div>`;
+        this.layerManager = new LayerManager(this)
 
-            shapeList.appendChild(block);
-            const canvas = block.querySelector('canvas');
-            const context = canvas.getContext('2d');
-            shape.drawResized(context);
-
-            
-            block.querySelector('.removeShape').addEventListener('click', this.removeShape.bind(this, shape));
-            block.querySelector('.moveUpShape').addEventListener('click', this.moveUpShape.bind(this, shape));
-            block.querySelector('.moveDownShape').addEventListener('click', this.moveDownShape.bind(this, shape));
-        });
     }
-    removeShape(shape, evt) {
-        const index = this.currentLayer.shapes.indexOf(shape);
-        this.currentLayer.shapes.splice(index, 1);
-        this.layerPreviewUpdate();
-    }
-    moveUpShape(shape, evt) {
-        const shapes = this.currentLayer.shapes;
-        const index = shapes.indexOf(shape);
-        if (index === 0) return;
-        const temp = shapes[index];
-        shapes[index] = shapes[index - 1];
-        shapes[index - 1] = temp;
-        this.layerPreviewUpdate();
-    }
-    moveDownShape(shape, evt) {
-        const shapes = this.currentLayer.shapes;
-        const index = shapes.indexOf(shape);
-        if (index === shapes.length - 1) return;
-        const temp = shapes[index];
-        shapes[index] = shapes[index + 1];
-        shapes[index + 1] = temp;
-        this.layerPreviewUpdate();
-    }
-    toolClickEvent(evt) {
-        let btn = evt.target;
-        while (btn.tagName !== 'BUTTON' && btn.tagName !== 'BODY') {
-            btn = btn.parentElement;
-        }
-        if(btn.tagName === 'BODY') {
-            btn = document.querySelector('#toolListCollapse .active');
-        }
-        this.selectedTool = btn.value;
-        this.canvas.setAttribute('tool', btn.value);
+    toolClickEvent() {
+        const selectedTool = this.menus.toolList.querySelector('input:checked')
+        this.selectedTool = selectedTool.value;
+        this.canvas.setAttribute('tool', selectedTool.value);
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
         this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
+        this.canvas.addEventListener('contextmenu', event => event.preventDefault());
     }
     getCurrentPos(evt) {
         const rect = this.canvas.getBoundingClientRect(); // Obtiene la posición del canvas
@@ -319,71 +301,79 @@ class PaintingBoard {
 
         y *= (this.canvas.height / styleHeight);
         x *= (this.canvas.width / styleWidth);
-        
 
-        let currentPos;
-        if (this.menus.followGrid.checked && this.menus.gridSize.value) {
-            currentPos = new ClickXY({ x, y }, {x: this.menus.gridSize.value, y: this.menus.gridSize.value});
-        } else {
-            currentPos = new ClickXY({ x, y });
-        }
 
-        currentPos.x /= this.scale; // Ajusta por el escalado
-        currentPos.y /= this.scale;
+        const round = !this.menus.followGrid.checked ? undefined : {
+            x: this.menus.gridH.value || 1,
+            y: this.menus.gridV.value || 1,
+        };
+        let currentPos = new ClickXY({ x, y }, round);
+
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
-        const currentPos = this.getCurrentPos(evt);
-        switch (this.selectedTool) {
-            case CONST.PENCIL:
-            case CONST.ABSTRACT:
-            case CONST.ARC:
-            case CONST.ELLIPSE:
-            case CONST.RECT:
-            case CONST.LINE:
-            case CONST.RUBBER:
-                this.drawingObj = {
-                    tool: this.selectedTool,
-                    shape: undefined,
-                    startPosition: currentPos,
-                    initialized: false
-                };
-                this.canvasMouseMove(evt);
-                break;
-            case CONST.POLYGON:
-                if (!this.drawingObj) {
+        if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+            const currentPos = this.getCurrentPos(evt);
+            switch (this.selectedTool) {
+                case CONST.PENCIL:
+                case CONST.ABSTRACT:
+                case CONST.ARC:
+                case CONST.ELLIPSE:
+                case CONST.RECT:
+                case CONST.LINE:
+                case CONST.RUBBER:
                     this.drawingObj = {
                         tool: this.selectedTool,
-                        shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
+                        shape: undefined,
                         startPosition: currentPos,
+                        initialized: false
                     };
+                    this.canvasMouseMove(evt);
+                    break;
+                case CONST.POLYGON:
+                    if (!this.drawingObj) {
+                        this.drawingObj = {
+                            tool: this.selectedTool,
+                            shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
+                            startPosition: currentPos,
+                        };
+                    }
+                    const points = this.drawingObj.shape.points;
+                    if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
+                        points.push(currentPos);
+                    }
+                    break;
+                case CONST.SEMIARC:
+                    this.semiArcClick(evt);
+                    break;
+            }
+        } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
+            evt.stopImmediatePropagation();
+            evt.stopPropagation();
+            if (this.drawingObj && this.selectedTool === CONST.POLYGON) {
+                this.drawingObj.shape.points.pop();
+                if (!this.drawingObj.shape.points.length) {
+                    this.drawingObj = null;
                 }
-                const points = this.drawingObj.shape.points;
-                if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
-                    points.push(currentPos);
-                }
-                break;
-            case CONST.SEMIARC:
-                this.semiArcClick(evt);
-                break;
+            }
         }
     }
     canvasMouseUp(evt) {
         if (evt.target === this.canvas && this.selectedTool === CONST.COLORPICKER) {
             const colorData = this.getCurrentPositionColor(evt);
 
-            this.menus.background.value = colorData.hex;
+            this.menus.backgroundColor.value = colorData.hex;
             this.menus.opacity.value = colorData.alpha;
 
 
-            
+
         }
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         const shape = this.drawingObj.shape;
         if (!shape) return;
         if (shape.desc === CONST.RECT) {
-            if(isNaN(shape.x + shape.y + shape.width + shape.height)) {
+            if (isNaN(shape.x + shape.y + shape.width + shape.height)) {
                 this.drawingObj = undefined;
                 return;
             }
@@ -396,36 +386,35 @@ class PaintingBoard {
                 shape.y += shape.height;
                 shape.height *= -1;
             }
-        } else if(shape.desc === CONST.ARC) {
-            if(!shape.radius) {
+        } else if (shape.desc === CONST.ARC) {
+            if (!shape.radius) {
                 this.drawingObj = undefined;
                 return;
             }
-        } else if(shape.desc === CONST.ELLIPSE) {
-            if(!shape.radiusX && !shape.radiusY) {
+        } else if (shape.desc === CONST.ELLIPSE) {
+            if (!shape.radiusX && !shape.radiusY) {
                 this.drawingObj = undefined;
                 return;
             }
-        } else if(shape.desc === CONST.LINE) {
+        } else if (shape.desc === CONST.LINE) {
             const points = shape.points;
-            if(points[0].x === points[1].x && points[0].y === points[1].y) {
+            if (points[0].x === points[1].x && points[0].y === points[1].y) {
                 this.drawingObj = undefined;
                 return;
             }
-        } else if(shape.desc === CONST.ABSTRACT) {
-            if(shape.points.length <= 1) {
+        } else if (shape.desc === CONST.ABSTRACT) {
+            if (shape.points.length <= 1) {
                 this.drawingObj = undefined;
                 return;
             }
         }
 
-        this.currentLayer.shapes.push(this.drawingObj.shape);
+        this.layerManager.createShape(this.drawingObj.shape);
         this.drawingObj = undefined;
-        this.layerChange();
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
-        this.menus.currentPosition.innerHTML = `${currentPos.x} x ${currentPos.y}`;
+        this.menus.txtMousePos.value = `${currentPos.x} x ${currentPos.y}`;
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
             case CONST.PENCIL:
@@ -462,10 +451,9 @@ class PaintingBoard {
         if (this.drawingObj.tool === CONST.POLYGON) {
             const shape = this.drawingObj.shape;
             if (shape) {
-                this.currentLayer.shapes.push(shape);
+                this.layerManager.createShape(shape);
             }
             this.drawingObj = undefined;
-            this.layerChange();
         }
     }
     drawingPencil(evt, drawingObj) {
@@ -480,8 +468,8 @@ class PaintingBoard {
         if (length < 2) {
             drawingObj.shape.points.push(point);
         } else {
-            if (point.x === points[length-1].x && point.x === points[length-2].x || point.y === points[length-1].y && point.y === points[length-2].y) {
-                drawingObj.shape.points[length-1] = point;
+            if (point.x === points[length - 1].x && point.x === points[length - 2].x || point.y === points[length - 1].y && point.y === points[length - 2].y) {
+                drawingObj.shape.points[length - 1] = point;
             } else {
                 drawingObj.shape.points.push(point);
             }
@@ -499,8 +487,8 @@ class PaintingBoard {
         if (length < 2) {
             drawingObj.shape.points.push(point);
         } else {
-            if (point.x === points[length-1].x && point.x === points[length-2].x || point.y === points[length-1].y && point.y === points[length-2].y) {
-                drawingObj.shape.points[length-1] = point;
+            if (point.x === points[length - 1].x && point.x === points[length - 2].x || point.y === points[length - 1].y && point.y === points[length - 2].y) {
+                drawingObj.shape.points[length - 1] = point;
             } else {
                 drawingObj.shape.points.push(point);
             }
@@ -559,18 +547,18 @@ class PaintingBoard {
     drawingSemiArc(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         const arc = drawingObj.shape;
-        switch(this.drawingObj.step) {
+        switch (this.drawingObj.step) {
             case 0:
                 arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
                 drawingObj.extraShapes = [
-                    new Line(arc.x, arc.y, currentPos.x, currentPos.y, '#000000', 1)];
+                    new Line([{ x: arc.x, y: arc.y }, { x: currentPos.x, y: currentPos.y }], '#000000', 1)];
                 break;
             case 1:
                 let c1 = currentPos.x - arc.x;//Base
                 let c2 = currentPos.y - arc.y;//Height
                 let h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
-                let a = Math.asin(c2 / h); 
-                
+                let a = Math.asin(c2 / h);
+
                 if (c1 < 0 && c2 >= 0) {
                     a = Math.PI - a;
                 } else if (c1 < 0 && c2 < 0) {
@@ -580,7 +568,7 @@ class PaintingBoard {
                 }
 
                 arc.endAngle = a;
-                
+
                 break;
         }
     }
@@ -588,7 +576,7 @@ class PaintingBoard {
         const currentPos = this.getCurrentPos(evt);
         let arc;
         if (!this.drawingObj) {
-            arc = new Arc(currentPos.x, currentPos.y,0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
+            arc = new Arc(currentPos.x, currentPos.y, 0, this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value);
             this.drawingObj = {
                 tool: this.selectedTool,
                 shape: arc,
@@ -599,14 +587,14 @@ class PaintingBoard {
             arc = this.drawingObj.shape;
         }
         const drawingObj = this.drawingObj;
-        switch(drawingObj.step) {
+        switch (drawingObj.step) {
             case 0:
                 arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
                 const c1 = currentPos.x - arc.x;//Base
                 const c2 = currentPos.y - arc.y;//Height
                 const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
-                let a = Math.asin(c2 / h); 
-                
+                let a = Math.asin(c2 / h);
+
                 if (c1 < 0 && h >= 0) {
                     a = Math.PI - a;
                 } else if (c1 < 0 && h < 0) {
@@ -614,7 +602,7 @@ class PaintingBoard {
                 } else if (c1 >= 0 && h < 0) {
                     a += 2 * Math.PI;
                 }
-                
+
                 while (a > 2 * Math.PI) {
                     a -= 2 * Math.PI;
                 }
@@ -634,9 +622,8 @@ class PaintingBoard {
                     }
                 }
 
-                this.currentLayer.shapes.push(this.drawingObj.shape);
+                this.layerManager.createShape(this.drawingObj.shape);
                 this.drawingObj = undefined;
-                this.layerChange();
                 break;
         }
         if (this.drawingObj)
@@ -647,7 +634,7 @@ class PaintingBoard {
             drawingObj.initialized = true;
             drawingObj.shape = new Rubber([drawingObj.startPosition], this.menus.borderWidth.value);
         }
-        const point = new ClickXY(evt);
+        const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
         }
@@ -656,13 +643,13 @@ class PaintingBoard {
         const currentPos = this.getCurrentPos(evt);
         const imgData = this.context.getImageData(currentPos.x, currentPos.y, 1, 1);
         let red = imgData.data[0].toString(16);
-        if(red.length<2) red = '0' + red;
+        if (red.length < 2) red = '0' + red;
         let green = imgData.data[1].toString(16);
-        if(green.length<2) green = '0' + green;
+        if (green.length < 2) green = '0' + green;
         let blue = imgData.data[2].toString(16);
-        if(blue.length<2) blue = '0' + blue;
+        if (blue.length < 2) blue = '0' + blue;
         const alpha = imgData.data[3] / 255;
-        
+
         return {
             red: imgData.data[0],
             green: imgData.data[1],
@@ -676,7 +663,7 @@ class PaintingBoard {
     }
     async save() {
         const name = document.getElementById('projectName').value;
-        if(!name) {
+        if (!name) {
             showAlert({
                 msg: 'Name field empty'
             })
@@ -688,7 +675,7 @@ class PaintingBoard {
             height: this.menus.resolution.height.value
         };
         const response = await asyncRequest({
-            url: '/paintingBoard/save',
+            url: '/paintingBoard2/save',
             method: 'POST',
             data: {
                 id: this.projectId,

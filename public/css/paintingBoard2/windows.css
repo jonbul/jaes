@@ -1,0 +1,224 @@
+.paintingBoardWindowed {
+    .window {
+        position: absolute;
+        background-color: white;
+        border-style: ridge;
+        z-index: 1;
+        max-height: 1000px;
+        cursor: default;
+
+
+        .windowBar {
+            background-color: blue;
+            width: 100%;
+            display: inline-block;
+            color: white;
+        }
+
+        &#toolsWindow {
+
+
+            label {
+                display: inline-block;
+                text-align: center;
+                width: 32px;
+                height: 32px;
+                margin: 2px;
+                cursor: pointer;
+                background-color: #ddddff;
+                border: dotted 1px black;
+                line-height: 32px;
+                font-size: 20px;
+
+
+                &:hover {
+                    background-color: #aaaaff;
+                }
+            }
+
+            input[type="checkbox"] {
+                display: none;
+            }
+
+            #followGrid:checked+label[for="followGrid"] {
+                color: red !important
+            }
+
+            #followGrid:checked~label[for="followGrid"]~br~span {
+                display: inline-block !important;
+            }
+
+            #followGrid~label[for="followGrid"]~br~span {
+                display: none;
+            }
+
+            #toolList {
+
+                input:checked+label {
+                    color: red !important
+                }
+
+                input[type="radio"] {
+                    display: none;
+                }
+
+            }
+        }
+
+        #layerWindow_buttons {
+            margin: 5px 0 0 0;
+            padding: 0 5px 5px 5px;
+
+            >input {
+                width: 100%;
+            }
+        }
+
+        .windowContent {
+            resize: vertical;
+            overflow-y: scroll;
+            border-style: ridge;
+            display: block;
+            min-height: 200px;
+            background-color: #cccccc;
+
+            input[type="number"] {
+                width: 50px;
+            }
+
+            input[type="text"] {
+                width: 100px;
+
+            }
+
+            .windowBar {
+                background-color: blue;
+                width: 100%;
+                display: inline-block;
+                color: white;
+            }
+
+
+            label[for=imageLoader] {
+                cursor: pointer
+            }
+
+            #imageLoader {
+                display: none;
+            }
+
+            #layersManager {
+                background-color: #fff;
+                border: solid 1px black;
+                margin: 5px;
+
+                .layersManager_layer_title,
+                .layersManager_shapes_title {
+                    cursor: grabbing;
+                }
+
+                >.layersManager_layer {
+
+                    background-color: #fff;
+
+                    &[selected=true] {
+
+                        >.layersManager_layer_head,
+                        >.layersManager_layer_head * {
+                            background-color: #8888ff !important;
+                        }
+                    }
+
+
+
+                    >.layersManager_layer_head {
+                        padding: 5px;
+                        border-bottom: solid 1px black;
+                        border-top: solid 1px black;
+
+
+                    }
+
+                    >.layersManager_layer_shapes {
+                        min-height: 30px;
+                        transition: all 0.3s ease;
+
+                        &.hidden {
+                            display: none;
+                        }
+
+                        >.layersManager_shapes_head {
+
+                            padding: 5px 5px 5px 20px;
+
+                            >span.layersManager_shapes_title {}
+                        }
+                    }
+
+                    /* All buttons */
+                    .layersManager_layer_tools,
+                    .layersManager_shape_tools {
+                        display: inline-block;
+                        float: right;
+
+                        >button {
+                            width: 25px;
+                            height: 25px;
+                            background-color: #fff;
+                            border-style: none;
+                            outline: none;
+
+                            &:hover {
+                                background-color: #cccccc;
+                            }
+
+                            &.btnShowShapes {
+
+                                &:before {
+                                    content: "\002B"
+                                }
+
+                                &.closed:before {
+                                    content: "\002D" !important
+                                }
+
+                            }
+
+                            &.btnLayerHide[hide=true] {
+                                color: #888;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.layersManager_layer {
+    background-color: #fff;
+
+    &.moving {
+        width: 200px;
+        z-index: 9999999;
+        position: absolute;
+
+        .layersManager_layer_tools,
+        .layersManager_layer_shapes {
+            display: none;
+        }
+
+    }
+}
+
+.layersManager_shapes_head {
+    background-color: #fff;
+
+    &.moving {
+        width: 200px;
+        z-index: 9999999;
+        position: absolute;
+
+
+    }
+}

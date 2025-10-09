@@ -1,0 +1,86 @@
+* {
+    -webkit-user-select: none; /* Safari */
+    user-select: none; 
+}
+
+#projectTitleBar {
+    padding-left:5px;
+    #projectName {
+        border-top: none;
+        border-right: none;
+        border-radius: 100px;
+        outline: none;
+    }
+
+}
+
+#canvasBorder {
+    display: inline-block;
+    max-width: 100% !important;
+    overflow: scroll;
+    border: solid 1px;
+}
+#canvas{
+    cursor: url('/icons/pencil.ico'), default;
+    display: block;
+    left: 0;
+    margin: 0 auto;
+}
+#canvas[tool=ColorPicker]{
+    cursor: url('/icons/picker.png'), default;
+}
+#layerExampleCanvas {
+    border: solid 1px #000000;
+    width: 100%;
+}
+
+#shapeList canvas {
+    height: 30px;
+    width: 30px;
+    height: auto;
+}
+
+.shapeItem {
+    align-items: center;
+    display: flex;
+    padding: 0;
+}
+
+.shapeItem.active {
+    background-color: #747fd6;
+}
+
+.shapeItem > div {
+    align-items: center;
+    display: flex;
+}
+
+.shapeItem > .moveShapesBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shapeItem button {
+    background-color: #00000000;
+   border-style: none; 
+   padding: 5 0;
+
+}
+
+
+.list-group-item > .deleteBlock {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.shapeDesc{
+    vertical-align: top;
+}
+
+#layerExampleCanvas {
+    width: 200px;
+}
+
+

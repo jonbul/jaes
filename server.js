@@ -99,6 +99,7 @@ require('./routes/grafana')(app);
 require('./routes/user')(app);
 require('./routes/game')(app, io, mongoose);
 require('./routes/paintingBoard')(app);
+require('./routes/paintingBoard2')(app);
 
 //Server /status
 app.use(require('express-status-monitor')({

@@ -1,6 +1,6 @@
 <% layout('layout') %>
 <span id="alerts"></span>
-<a href="/paintingBoard" class="btn btn-primary mt-5">New</a>
+<a href="/paintingBoard2" class="btn btn-primary mt-5">New</a>
 <div class="row mt-3">
 <% projects.forEach(project => { 
     const d1 = new Date(project.dateCreated);
@@ -13,7 +13,7 @@
     
     %>
     <div class="col-3">
-    <h5><a href="/paintingBoard?id=<%= project._id %>"><%= project.name %></a></h5>
+    <h5><a href="/paintingBoard2?id=<%= project._id %>"><%= project.name %></a></h5>
     <label>Created: <%= d1s %></label>
     <label>Modified: <%= d2s %></label>
     </div>
