@@ -15,7 +15,7 @@ import {
     Rubber,
     Text
 } from '../canvas/canvasClasses.js';
-import LayerManager  from './layerManager.js'
+import LayerManager from './layerManager.js'
 
 class PaintingBoard {
     constructor(canvas, project) {
@@ -152,16 +152,18 @@ class PaintingBoard {
     }
     loadImageEvent(evt) {
         const f = evt.target.files[0];
-        const reader = new FileReader();
-        reader.onloadend = loadImageFinish.bind(this)
-        reader.readAsDataURL(f);
-        const _this = this;
+        if (f) {
+            const reader = new FileReader();
+            reader.onloadend = loadImageFinish.bind(this)
+            reader.readAsDataURL(f);
+            const _this = this;
+        }
 
         function loadImageFinish(evt) {
 
             const img = new Image();
 
-            img.onload = imageOnload.bind(null, img)
+            img.onload = imageOnload.bind(this, img)
 
             img.src = evt.target.result;
         }
@@ -183,9 +185,10 @@ class PaintingBoard {
             elem.y = 0;
             elem.width = img.width;
             elem.height = img.height;
-            _this.getCurrentLayer().shapes.push(elem);
-            _this.updateShapeList();
-            _this.menus.imageLoader.value = ""
+            this.layerManager.createShape(elem);/*
+            this.getCurrentLayer().shapes.push(elem);
+            this.updateShapeList();
+            this.menus.imageLoader.value = ""*/
         }
     }
 
@@ -268,7 +271,7 @@ class PaintingBoard {
             option.setAttribute('name', layer.name);
             option.innerHTML = layer.name;
         });
-        
+
     }
     loadLayerManager() {
         console.log("refreshLayerManager")
@@ -452,7 +455,7 @@ class PaintingBoard {
         if (this.drawingObj.tool === CONST.POLYGON) {
             const shape = this.drawingObj.shape;
             if (shape) {
-                this.currentLayer.shapes.push(shape);
+                this.layerManager.createShape(shape);
             }
             this.drawingObj = undefined;
         }
@@ -623,7 +626,7 @@ class PaintingBoard {
                     }
                 }
 
-                this.currentLayer.shapes.push(this.drawingObj.shape);
+                this.layerManager.createShape(this.drawingObj.shape);
                 this.drawingObj = undefined;
                 break;
         }
@@ -635,7 +638,7 @@ class PaintingBoard {
             drawingObj.initialized = true;
             drawingObj.shape = new Rubber([drawingObj.startPosition], this.menus.borderWidth.value);
         }
-        const point = new ClickXY(evt);
+        const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
             drawingObj.shape.points.push(point);
         }

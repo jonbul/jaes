@@ -18,6 +18,56 @@
             color: white;
         }
 
+        &#toolsWindow {
+
+
+            label {
+                display: inline-block;
+                text-align: center;
+                width: 32px;
+                height: 32px;
+                margin: 2px;
+                cursor: pointer;
+                background-color: #ddddff;
+                border: dotted 1px black;
+                line-height: 32px;
+                font-size: 20px;
+
+
+                &:hover {
+                    background-color: #aaaaff;
+                }
+            }
+
+            input[type="checkbox"] {
+                display: none;
+            }
+
+            #followGrid:checked+label[for="followGrid"] {
+                color: red !important
+            }
+
+            #followGrid:checked~label[for="followGrid"]~br~span {
+                display: inline-block !important;
+            }
+
+            #followGrid~label[for="followGrid"]~br~span {
+                display: none;
+            }
+
+            #toolList {
+
+                input:checked+label {
+                    color: red !important
+                }
+
+                input[type="radio"] {
+                    display: none;
+                }
+
+            }
+        }
+
         #layerWindow_buttons {
             margin: 5px 0 0 0;
             padding: 0 5px 5px 5px;

@@ -2,28 +2,66 @@
 <span class="window" id="toolsWindow" style="vertical-align: top; top: 30px; left: 200px;" rowspan="2">
     <span class="windowBar">Tools</span><br>
     <span class="windowContent">
+        <input type="checkbox" id="followGrid" value="true" />
+        <label for="followGrid">▦</label>
         Grid<br>
-        <input type="number" id="gridV" value="20" min="0" />
-        x
-        <input type="number" id="gridH" value="20" min="0" /><br>
-
-        <input type="checkbox" id="followGrid" value="true">Draw on grid<br>
-
-        <span id="toolList">
-            <input type="radio" name="action" value="Rect" checked="true">Rect<input type="Number" min="0"
-                id="rectRotate" value="0" style="width: 50px;"><br>
-            <input type="radio" name="action" value="Arc">Circle<br>
-            <input type="radio" name="action" value="Semiarc">Semi Circle<br>
-            <input type="radio" name="action" value="Ellipse">Ellipse<br>
-            <input type="radio" name="action" value="Line">Line<br>
-            <input type="radio" name="action" value="Polygon">Poligon<br>
-            <input type="radio" name="action" value="Pencil">Pencil<br>
-            <input type="radio" name="action" value="Abstract">Abstract<br>
-            <input type="radio" name="action" value="Rubber">Rubber<br>
-            <input type="radio" name="action" value="colorpicker">ColorPicker<br>
-            <label for="imageLoader">LoadImage</label>
-            <input id="imageLoader" type="file" value="Load Local Image" multiple style="display:none" /><br>
+        <span>
+            X <input type="number" id="gridV" value="20" min="0" />
+            <br>
+            Y <input type="number" id="gridH" value="20" min="0" />
         </span>
+        <br>
+
+
+
+
+
+        <div id="toolList">
+
+            <input id="toolRect" type="radio" name="action" value="Rect" checked="true">
+            <label for="toolRect" alt="Rectangle" title="Rectangle">&#8414;</label>
+            <br>
+
+            <input id="toolArc" type="radio" name="action" value="Arc">
+            <label for="toolArc" alt="Arc" title="Arc">&#8413;</label>
+            <br>
+
+            <input id="toolSemiarc" type="radio" name="action" value="Semiarc">
+            <label for="toolSemiarc" alt="Semiarc" title="Semiarc">&#9680;</label>
+            <br>
+
+            <input id="toolEllipse" type="radio" name="action" value="Ellipse">
+            <label for="toolEllipse" alt="Ellipse" title="Ellipse">&#9675;</label>
+            <br>
+
+            <input id="toolLine" type="radio" name="action" value="Line">
+            <label for="toolLine" alt="Line" title="Line">&#9472;</label>
+            <br>
+
+            <input id="toolPolygon" type="radio" name="action" value="Polygon">
+            <label for="toolPolygon" alt="Polygon" title="Polygon">&#9650;</label>
+            <br>
+
+            <input id="toolPencil" type="radio" name="action" value="Pencil">
+            <label for="toolPencil" alt="Pencil" title="Pencil">&#9999;</label>
+            <br>
+
+            <input id="toolAbstract" type="radio" name="action" value="Abstract">
+            <label for="toolAbstract" alt="Abstract" title="Abstract">§</label>
+            <br>
+
+            <input id="toolRubber" type="radio" name="action" value="Rubber">
+            <label for="toolRubber" alt="Rubber" title="Rubber">&#10060;</label>
+            <br>
+
+            <!--input id="toolColorPicker" type="radio" name="action" value="colorpicker">
+            <label for="toolColorPicker" alt="Color Picker" title="Color Picker">&#127778;</label>
+            <br-->
+
+            <input id="imageLoader" type="file" value="Load Local Image" multiple />
+            <label for="imageLoader" title="Load Local Image">&#128444;</label>
+            <br>
+        </div>
         <br>
         MousePos<br><input type="text" id="txtMousePos" /><br>
         <input type="text" id="txtPressedKey" /><br>
@@ -42,7 +80,7 @@
                     A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
                 </td>
                 <td id="colorResult" style="width: 20px; cursor: pointer">
-                    <input type="color" id="backgroundColor"/>
+                    <input type="color" id="backgroundColor" />
                 </td>
             </tr>
         </table>
