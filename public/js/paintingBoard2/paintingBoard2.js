@@ -79,6 +79,7 @@ class PaintingBoard {
         this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
 
         this.loadEvents();
+        setTimeout(this.drawAll.bind(this), 1);
         this.interval = setInterval(this.canvasInterval.bind(this));
     }
     parseProject(project) {
@@ -93,6 +94,12 @@ class PaintingBoard {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     canvasInterval() {
+        if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh) {
+            this.drawAll();
+            this.layerManager.needRefresh = false;
+        }
+    }
+    drawAll() {
         this.clear();
         this.layers.forEach(layer => {
 
@@ -635,6 +642,8 @@ class PaintingBoard {
         }
         const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
+            const lastPoint = drawingObj.shape.points[drawingObj.shape.points.length - 1];
+            if (point.x === lastPoint.x && point.y === lastPoint.y) return;
             drawingObj.shape.points.push(point);
         }
     }
