@@ -1,11 +1,8 @@
 .paintingBoardWindowed {
     .window {
         position: absolute;
-        /*top:220px;
-                left: 160px;*/
         background-color: white;
         border-style: ridge;
-        /*min-height: 200px;*/
         z-index: 1;
         max-height: 1000px;
         cursor: default;

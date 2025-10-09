@@ -17,8 +17,6 @@
 #canvasBorder {
     display: inline-block;
     max-width: 100% !important;
-    /* max height by JS to keep dynamic */
-    /*max-height: 86vh !important;*/
     overflow: scroll;
     border: solid 1px;
 }

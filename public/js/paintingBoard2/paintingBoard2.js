@@ -185,10 +185,7 @@ class PaintingBoard {
             elem.y = 0;
             elem.width = img.width;
             elem.height = img.height;
-            this.layerManager.createShape(elem);/*
-            this.getCurrentLayer().shapes.push(elem);
-            this.updateShapeList();
-            this.menus.imageLoader.value = ""*/
+            this.layerManager.createShape(elem);
         }
     }
 
@@ -412,7 +409,6 @@ class PaintingBoard {
             }
         }
 
-        /*this.currentLayer.shapes.push(this.drawingObj.shape);*/
         this.layerManager.createShape(this.drawingObj.shape);
         this.drawingObj = undefined;
     }
