@@ -1,5 +1,5 @@
 import CONST from '../canvas/constants.js';
-import { Layer } from '../canvas/canvasClasses.js';
+import { Layer, Rect } from '../canvas/canvasClasses.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -39,7 +39,7 @@ class LayerManager {
         layerBlock.layer = layer;
         layerBlock.addEventListener("mousedown", this.selectLayer.bind(this, layer));
         if (this.currentLayer === layer) {
-            this.selectLayer(layer, { currentTarget: layerBlock, button: CONST.MOUSE_KEYS.LEFT });  
+            this.selectLayer(layer, { currentTarget: layerBlock, button: CONST.MOUSE_KEYS.LEFT });
         }
 
         const layerHead = document.createElement("div");
@@ -219,9 +219,17 @@ function layerToggleVisible(layer, btn) {
         btn.setAttribute("hide", "true")
     }
 }
-
+const pictureRect = new Rect(0, 0, 100, 100);
 function layersManager_shapeOver(shape) {
-    this.shapeOver = shape;
+    if (shape.desc === CONST.PICTURE) {
+        pictureRect.x = shape.x;
+        pictureRect.y = shape.y;
+        pictureRect.width = shape.width;
+        pictureRect.height = shape.height;
+        this.shapeOver = pictureRect;
+    } else {
+        this.shapeOver = shape;
+    }
 }
 
 function layersManager_shapeOut(shape) {
