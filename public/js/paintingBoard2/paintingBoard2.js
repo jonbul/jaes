@@ -414,7 +414,6 @@ class PaintingBoard {
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
-        this.menus.txtMousePos.value = `${currentPos.x} x ${currentPos.y}`;
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
             case CONST.PENCIL:
