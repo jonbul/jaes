@@ -5,14 +5,6 @@ import {
     Line,
     Rect,
     Text
-    /*    Rubber,
-        ClickXY,
-        Abstract,
-        Ellipse,
-        MasterJasonFile,
-        Pencil,
-        Picture,
-        Polygon*/
 } from './canvasClasses.js';
 import {
     Bullet,

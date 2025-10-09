@@ -4,6 +4,15 @@
     aria-expanded="false" aria-label="Toggle navigation">
     &#9776;
   </button>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const button = document.querySelector('.navbar-button');
+      const menu = document.getElementById('navbarMenu');
+      button.addEventListener('click', function() {
+        menu.toggleAttribute('collapsed-expanded', menu.hasAttribute('collapsed-expanded') ? '' : 'true');
+      });
+    });
+  </script>
   <ul class="navbarMenu collapsable" id="navbarMenu">
     <li class="nav-item">
       <a class="nav-link" href="/">Home<!--span class="sr-only"> (current)</span--></a>
