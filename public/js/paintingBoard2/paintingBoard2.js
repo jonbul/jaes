@@ -635,6 +635,8 @@ class PaintingBoard {
         }
         const point = this.getCurrentPos(evt);
         if (!isNaN(point.x) && !isNaN(point.y)) {
+            const lastPoint = drawingObj.shape.points[drawingObj.shape.points.length - 1];
+            if (point.x === lastPoint.x && point.y === lastPoint.y) return;
             drawingObj.shape.points.push(point);
         }
     }
