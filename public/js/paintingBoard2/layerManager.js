@@ -235,6 +235,7 @@ function layersManager_shapeOver(shape) {
 function layersManager_shapeOut(shape) {
     if (this.shapeOver === shape) {
         this.shapeOver = null;
+        this.needRefresh = true;
     }
 }
 

@@ -115,6 +115,7 @@
                 .layersManager_layer_title,
                 .layersManager_shapes_title {
                     cursor: grabbing;
+                    line-height: 25px;
                 }
 
                 >.layersManager_layer {
