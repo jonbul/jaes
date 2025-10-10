@@ -98,12 +98,6 @@ function windowsEvents(canvas) {
     document.body.onmousemove = movedWinBar
     document.body.onmouseup = unclickedWinBar
 
-    document.getElementById("boardW").addEventListener("change", function () {
-        boardWHChanged(this);
-    });
-    document.getElementById("boardH").addEventListener("change", function () {
-        boardWHChanged(this);
-    });
     eventsLoaded = true;
 }
 

@@ -155,16 +155,20 @@ class PaintingBoard {
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-        this.menus.imageLoader.addEventListener("change", this.loadImageEvent.bind(this))
+        this.menus.imageLoader.addEventListener("input", this.loadImageEvent.bind(this))
     }
     loadImageEvent(evt) {
-        const f = evt.target.files[0];
-        if (f) {
-            const reader = new FileReader();
-            reader.onloadend = loadImageFinish.bind(this)
-            reader.readAsDataURL(f);
-            const _this = this;
+        if (!evt.target.files || !evt.target.files.length) return;
+        //const f = evt.target.files[0];
+        for (const f of evt.target.files) {
+            if (f) {
+                const reader = new FileReader();
+                reader.onloadend = loadImageFinish.bind(this)
+                reader.readAsDataURL(f);
+                const _this = this;
+            }
         }
+        evt.target.value = '';
 
         function loadImageFinish(evt) {
 
@@ -176,7 +180,11 @@ class PaintingBoard {
         }
 
         function imageOnload(img) {
-            if (confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)) {
+            if ((
+                img.width > this.menus.resolution.width.value ||
+                img.height > this.menus.resolution.height.value
+            ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
+            ) {
                 _this.menus.resolution.width.value = img.width;
                 _this.menus.resolution.height.value = img.height;
                 (_this.resolutionChangeEvent.bind(_this))();
@@ -193,6 +201,7 @@ class PaintingBoard {
             elem.width = img.width;
             elem.height = img.height;
             this.layerManager.createShape(elem);
+            this.layerManager.needRefresh = true;
         }
     }
 
