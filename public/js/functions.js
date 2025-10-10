@@ -1,6 +1,7 @@
 "use strict";
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from './canvas/constants.js';
+import { ALERT_TYPES } from './canvas/constants.js';
 function asyncRequest({ url, method, data }) {
     return fetch(url, {
         method: method || 'GET',
@@ -11,42 +12,31 @@ function asyncRequest({ url, method, data }) {
     }).then(response => {
         if (!response.ok) {
             return response.text().then(text => {
-                let err = text;
+                let err;
+                if (response.status === 400) {
+                    err = 'Bad Request';
+                } else if (response.status === 401) {
+                    err = 'Unauthorized';
+                } else if (response.status === 403) {
+                    err = 'Forbidden';
+                } else if (response.status === 404) {
+                    err = 'Not Found';
+                } else if (response.status === 500) {
+                    err = 'Internal Server Error';
+                }
+                err += `(${response.status})`;
+                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
                 try {
-                    err = JSON.parse(text);
-                } catch (e) { }
+                    err += ": " + JSON.parse(text);
+                } catch (e) { if (text) err += `: ${text}`; }
                 return Promise.reject(err);
             });
         }
+        showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
         return response.json().catch(() => response.text());
     });
 }
 
-
-function oldAsyncRequest({ url, method, data }) {
-
-    return new Promise((resolve, reject) => {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4) {
-                let response = this.responseText;
-                try {
-                    response = JSON.parse(this.responseText);
-                } catch (e) {
-                }
-                resolve({
-                    response,
-                    success: this.status === 200
-                });
-            }
-        };
-        xhttp.onerror = err => reject(err);
-        xhttp.open(method || 'GET', url);
-        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        if (data && typeof data === "object") data = JSON.stringify(data);
-        xhttp.send(data);
-    });
-}
 
 function showAlert({ type = 'danger', msg, title }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
