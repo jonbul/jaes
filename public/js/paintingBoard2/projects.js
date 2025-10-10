@@ -10,10 +10,9 @@ if (projects) {
         const card = document.createElement('div');
         card.classList.add('projectCard');
 
-        // delete button, with ascii icon
         const deleteButton = document.createElement('button');
         deleteButton.classList.add('deleteButton');
-        deleteButton.innerHTML = '&#10006;'; // ASCII icon for delete (cross mark)
+        deleteButton.innerHTML = '&#10006;';
         deleteButton.addEventListener('click', deleteProject.bind(null, project._id, card));
         card.appendChild(deleteButton);
         card.appendChild(document.createElement('br'));
@@ -48,13 +47,6 @@ if (projects) {
         modifiedLabel.textContent = `Modified: ${new Date(project.dateModified).toLocaleDateString()}`;
         card.appendChild(modifiedLabel);
 
-        /*card.innerHTML = `
-                                <h5><a href="/paintingBoard2?id=${project._id}">
-                                    aa${project.name}
-                                </a></h5>
-                                <label>Created: ${new Date(project.dateCreated).toLocaleDateString()}</label>
-                                <label>Modified: ${new Date(project.dateModified).toLocaleDateString()}</label>
-                            `;*/
         projectBoard.appendChild(card);
     }
     function deleteProject(id, card) {
