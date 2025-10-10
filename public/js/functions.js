@@ -2,6 +2,29 @@
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from './canvas/constants.js';
 function asyncRequest({ url, method, data }) {
+    return fetch(url, {
+        method: method || 'GET',
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        },
+        body: data && typeof data === "object" ? JSON.stringify(data) : data
+    }).then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                let err = text;
+                try {
+                    err = JSON.parse(text);
+                } catch (e) { }
+                return Promise.reject(err);
+            });
+        }
+        return response.json().catch(() => response.text());
+    });
+}
+
+
+function oldAsyncRequest({ url, method, data }) {
+
     return new Promise((resolve, reject) => {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
