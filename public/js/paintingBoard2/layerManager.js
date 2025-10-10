@@ -63,7 +63,7 @@ class LayerManager {
         layerHideBtn.classList.add("btnLayerHide")
         layerHideBtn.innerHTML = "&#9215;";
         tools.appendChild(layerHideBtn);
-        layerHideBtn.addEventListener('click', layerToggleVisible.bind(null, layer, layerHideBtn))
+        layerHideBtn.addEventListener('click', layerToggleVisible.bind(this, layer, layerHideBtn))
         if (!layer.visible) layerHideBtn.setAttribute("hide", "true")
 
         // layer rename button
@@ -115,6 +115,7 @@ class LayerManager {
         const shapeTitle = document.createElement("span");
         shapeTitle.classList.add("layersManager_shapes_title")
         shapeTitle.innerText = shape.name || shape.desc
+        shapeTitle.title = `${shape.name || shape.desc} (${shape.desc})`
         shapeTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, shape, shapeHead));
 
         shapeHead.appendChild(shapeTitle);
@@ -169,7 +170,11 @@ class LayerManager {
 
             this.exampleCanvasContext.canvas.width = resolution.width.value;
             this.exampleCanvasContext.canvas.height = resolution.height.value;
+            
+            const visible = this.currentLayer.visible;
+            this.currentLayer.visible = true;
             this.currentLayer.draw(this.exampleCanvasContext);
+            this.currentLayer.visible = visible;
         }
     }
 
@@ -193,11 +198,13 @@ function deleteLayer(layer, layers, layerBlock) {
     if (confirm("Delete layer " + layer.name + "?")) {
         layers.splice(layers.indexOf(layer), 1);
         layerBlock.remove();
-    }
-    if (!layers.length) {
-        this.addNewLayer();
-    } else {
-        this.selectLayer(layers[layers.length - 1], { currentTarget: this.layersManagerDiv.lastChild, button: CONST.MOUSE_KEYS.LEFT });
+        if (!layers.length) {
+            this.addNewLayer();
+        } else {
+            this.selectLayer(layers[layers.length - 1], { currentTarget: this.layersManagerDiv.lastChild, button: CONST.MOUSE_KEYS.LEFT });
+        }
+        this.updateExampleCanvas();
+        this.needRefresh = true;
     }
 }
 
@@ -218,6 +225,7 @@ function layerToggleVisible(layer, btn) {
     } else {
         btn.setAttribute("hide", "true")
     }
+    setTimeout(() => this.needRefresh = true, 1);
 }
 const pictureRect = new Rect(0, 0, 100, 100);
 function layersManager_shapeOver(shape) {
@@ -256,6 +264,10 @@ function deleteShape(shape, shapes, shapeBlock) {
     if (confirm("Delete shape " + shape.name + "?")) {
         shapes.splice(shapes.indexOf(shape), 1);
         shapeBlock.remove();
+
+        this.updateExampleCanvas();
+        this.shapeOver = null;
+        this.needRefresh = true;
     }
 }
 
@@ -355,7 +367,6 @@ function layersManagerMouseUp(evt) {
                 this.layers.splice(this.layers.indexOf(movingDiv.layer), 1);
                 const overIndex = this.layers.indexOf(overElem.layer);
                 this.layers.splice(overIndex, 0, movingDiv.layer)
-                console.log(this.layers);
             }
         }
     }

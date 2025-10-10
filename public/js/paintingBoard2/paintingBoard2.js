@@ -21,7 +21,8 @@ class PaintingBoard {
     constructor(canvas, project) {
         //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
-        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20}px)`
+        const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
+        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20 - windowsSpace}px)`
 
 
         windowsEvents(canvas);
@@ -54,6 +55,7 @@ class PaintingBoard {
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
             layersManager: document.getElementById('layersManager'),
+            boardZoom: document.getElementById('boardZoom'),
         }
 
         if (!project) {
@@ -155,16 +157,28 @@ class PaintingBoard {
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-        this.menus.imageLoader.addEventListener("change", this.loadImageEvent.bind(this))
+        this.menus.imageLoader.addEventListener("input", this.loadImageEvent.bind(this))
+        this.menus.boardZoom.addEventListener("input", this.boardZoomChange.bind(this));
+    }
+    boardZoomChange() {
+        this.scale = this.menus.boardZoom.value;
+
+        this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
+        this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
+        this.layerManager.needRefresh = true;
     }
     loadImageEvent(evt) {
-        const f = evt.target.files[0];
-        if (f) {
-            const reader = new FileReader();
-            reader.onloadend = loadImageFinish.bind(this)
-            reader.readAsDataURL(f);
-            const _this = this;
+        if (!evt.target.files || !evt.target.files.length) return;
+        //const f = evt.target.files[0];
+        for (const f of evt.target.files) {
+            if (f) {
+                const reader = new FileReader();
+                reader.onloadend = loadImageFinish.bind(this)
+                reader.readAsDataURL(f);
+                const _this = this;
+            }
         }
+        evt.target.value = '';
 
         function loadImageFinish(evt) {
 
@@ -176,7 +190,11 @@ class PaintingBoard {
         }
 
         function imageOnload(img) {
-            if (confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)) {
+            if ((
+                img.width > this.menus.resolution.width.value ||
+                img.height > this.menus.resolution.height.value
+            ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
+            ) {
                 _this.menus.resolution.width.value = img.width;
                 _this.menus.resolution.height.value = img.height;
                 (_this.resolutionChangeEvent.bind(_this))();
@@ -193,12 +211,16 @@ class PaintingBoard {
             elem.width = img.width;
             elem.height = img.height;
             this.layerManager.createShape(elem);
+            this.layerManager.needRefresh = true;
         }
     }
 
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
+        if (this.layerManager) {
+            this.layerManager.needRefresh = true;
+        }
     }
     setResizeObserver() {
         if (this.resizeObserver) return;
@@ -225,6 +247,7 @@ class PaintingBoard {
             } else {
                 this.scale -= 5;
             }
+            this.menus.boardZoom.value = this.scale;
             this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
             this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         }
