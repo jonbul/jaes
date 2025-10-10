@@ -15,8 +15,19 @@
             color: white;
         }
 
-        &#toolsWindow {
+        &#toolsWindow, &#colorWindow {
+            .windowContent {
+                overflow: hidden !important;
+                resize: none !important;
+                height: auto !important;
+            }
+        }
 
+        &#layerWindow, &#colorWindow {
+            width: 225px;
+        }
+
+        &#toolsWindow {
 
             label {
                 display: inline-block;
@@ -79,7 +90,6 @@
             overflow-y: scroll;
             border-style: ridge;
             display: block;
-            min-height: 200px;
             background-color: #cccccc;
 
             input[type="number"] {
@@ -173,6 +183,7 @@
                             text-align: center;
                             vertical-align: middle;
                             border-radius: 13px;
+
                             &:hover {
                                 background-color: #00000055;
                             }

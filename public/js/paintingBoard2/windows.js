@@ -132,7 +132,11 @@ function clickedWin(evt) {
     if (evt.button === CONST.MOUSE_KEYS.LEFT) {
         selWin = evt.currentTarget;
         selWin.style.zIndex = 2;
-        selWin.difX = evt.clientX - parseInt(selWin.style.left)
+        if (selWin.style.left) {
+            selWin.difX = evt.clientX - parseInt(selWin.style.left);
+        } else {
+            selWin.difX = evt.clientX - (parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width) - parseInt(selWin.style.right));
+        }
         selWin.difY = evt.clientY - parseInt(selWin.style.top)
     }
 }
@@ -142,13 +146,20 @@ function movedWinBar(evt) {
         let mouse = getMousePosition(evt)
         mouse = new ClickXY({ x: parseInt(evt.clientX), y: parseInt(evt.clientY) });
 
-        const maxLeft = parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width)
-
-        const posL = Math.min(Math.max(evt.clientX - selWin.difX, 0), maxLeft);
         const posT = Math.max(evt.clientY - selWin.difY, 0)
-
-        selWin.style.left = posL + "px";
+        const minTop = 82; //header height + some
         selWin.style.top = posT + "px";
+
+        if (selWin.style.right) {
+            const maxRight = parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width)
+            const posR = Math.min(Math.max(maxRight - (evt.clientX - selWin.difX), 0), maxRight);
+            selWin.style.right = posR + "px";
+        } else {
+            const maxLeft = parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width)
+            const posL = Math.min(Math.max(evt.clientX - selWin.difX, 0), maxLeft);
+            selWin.style.left = posL + "px";
+
+        }
     }
 }
 

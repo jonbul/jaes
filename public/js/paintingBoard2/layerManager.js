@@ -115,6 +115,7 @@ class LayerManager {
         const shapeTitle = document.createElement("span");
         shapeTitle.classList.add("layersManager_shapes_title")
         shapeTitle.innerText = shape.name || shape.desc
+        shapeTitle.title = `${shape.name || shape.desc} (${shape.desc})`
         shapeTitle.addEventListener("mousedown", layersManager_layerShapeMousedown.bind(this, shape, shapeHead));
 
         shapeHead.appendChild(shapeTitle);

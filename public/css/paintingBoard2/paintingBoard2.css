@@ -19,6 +19,7 @@
     max-width: 100% !important;
     overflow: scroll;
     border: solid 1px;
+    margin-left: 50px;;
 }
 #canvas{
     cursor: url('/icons/pencil.ico'), default;
