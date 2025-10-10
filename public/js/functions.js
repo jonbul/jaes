@@ -38,7 +38,7 @@ function asyncRequest({ url, method, data }) {
 }
 
 
-function showAlert({ type = 'danger', msg, title }) {
+function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
     if (validTypes.indexOf(type) === -1) {
         console.warn('Valid types are:', validTypes);
@@ -48,7 +48,7 @@ function showAlert({ type = 'danger', msg, title }) {
     if (!msg) return;
 
     const alertBlock = document.createElement('div');
-    alertBlock.className = `alert alert-${type} alert-dismissible fade customAlert`;
+    alertBlock.className = `alert ${type} alert-dismissible fade customAlert`;
     alertBlock.setAttribute('role', '');
     alertBlock.innerHTML = `
     <strong id="alertTitle">${title || '&nbsp;'}</strong>
@@ -74,7 +74,15 @@ function showAlert({ type = 'danger', msg, title }) {
     } else {
         alertMessage.innerHTML = msg;
     }
-    alertBlock.classList.add('show');
+    setTimeout(() => { alertBlock.classList.add('show'); }, 0);
+    setTimeout(closeAlert.bind(null, alertBlock), duration);
+}
+
+function closeAlert(alertBlock) {
+    alertBlock.classList.remove('show')
+    setTimeout(() => {
+        alertBlock.remove();
+    }, 600);
 }
 
 function parseLayers(layers) {
