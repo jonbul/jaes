@@ -125,8 +125,8 @@
                     &[selected=true] {
 
                         >.layersManager_layer_head,
-                        >.layersManager_layer_head * {
-                            background-color: #8888ff !important;
+                        >.layersManager_layer_head>.layersManager_layer_tools {
+                            background-color: #8888ff;
                         }
                     }
 
@@ -165,12 +165,16 @@
                         >button {
                             width: 25px;
                             height: 25px;
-                            background-color: #fff;
+                            gap: 5px;
+                            background-color: #fff0;
                             border-style: none;
                             outline: none;
-
+                            cursor: pointer;
+                            text-align: center;
+                            vertical-align: middle;
+                            border-radius: 13px;
                             &:hover {
-                                background-color: #cccccc;
+                                background-color: #00000055;
                             }
 
                             &.btnShowShapes {
