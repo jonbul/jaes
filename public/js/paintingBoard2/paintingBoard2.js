@@ -208,6 +208,9 @@ class PaintingBoard {
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
         this.canvas.width = this.menus.resolution.width.value;
+        if (this.layerManager) {
+            this.layerManager.needRefresh = true;
+        }
     }
     setResizeObserver() {
         if (this.resizeObserver) return;
