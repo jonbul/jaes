@@ -107,7 +107,7 @@ body {
             #startBtn {
                 font-size: 18px;
                 padding: 8px 16px;
-                sadas border: 2px solid #a04c3c;
+                /* border: 2px solid #a04c3c; */
                 border-radius: 4px;
                 background-color: #123658;
                 color: white;
@@ -332,3 +332,4 @@ body {
             }
         }
     }
+}

@@ -21,7 +21,8 @@ class PaintingBoard {
     constructor(canvas, project) {
         //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
-        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20}px)`
+        const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
+        canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20 - windowsSpace}px)`
 
 
         windowsEvents(canvas);
@@ -54,6 +55,7 @@ class PaintingBoard {
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
             layersManager: document.getElementById('layersManager'),
+            boardZoom: document.getElementById('boardZoom'),
         }
 
         if (!project) {
@@ -156,6 +158,14 @@ class PaintingBoard {
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
         this.menus.imageLoader.addEventListener("input", this.loadImageEvent.bind(this))
+        this.menus.boardZoom.addEventListener("input", this.boardZoomChange.bind(this));
+    }
+    boardZoomChange() {
+        this.scale = this.menus.boardZoom.value;
+
+        this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
+        this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
+        this.layerManager.needRefresh = true;
     }
     loadImageEvent(evt) {
         if (!evt.target.files || !evt.target.files.length) return;
@@ -237,6 +247,7 @@ class PaintingBoard {
             } else {
                 this.scale -= 5;
             }
+            this.menus.boardZoom.value = this.scale;
             this.canvas.style.width = (parseInt(this.canvas.width) * this.scale / 100) + "px";
             this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         }
