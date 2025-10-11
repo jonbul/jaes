@@ -30,44 +30,6 @@ function windowsEvents(canvas) {
 
     boardL = board.getBoundingClientRect().left;
     boardT = board.getBoundingClientRect().top;
-    //EVENTS
-    //CLICK EVENTS
-    /*
-        board.addEventListener("mousedown", clickedDown);
-        //board.addEventListener("touchstart", clickedDown);
-        board.addEventListener("dblclick", dblClicked);
-        document.body.addEventListener("mouseup", clickedUp);
-        //document.body.addEventListener("touchend", clickedUp);
-        document.addEventListener("mousemove", clickedMove);
-        //document.addEventListener("touchmove", clickedMove);
-    
-        //KEY EVENTS
-        ////BODY
-        ////UNDO REDO
-        document.body.addEventListener("keydown", function (evt) {
-            keys[evt.keyCode] = true;
-            document.getElementById("txtPressedKey").value = evt.keyCode;
-            //CTRL+Z
-            if (keys[17] && keys[90] && undoEnabled && elements.length > 0) {
-                undoEnabled = false;
-                delElements.push(elements.pop());
-                redoElemTable();
-            }
-            //CTRL+Y
-            if (keys[17] && keys[89] && undoEnabled && delElements.length > 0) {
-                undoEnabled = false;
-                elements.push(delElements.pop());
-                redoElemTable();
-            }
-        });
-    
-        document.body.addEventListener("keyup", function (evt) {
-            keys[evt.keyCode] = false;
-    
-            if (!keys[17] || (!keys[90] && !keys[89])) {
-                undoEnabled = true;
-            }
-        });*/
 
     //RADIOBUTTON CHANGE
     let rdBtns = document.getElementsByName("action");

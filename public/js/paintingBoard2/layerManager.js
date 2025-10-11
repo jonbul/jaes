@@ -140,6 +140,11 @@ class LayerManager {
         tools.appendChild(shapeEdit);
         shapeEdit.addEventListener('click', editShape.bind(this, shape, shapeTitle))
 
+        const shapeRotationInput = document.getElementById("shapeRotation");
+
+        document.getElementById("shapeRotationRangeStep").addEventListener('input', e => {
+            shapeRotationInput.setAttribute("step", e.target.value);
+        });
 
         // shape delete button
         const btnDeleteShape = document.createElement("button");
@@ -260,7 +265,8 @@ function editShape(shape, shapeTitle) {
     const shapePropertiesTable = this.shapePropertiesTable;
     shapePropertiesTable.querySelectorAll(".propertyRow").forEach(r => r.classList.add("hidden"));
     for (const prop in shape) {
-        const input = shapePropertiesTable.querySelector(`[name="${prop}"] input`);
+        const input = shapePropertiesTable.querySelector(`[name="${prop}"] input.propertyValue`);
+        console.log(prop, input);
         input?.parentElement.parentElement.classList.remove("hidden");
         if (input) {
             let value = shape[prop];
@@ -340,6 +346,8 @@ function editShapeProperty(evt) {
         shape[propName] = degreesToRadians(propValue);
     } else if (evt.target.type === "checkbox") {
         shape[propName] = evt.target.checked;
+    } else if (propName === "src") {
+        shape.src = encodeURIComponent(propValue);
     } else {
         if (propName === 'name' && shapeTitle) {
             shapeTitle.innerText = propValue;
