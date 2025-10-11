@@ -627,7 +627,6 @@ class Picture {
 
         this.rotation = rotation;
 
-        var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
         if (options.rotationCenter && options.rotate) {
@@ -635,10 +634,19 @@ class Picture {
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
-        context.rotate(this.rotation);
+
+        if (this.rotation > 0) {
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.drawImage(this.img, this.x, this.y, this.width, this.height);
-        context.rotate(2 * Math.PI - this.rotation);
+        
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
