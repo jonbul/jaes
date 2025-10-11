@@ -32,7 +32,9 @@ function asyncRequest({ url, method, data }) {
                 return Promise.reject(err);
             });
         }
-        showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
+        if (method && method.toUpperCase() !== 'GET') {
+            showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
+        }
         return response.json().catch(() => response.text());
     });
 }
