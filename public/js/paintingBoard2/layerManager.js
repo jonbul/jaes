@@ -273,6 +273,7 @@ function editShape(shape, shapeTitle) {
             input.value = value;
         }
     }
+    this.shapeEditorWindow.style.zIndex = 1000;
     this.shapeEditorWindow.classList.remove("hidden");
 }
 

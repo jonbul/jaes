@@ -83,10 +83,11 @@ function windowsEvents(canvas) {
 
     //WINDOW EVENTS
     let i = 0;
+    
     for (let window of document.getElementsByClassName("window")) {
         window.style.zIndex = i++;
         windows.push(window)
-        window.onmousedown = clickedWin;
+        window.onmousedown = clickedWin.bind(this, window);
     }
 
 
@@ -128,16 +129,19 @@ function clickedWinBar(evt) {
     }
 }
 
-function clickedWin(evt) {
+function clickedWin(window, evt) {
+    selWin = window;
     if (evt.button === CONST.MOUSE_KEYS.LEFT) {
-        selWin = evt.currentTarget;
-        selWin.style.zIndex = 2;
-        if (selWin.style.left) {
-            selWin.difX = evt.clientX - parseInt(selWin.style.left);
-        } else {
-            selWin.difX = evt.clientX - (parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width) - parseInt(selWin.style.right));
+        for (let win of windows) {
+            win.style.zIndex = 1;
         }
-        selWin.difY = evt.clientY - parseInt(selWin.style.top)
+        window.style.zIndex = 2;
+        if (window.style.left) {
+            window.difX = evt.clientX - parseInt(window.style.left);
+        } else {
+            window.difX = evt.clientX - (parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(window).width) - parseInt(window.style.right));
+        }
+        window.difY = evt.clientY - parseInt(window.style.top)
     }
 }
 
