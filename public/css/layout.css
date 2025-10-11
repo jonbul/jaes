@@ -165,6 +165,19 @@ body {
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 text-align: center;
 
+                .deleteButton {
+                    float: right;
+                    position: relative;
+                    top: 5px;
+                    right: 5px;
+                    background-color: red;
+                    color: white;
+                    border: none;
+                    border-radius: 3px;
+                    padding: 2px 5px;
+                    cursor: pointer;
+                }
+
                 h5 {
                     margin-bottom: 10px;
                 }
@@ -266,7 +279,7 @@ body {
                 left: 0;
                 width: 100%;
                 z-index: 1000;
-                margin:0 !important;
+                margin: 0 !important;
 
                 li {
                     border-top: 1px solid rgba(255, 255, 255, .1);
@@ -274,10 +287,12 @@ body {
                     margin: 0;
                     padding: 10px 0;
                     display: block;
-                     &:hover {
+
+                    &:hover {
                         background-color: #495057;
                     }
-                    >a{
+
+                    >a {
                         width: 100% !important;
                         display: block;
                     }
@@ -329,6 +344,78 @@ body {
                 * {
                     color: red;
                 }
+            }
+        }
+    }
+
+    .alert {
+        padding: 20px;
+        background-color: #f44336;
+        /* Red */
+        color: white;
+        margin-bottom: 15px;
+        opacity: 0;
+        transition: opacity 0.6s;
+        /* 600ms to fade out */
+        border-radius: 10px;
+
+        &.show {
+            opacity: 0.9;
+        }
+
+        &.primary {
+            background-color: #007bff;
+        }
+
+        &.secondary {
+            background-color: #6c757d;
+        }
+
+        &.success {
+            background-color: #28a745;
+        }
+
+        &.danger {
+            background-color: #dc3545;
+        }
+
+        &.warning {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        &.info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        &.light {
+            background-color: #f8f9fa;
+            color: black;
+        }
+
+        &.dark {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .close {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            top: -15px;
+            right: -16px;
+            background-color: rgba(0, 0, 0, 0);
+            border-style: none;
+
+            &:hover {
+                color: black;
             }
         }
     }

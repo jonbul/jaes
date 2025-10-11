@@ -2,22 +2,7 @@
     <span id="alerts"></span>
     <button id="newProjectBtn" href="/paintingBoard2" class="btn btn-primary mt-5">New</button>
     <div id="projectBoard">
-        <% projects.forEach(project=> {
-            const d1 = new Date(project.dateCreated);
-            const d1s = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()}`;
-            const d2 = new Date(project.dateModified);
-            const d2s = `${d2.getFullYear()}/${d2.getMonth() + 1}/${d2.getDate()}`;
 
+        <script type="module" src="/js/paintingBoard2/projects.js"></script>
 
-
-
-            %>
-            <div class="projectCard">
-                <h5><a href="/paintingBoard2?id=<%= project._id %>">
-                        <%= project.name %>
-                    </a></h5>
-                <label>Created: <%= d1s %></label>
-                <label>Modified: <%= d2s %></label>
-            </div>
-            <% }) %>
     </div>

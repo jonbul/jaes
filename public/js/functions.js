@@ -1,31 +1,46 @@
 "use strict";
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from './canvas/constants.js';
+import { ALERT_TYPES } from './canvas/constants.js';
 function asyncRequest({ url, method, data }) {
-    return new Promise((resolve, reject) => {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4) {
-                let response = this.responseText;
-                try {
-                    response = JSON.parse(this.responseText);
-                } catch (e) {
+    return fetch(url, {
+        method: method || 'GET',
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+        },
+        body: data && typeof data === "object" ? JSON.stringify(data) : data
+    }).then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                let err;
+                if (response.status === 400) {
+                    err = 'Bad Request';
+                } else if (response.status === 401) {
+                    err = 'Unauthorized';
+                } else if (response.status === 403) {
+                    err = 'Forbidden';
+                } else if (response.status === 404) {
+                    err = 'Not Found';
+                } else if (response.status === 500) {
+                    err = 'Internal Server Error';
                 }
-                resolve({
-                    response,
-                    success: this.status === 200
-                });
-            }
-        };
-        xhttp.onerror = err => reject(err);
-        xhttp.open(method || 'GET', url);
-        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        if (data && typeof data === "object") data = JSON.stringify(data);
-        xhttp.send(data);
+                err += `(${response.status})`;
+                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                try {
+                    err += ": " + JSON.parse(text);
+                } catch (e) { if (text) err += `: ${text}`; }
+                return Promise.reject(err);
+            });
+        }
+        if (method && method.toUpperCase() !== 'GET') {
+            showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
+        }
+        return response.json().catch(() => response.text());
     });
 }
 
-function showAlert({ type = 'danger', msg, title }) {
+
+function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
     if (validTypes.indexOf(type) === -1) {
         console.warn('Valid types are:', validTypes);
@@ -35,7 +50,7 @@ function showAlert({ type = 'danger', msg, title }) {
     if (!msg) return;
 
     const alertBlock = document.createElement('div');
-    alertBlock.className = `alert alert-${type} alert-dismissible fade customAlert`;
+    alertBlock.className = `alert ${type} alert-dismissible fade customAlert`;
     alertBlock.setAttribute('role', '');
     alertBlock.innerHTML = `
     <strong id="alertTitle">${title || '&nbsp;'}</strong>
@@ -61,7 +76,15 @@ function showAlert({ type = 'danger', msg, title }) {
     } else {
         alertMessage.innerHTML = msg;
     }
-    alertBlock.classList.add('show');
+    setTimeout(() => { alertBlock.classList.add('show'); }, 0);
+    setTimeout(closeAlert.bind(null, alertBlock), duration);
+}
+
+function closeAlert(alertBlock) {
+    alertBlock.classList.remove('show')
+    setTimeout(() => {
+        alertBlock.remove();
+    }, 600);
 }
 
 function parseLayers(layers) {
