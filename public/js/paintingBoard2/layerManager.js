@@ -264,13 +264,12 @@ function editShape(shape, shapeTitle) {
         input?.parentElement.parentElement.classList.remove("hidden");
         if (input) {
             let value = shape[prop];
-            if ("backgroundColor" === prop) {
+            if (value && "backgroundColor" === prop) {
                 input?.parentElement.parentElement.nextElementSibling.classList.remove("hidden");
                 const [rgb, alpha] = splitColorAlpha(value);
                 value = rgbToHex(rgb);
                 shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
-            } else if (prop === "desc") {
-                continue;
+
             } else if (["startAngle", "endAngle", "rotation"].includes(prop)) {
                 // specific property conversion
                 value = radiansToDegrees(value);
@@ -339,6 +338,8 @@ function editShapeProperty(evt) {
         // specific property conversion
         evt.target.setAttribute("title", `${propValue}°`);
         shape[propName] = degreesToRadians(propValue);
+    } else if (evt.target.type === "checkbox") {
+        shape[propName] = evt.target.checked;
     } else {
         if (propName === 'name' && shapeTitle) {
             shapeTitle.innerText = propValue;
@@ -348,6 +349,7 @@ function editShapeProperty(evt) {
     }
 
     this.needRefresh = true;
+    this.updateExampleCanvas();
 }
 
 function deleteShape(shape, shapes, shapeBlock) {

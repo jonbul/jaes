@@ -23,6 +23,7 @@ const Shape = new mongoose.Schema(
         rotation: Number,
         src: String,
         name: String,
+        mirror: Boolean,
     }
 )
 

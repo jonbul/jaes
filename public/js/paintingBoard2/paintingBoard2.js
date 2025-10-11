@@ -124,10 +124,14 @@ class PaintingBoard {
         }
         if (this.layerManager.shapeOver) {
             const shapeOver = this.layerManager.shapeOver;
-            const color = shapeOver.backgroundColor;
-            shapeOver.backgroundColor = "rgba(255,255,0,0.5)"
+
+            const prop = shapeOver.desc !== CONST.LINE ?
+                "backgroundColor" : "borderColor";
+            const color = shapeOver[prop];
+            shapeOver[prop] = "rgba(255,255,0,0.5)"
             this.layerManager.shapeOver.draw(this.context);
-            shapeOver.backgroundColor = color;
+            shapeOver[prop] = color;
+
         }
 
         const gridV = parseInt(this.menus.gridV.value);
