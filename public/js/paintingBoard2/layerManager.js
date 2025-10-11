@@ -256,7 +256,7 @@ function layersManager_shapeOut(shape) {
 // region Shape events functions
 
 function editShape(shape, shapeTitle) {
-    this.editingShape = {shape, shapeTitle};
+    this.editingShape = { shape, shapeTitle };
     const shapePropertiesTable = this.shapePropertiesTable;
     shapePropertiesTable.querySelectorAll(".propertyRow").forEach(r => r.classList.add("hidden"));
     for (const prop in shape) {
@@ -269,12 +269,24 @@ function editShape(shape, shapeTitle) {
                 const [rgb, alpha] = splitColorAlpha(value);
                 value = rgbToHex(rgb);
                 shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
+            } else if (prop === "desc") {
+                continue;
+            } else if (["startAngle", "endAngle", "rotation"].includes(prop)) {
+                // specific property conversion
+                value = radiansToDegrees(value);
             }
             input.value = value;
         }
     }
     this.shapeEditorWindow.style.zIndex = 1000;
     this.shapeEditorWindow.classList.remove("hidden");
+}
+
+function radiansToDegrees(rad) {
+    return rad * (180 / Math.PI);
+}
+function degreesToRadians(deg) {
+    return deg * (Math.PI / 180);
 }
 
 function splitColorAlpha(rgba) {
@@ -323,6 +335,10 @@ function editShapeProperty(evt) {
         if (isNaN(alpha) || alpha < 0 || alpha > 1) alpha = 1;
 
         shape.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+    } else if (["startAngle", "endAngle", "rotation"].includes(propName)) {
+        // specific property conversion
+        evt.target.setAttribute("title", `${propValue}°`);
+        shape[propName] = degreesToRadians(propValue);
     } else {
         if (propName === 'name' && shapeTitle) {
             shapeTitle.innerText = propValue;
