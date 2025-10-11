@@ -10,11 +10,13 @@ class LayerManager {
         const exampleCanvas = this.layersManagerDiv.parentElement.querySelector("canvas");
         this.exampleCanvasContext = exampleCanvas.getContext("2d");
         this.movingItem = undefined;
+        this.shapePropertiesTable = document.getElementById("shapePropertiesTable");
 
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
+        shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -130,11 +132,12 @@ class LayerManager {
         // shape visibility toggle button
 
         // shape rename button
-        const shapeRename = document.createElement("button");
-        shapeRename.classList.add("btnShapeEdit")
-        shapeRename.innerHTML = "&#128393;";
-        tools.appendChild(shapeRename);
-        shapeRename.addEventListener('click', editShape.bind(null, shape, shapeTitle))
+        const shapeEdit = document.createElement("button");
+        shapeEdit.classList.add("btnShapeEdit")
+        shapeEdit.innerHTML = "&#128393;";
+        tools.appendChild(shapeEdit);
+        shapeEdit.addEventListener('click', editShape.bind(this, shape))
+
 
         // shape delete button
         const btnDeleteShape = document.createElement("button");
@@ -170,7 +173,7 @@ class LayerManager {
 
             this.exampleCanvasContext.canvas.width = resolution.width.value;
             this.exampleCanvasContext.canvas.height = resolution.height.value;
-            
+
             const visible = this.currentLayer.visible;
             this.currentLayer.visible = true;
             this.currentLayer.draw(this.exampleCanvasContext);
@@ -250,14 +253,75 @@ function layersManager_shapeOut(shape) {
 // endregion Layer events functions
 // region Shape events functions
 
-function editShape(shape, shapeTitle) {
-    const newName = prompt("New shape name", shape.name);
-    if (newName) {
-        shape.name = newName;
-        if (shapeTitle) {
-            shapeTitle.innerText = newName;
+function editShape(shape) {
+    this.editingShape = shape;
+    const shapePropertiesTable = this.shapePropertiesTable;
+    shapePropertiesTable.querySelectorAll(".propertyRow").forEach(r => r.classList.add("hidden"));
+    for (const prop in shape) {
+        const input = shapePropertiesTable.querySelector(`[name="${prop}"] input`);
+        input?.parentElement.parentElement.classList.remove("hidden");
+        if (input) {
+            let value = shape[prop];
+            if ("backgroundColor" === prop) {
+                input?.parentElement.parentElement.nextElementSibling.classList.remove("hidden");
+                console.log(prop)
+                const [rgb, alpha] = splitColorAlpha(value);
+                value = rgbToHex(rgb);
+                shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
+            }
+            input.value = value;
         }
     }
+}
+
+function splitColorAlpha(rgba) {
+    let parts;
+    if (parts = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)) {
+        const r = parseInt(parts[1]);
+        const g = parseInt(parts[2]);
+        const b = parseInt(parts[3]);
+        const a = parseFloat(parts[4]);
+        return [[r, g, b], a];
+    } else if (parts = rgba.match(/#([0-9a-fA-F]{6})/)) {
+        const hex = parts[1];
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return [[r, g, b], 1];
+    }
+    return [[0, 0, 0], 1];
+}
+
+function rgbToHex(rgb) {
+    if (Array.isArray(rgb) && rgb.length === 3) {
+        const r = rgb[0].toString(16).padStart(2, '0');
+        const g = rgb[1].toString(16).padStart(2, '0');
+        const b = rgb[2].toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`;
+    }
+    return '#000000';
+}
+
+
+function editShapeProperty(evt) {
+    console.log("YESS")
+    const shape = this.editingShape;
+    const propName = evt.target.name;
+    const propValue = evt.target.value;
+
+    if (propName === "opacity" || propName === "backgroundColor") {
+        const bgColorInput = this.shapePropertiesTable.querySelector(`[name="backgroundColor"] input`);
+        const opacityInput = this.shapePropertiesTable.querySelector(`[name="opacity"] input`);
+        const [rgb,] = splitColorAlpha(bgColorInput.value);
+        let alpha = parseFloat(opacityInput.value);
+        if (isNaN(alpha) || alpha < 0 || alpha > 1) alpha = 1;
+
+        shape.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+    } else {
+        shape[propName] = propValue;
+    }
+
+    this.needRefresh = true;
 }
 
 function deleteShape(shape, shapes, shapeBlock) {

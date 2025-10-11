@@ -72,7 +72,7 @@
                     A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
                 </td>
                 <td id="colorResult" style="width: 20px; cursor: pointer">
-                    <input type="color" id="backgroundColor" />
+                    <input type="color" id="backgroundColor" alpha/>
                 </td>
             </tr>
         </table>
@@ -90,5 +90,151 @@
         </div>
         <div style="list-style-type: none;" id="layersManager"></div>
         <canvas id="layerExampleCanvas"></canvas>
+    </span>
+</span>
+<!--LAYERS-->
+<span class="window" id="shapeEditor" style="top: 256px; right: 40%;">
+    <span class="windowBar">Shape Editor</span><br>
+    <span class="windowContent">
+        <div id="shapePropertiesTable">
+
+            <div class="propertyRow" name="name">
+                <div class="col-50">
+                    <label for="shapeName">Name</label>
+                </div>
+                <div class="col-50">
+                    <input type="text" id="shapeName" class="propertyValue" name="name" />
+                </div>
+            </div>
+            <div class="propertyRow" name="desc">
+                <div class="col-50">
+                    <label for="shapeDesc">Description</label>
+                </div>
+                <div class="col-50">
+                    <input type="text" id="shapeDesc" class="propertyValue" name="desc" disabled/>
+                </div>
+            </div>
+            <div class="propertyRow" name="x">
+                <div class="col-50">
+                    <label for="shapeX">X</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeX" class="propertyValue" name="x" />
+                </div>
+            </div>
+            <div class="propertyRow" name="y">
+                <div class="col-50">
+                    <label for="shapeY">Y</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeY" class="propertyValue" name="y" />
+                </div>
+            </div>
+            <div class="propertyRow" name="width">
+                <div class="col-50">
+                    <label for="shapeWidth">Width</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeWidth" class="propertyValue" name="width" />
+                </div>
+            </div>
+            <div class="propertyRow" name="height">
+                <div class="col-50">
+                    <label for="shapeHeight">Height</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeHeight" class="propertyValue" name="height" />
+                </div>
+            </div>
+            <div class="propertyRow" name="radius">
+                <div class="col-50">
+                    <label for="shapeRadius">Radius</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeRadius" class="propertyValue" name="radius" />
+                </div>
+            </div>
+            <div class="propertyRow" name="radiusX">
+                <div class="col-50">
+                    <label for="shapeRadiusX">Radius X</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeRadiusX" class="propertyValue" name="radiusX" />
+                </div>
+            </div>
+            <div class="propertyRow" name="radiusY">
+                <div class="col-50">
+                    <label for="shapeRadiusY">Radius Y</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeRadiusY" class="propertyValue" name="radiusY" />
+                </div>
+            </div>
+            <div class="propertyRow" name="startAngle">
+                <div class="col-50">
+                    <label for="shapeStartAngle">Start Angle (°)</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeStartAngle" class="propertyValue" name="startAngle" />
+                </div>
+            </div>
+            <div class="propertyRow" name="endAngle">
+                <div class="col-50">
+                    <label for="shapeEndAngle">End Angle (°)</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeEndAngle" class="propertyValue" name="endAngle" />
+                </div>
+            </div>
+            <div class="propertyRow" name="backgroundColor">
+                <div class="col-50">
+                    <label for="shapeBackgroundColor">Background Color</label>
+                </div>
+                <div class="col-50">
+                    <input type="color" id="shapeBackgroundColor" class="propertyValue" name="backgroundColor" />
+                </div>
+            </div>
+            <div class="propertyRow" name="opacity">
+                <div class="col-50">
+                    <label for="shapeOpacity">Opacity</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeOpacity" min="0" max="1" step="0.01" class="propertyValue" name="opacity" />
+                </div>
+            </div>
+
+            <div class="propertyRow" name="borderColor">
+                <div class="col-50">
+                    <label for="shapeBorderColor">Border Color</label>
+                </div>
+                <div class="col-50">
+                    <input type="color" id="shapeBorderColor" class="propertyValue" name="borderColor" />
+                </div>
+            </div>
+            <div class="propertyRow" name="borderWidth">
+                <div class="col-50">
+                    <label for="shapeBorderWidth">Border Width</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeBorderWidth" class="propertyValue" name="borderWidth" />
+                </div>
+            </div>
+            <div class="propertyRow" name="rotation">
+                <div class="col-50">
+                    <label for="shapeRotation">Rotation</label>
+                </div>
+                <div class="col-50">
+                    <input type="number" id="shapeRotation" class="propertyValue" name="rotation" />
+                </div>
+            </div>
+            <div class="propertyRow" name="src">
+                <div class="col-50">
+                    <label for="shapeSrc">Source</label>
+                </div>
+                <div class="col-50">
+                    <input type="text" id="shapeSrc" class="propertyValue" name="src" />
+                </div>
+            </div>
+        </div>
     </span>
 </span>
