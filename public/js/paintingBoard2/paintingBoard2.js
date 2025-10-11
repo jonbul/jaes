@@ -232,7 +232,6 @@ class PaintingBoard {
         function onResize(entries) {
             for (const entry of entries) {
                 if (entry.target.id === 'canvas') {
-                    console.log("RESIZE ", entry)
                     this.resolutionChangeEvent();
                 }
             }
@@ -301,7 +300,6 @@ class PaintingBoard {
 
     }
     loadLayerManager() {
-        console.log("refreshLayerManager")
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
 

@@ -215,6 +215,14 @@
             width: 500px;
             z-index: 999999;
 
+            &.hidden {
+                display: none;
+            }
+
+            #closeShapeEditor {
+                float: right;
+            }
+
             .windowContent {
                 max-height: 400px;
                 overflow-y: auto;
@@ -246,9 +254,9 @@
                             outline: none;
                         }
 
-                    &:first-child {
-                        border-right: solid 1px #000000;
-                    }
+                        &:first-child {
+                            border-right: solid 1px #000000;
+                        }
                     }
                 }
             }

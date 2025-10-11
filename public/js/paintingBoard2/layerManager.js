@@ -11,12 +11,14 @@ class LayerManager {
         this.exampleCanvasContext = exampleCanvas.getContext("2d");
         this.movingItem = undefined;
         this.shapePropertiesTable = document.getElementById("shapePropertiesTable");
+        this.shapeEditorWindow = document.getElementById("shapeEditor");
 
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
         shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
+        document.getElementById("closeShapeEditor").addEventListener('click', closeShapeEditor.bind(this, this.shapeEditorWindow));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -136,7 +138,7 @@ class LayerManager {
         shapeEdit.classList.add("btnShapeEdit")
         shapeEdit.innerHTML = "&#128393;";
         tools.appendChild(shapeEdit);
-        shapeEdit.addEventListener('click', editShape.bind(this, shape))
+        shapeEdit.addEventListener('click', editShape.bind(this, shape, shapeTitle))
 
 
         // shape delete button
@@ -253,8 +255,8 @@ function layersManager_shapeOut(shape) {
 // endregion Layer events functions
 // region Shape events functions
 
-function editShape(shape) {
-    this.editingShape = shape;
+function editShape(shape, shapeTitle) {
+    this.editingShape = {shape, shapeTitle};
     const shapePropertiesTable = this.shapePropertiesTable;
     shapePropertiesTable.querySelectorAll(".propertyRow").forEach(r => r.classList.add("hidden"));
     for (const prop in shape) {
@@ -264,7 +266,6 @@ function editShape(shape) {
             let value = shape[prop];
             if ("backgroundColor" === prop) {
                 input?.parentElement.parentElement.nextElementSibling.classList.remove("hidden");
-                console.log(prop)
                 const [rgb, alpha] = splitColorAlpha(value);
                 value = rgbToHex(rgb);
                 shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
@@ -272,6 +273,7 @@ function editShape(shape) {
             input.value = value;
         }
     }
+    this.shapeEditorWindow.classList.remove("hidden");
 }
 
 function splitColorAlpha(rgba) {
@@ -304,9 +306,12 @@ function rgbToHex(rgb) {
 
 
 function editShapeProperty(evt) {
-    console.log("YESS")
-    const shape = this.editingShape;
+    const shape = this.editingShape.shape;
+    const shapeTitle = this.editingShape.shapeTitle;
+    if (!shape) return;
+    if (evt.target.tagName !== "INPUT") return;
     const propName = evt.target.name;
+    if (propName === "desc") return;
     const propValue = evt.target.value;
 
     if (propName === "opacity" || propName === "backgroundColor") {
@@ -318,6 +323,10 @@ function editShapeProperty(evt) {
 
         shape.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
     } else {
+        if (propName === 'name' && shapeTitle) {
+            shapeTitle.innerText = propValue;
+            shapeTitle.title = `${propValue} (${shape.desc})`
+        }
         shape[propName] = propValue;
     }
 
@@ -435,6 +444,12 @@ function layersManagerMouseUp(evt) {
         }
     }
 }
+
+function closeShapeEditor(shapeEditorWindow) {
+    this.editingShape = null;
+    shapeEditorWindow.classList.add("hidden");
+}
+
 function layersManagerMouseMove(evt) {
     const movingItem = this.movingItem;
     if (!movingItem) return

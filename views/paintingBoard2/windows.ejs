@@ -72,7 +72,7 @@
                     A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
                 </td>
                 <td id="colorResult" style="width: 20px; cursor: pointer">
-                    <input type="color" id="backgroundColor" alpha/>
+                    <input type="color" id="backgroundColor" alpha />
                 </td>
             </tr>
         </table>
@@ -92,9 +92,12 @@
         <canvas id="layerExampleCanvas"></canvas>
     </span>
 </span>
-<!--LAYERS-->
-<span class="window" id="shapeEditor" style="top: 256px; right: 40%;">
-    <span class="windowBar">Shape Editor</span><br>
+<!--SHAPES EDITOR-->
+<span class="window hidden" id="shapeEditor" style="top: 256px; right: 0; z-index: 100;">
+    <span class="windowBar">
+        <span>Shape Editor</span>
+        <button id="closeShapeEditor">⨯</button>
+    </span><br>
     <span class="windowContent">
         <div id="shapePropertiesTable">
 
@@ -111,7 +114,7 @@
                     <label for="shapeDesc">Description</label>
                 </div>
                 <div class="col-50">
-                    <input type="text" id="shapeDesc" class="propertyValue" name="desc" disabled/>
+                    <input type="text" id="shapeDesc" class="propertyValue" name="desc" disabled />
                 </div>
             </div>
             <div class="propertyRow" name="x">
@@ -199,7 +202,8 @@
                     <label for="shapeOpacity">Opacity</label>
                 </div>
                 <div class="col-50">
-                    <input type="number" id="shapeOpacity" min="0" max="1" step="0.01" class="propertyValue" name="opacity" />
+                    <input type="number" id="shapeOpacity" min="0" max="1" step="0.01" class="propertyValue"
+                        name="opacity" />
                 </div>
             </div>
 
@@ -224,7 +228,7 @@
                     <label for="shapeRotation">Rotation</label>
                 </div>
                 <div class="col-50">
-                    <input type="number" id="shapeRotation" class="propertyValue" name="rotation" />
+                    <input type="number" id="shapeRotation" class="propertyValue" name="rotation" step="0.01" />
                 </div>
             </div>
             <div class="propertyRow" name="src">
