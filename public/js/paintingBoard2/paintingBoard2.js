@@ -54,6 +54,7 @@ class PaintingBoard {
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
+            imageLoaderLocal: document.getElementById('imageLoaderLocal'),
             layersManager: document.getElementById('layersManager'),
             boardZoom: document.getElementById('boardZoom'),
         }
@@ -161,7 +162,8 @@ class PaintingBoard {
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-        this.menus.imageLoader.addEventListener("input", this.loadImageEvent.bind(this))
+        this.menus.imageLoader.addEventListener("click", this.loadImageEvent.bind(this))
+        this.menus.imageLoaderLocal.addEventListener("input", this.loadLocalImageEvent.bind(this))
         this.menus.boardZoom.addEventListener("input", this.boardZoomChange.bind(this));
     }
     boardZoomChange() {
@@ -172,6 +174,19 @@ class PaintingBoard {
         this.layerManager.needRefresh = true;
     }
     loadImageEvent(evt) {
+        if (confirm('Load image from URL (Yes) or from Local file (No) ?')) {
+            const url = prompt("Image URL:", "https://");
+            if (!url) return;
+            const img = new Image();
+
+            img.onload = this.imageOnload.bind(this, img)
+
+            img.src = url
+        } else {
+            this.menus.imageLoaderLocal.click();
+        }
+    }
+    loadLocalImageEvent(evt) {
         if (!evt.target.files || !evt.target.files.length) return;
         //const f = evt.target.files[0];
         for (const f of evt.target.files) {
@@ -188,12 +203,15 @@ class PaintingBoard {
 
             const img = new Image();
 
-            img.onload = imageOnload.bind(this, img)
+            img.onload = this.imageOnload.bind(this, img)
 
             img.src = evt.target.result;
         }
 
-        function imageOnload(img) {
+        
+    }
+
+    imageOnload(img) {
             if ((
                 img.width > this.menus.resolution.width.value ||
                 img.height > this.menus.resolution.height.value
@@ -217,7 +235,6 @@ class PaintingBoard {
             this.layerManager.createShape(elem);
             this.layerManager.needRefresh = true;
         }
-    }
 
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
