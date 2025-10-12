@@ -43,16 +43,16 @@ class Rect {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
-        let moveX = this.x;
-        let moveY = this.y;
         if (this.rotation > 0) {
-            moveX = this.x + this.width / 2;
-            moveY = this.y + this.height / 2;
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
             context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
         }
 
         context.beginPath();
-        context.rect(moveX, moveY, this.width, this.height);
+        context.rect(this.x, this.y, this.width, this.height);
         context.fillStyle = this.backgroundColor;
         context.fill();
         if (this.borderWidth > 0) {
@@ -60,6 +60,8 @@ class Rect {
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
+
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -80,27 +82,29 @@ class Rect {
         scale = 1;
 
         context.scale(scale, scale);
-        let moveX = this.x;
-        let moveY = this.y;
 
         if (this.rotation > 0) {
-            moveX = this.x + this.width / 2;
-            moveY = this.y + this.height / 2;
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
             context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
         }
 
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.fillRect(moveX, moveY, this.width, this.height);
+        context.fillRect(this.x, this.y, this.width, this.height);
 
         if (this.borderWidth) {
             context.strokeStyle = this.borderColor;
             context.lineWidth = this.borderWidth;
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
+
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Arc {
-    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name) {
+    constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name, mirror = false) {
         this.desc = CONST.ARC;
         this.name = name || this.desc;
         this.x = x;
@@ -111,6 +115,8 @@ class Arc {
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
+        this.mirror = mirror;
+        this.rotation = 0;
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
@@ -121,16 +127,25 @@ class Arc {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
+        if (this.rotation > 0) {
+            const moveX = this.x// + this.width / 2;
+            const moveY = this.y// + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         if (this.radius < 0) this.radius *= -1;
         context.beginPath();
         context.fillStyle = this.backgroundColor;//BACKGROUND
-        context.arc(this.x, this.y, this.radius, this.startAngle, this.endAngle);
+        context.arc(this.x, this.y, this.radius, this.startAngle, this.endAngle, this.mirror);
         if (this.borderWidth) {
             context.strokeStyle = this.borderColor;//BORDER
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
         context.fill();
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -269,13 +284,14 @@ class Line {
     }
 }
 class Polygon {
-    constructor(points = [], backgroundColor, borderColor, borderWidth) {
+    constructor(points = [], backgroundColor, borderColor, borderWidth, name, rotation = 0) {
         this.desc = CONST.POLYGON;
-        this.name = this.desc;
+        this.name = name || this.desc;
         this.points = points;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
+        this.rotation = rotation;
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
@@ -284,6 +300,21 @@ class Polygon {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+
+        if (this.rotation > 0) {
+            // min x and y in points
+            const minX = Math.min(...this.points.map(p => p.x));
+            const minY = Math.min(...this.points.map(p => p.y));
+            // max x and y in points
+            const maxX = Math.max(...this.points.map(p => p.x));
+            const maxY = Math.max(...this.points.map(p => p.y));
+            const moveX = minX + (maxX - minX) / 2;
+            const moveY = minY + (maxY - minY) / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
         }
 
         if (this.points.length > 0) {
@@ -300,6 +331,9 @@ class Polygon {
                 context.strokeStyle = this.borderColor;
                 context.stroke();
             }
+
+            context.fill();
+            context.setTransform(1, 0, 0, 1, 0, 0);
         }
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -321,6 +355,20 @@ class Polygon {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
+        if (this.rotation > 0) {
+            // min x and y in points
+            const minX = Math.min(...this.points.map(p => p.x));
+            const minY = Math.min(...this.points.map(p => p.y));
+            // max x and y in points
+            const maxX = Math.max(...this.points.map(p => p.x));
+            const maxY = Math.max(...this.points.map(p => p.y));
+            const moveX = minX + (maxX - minX) / 2;
+            const moveY = minY + (maxY - minY) / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         context.fillStyle = this.backgroundColor;
         context.strokeStyle = this.borderColor;
         context.beginPath();
@@ -339,6 +387,9 @@ class Polygon {
         if (context.lineWidth > 0) {
             context.stroke();
         }
+
+        context.fill();
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Pencil {
@@ -398,7 +449,7 @@ class Pencil {
     }
 }
 class Abstract {
-    constructor(points, backgroundColor, borderColor, borderWidth, name) {
+    constructor(points, backgroundColor, borderColor, borderWidth, name, rotation = 0) {
         this.desc = CONST.ABSTRACT;
         this.name = name || this.desc;
         if (points !== undefined) {
@@ -409,6 +460,7 @@ class Abstract {
         this.borderColor = borderColor;
         this.backgroundColor = backgroundColor;
         this.borderWidth = borderWidth ? parseInt(borderWidth) : 0;
+        this.rotation = rotation;
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
@@ -416,6 +468,20 @@ class Abstract {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        if (this.rotation > 0) {
+            // min x and y in points
+            const minX = Math.min(...this.points.map(p => p.x));
+            const minY = Math.min(...this.points.map(p => p.y));
+            // max x and y in points
+            const maxX = Math.max(...this.points.map(p => p.x));
+            const maxY = Math.max(...this.points.map(p => p.y));
+            const moveX = minX + (maxX - minX) / 2;
+            const moveY = minY + (maxY - minY) / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
         }
 
         context.beginPath();
@@ -432,6 +498,8 @@ class Abstract {
             context.lineWidth = this.borderWidth;
             context.stroke();
         }
+
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -453,6 +521,20 @@ class Abstract {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
+        if (this.rotation > 0) {
+            // min x and y in points
+            const minX = Math.min(...this.points.map(p => p.x));
+            const minY = Math.min(...this.points.map(p => p.y));
+            // max x and y in points
+            const maxX = Math.max(...this.points.map(p => p.x));
+            const maxY = Math.max(...this.points.map(p => p.y));
+            const moveX = minX + (maxX - minX) / 2;
+            const moveY = minY + (maxY - minY) / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         context.fillStyle = this.backgroundColor;
         context.strokeStyle = this.borderColor;
         context.beginPath();
@@ -471,6 +553,7 @@ class Abstract {
         if (context.lineWidth > 0) {
             context.stroke();
         }
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 class Rubber {
@@ -544,7 +627,6 @@ class Picture {
 
         this.rotation = rotation;
 
-        var elem = this;
     }
     draw(context, options = { x: 0, y: 0 }) {
         if (options.rotationCenter && options.rotate) {
@@ -552,10 +634,19 @@ class Picture {
             context.rotate(options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
-        context.rotate(this.rotation);
+
+        if (this.rotation > 0) {
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.drawImage(this.img, this.x, this.y, this.width, this.height);
-        context.rotate(2 * Math.PI - this.rotation);
+        
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -620,7 +711,7 @@ class Text {
 }
 
 class ClickXY {
-    constructor(data ={x: 0,y: 0}, round = {x: 1,y: 1}) {
+    constructor(data = { x: 0, y: 0 }, round = { x: 1, y: 1 }) {
         const roundX = round.x || 1;
         const roundY = round.y || 1;
         this.x = Math.round(data.x / roundX) * roundX;

@@ -54,6 +54,7 @@ class PaintingBoard {
             toolList: document.getElementById('toolList'),
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
+            imageLoaderLocal: document.getElementById('imageLoaderLocal'),
             layersManager: document.getElementById('layersManager'),
             boardZoom: document.getElementById('boardZoom'),
         }
@@ -124,10 +125,14 @@ class PaintingBoard {
         }
         if (this.layerManager.shapeOver) {
             const shapeOver = this.layerManager.shapeOver;
-            const color = shapeOver.backgroundColor;
-            shapeOver.backgroundColor = "rgba(255,255,0,0.5)"
+
+            const prop = shapeOver.desc !== CONST.LINE ?
+                "backgroundColor" : "borderColor";
+            const color = shapeOver[prop];
+            shapeOver[prop] = "rgba(255,255,0,0.5)"
             this.layerManager.shapeOver.draw(this.context);
-            shapeOver.backgroundColor = color;
+            shapeOver[prop] = color;
+
         }
 
         const gridV = parseInt(this.menus.gridV.value);
@@ -157,7 +162,8 @@ class PaintingBoard {
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
         this.canvas.addEventListener('wheel', this.onCanvasWheel.bind(this));
-        this.menus.imageLoader.addEventListener("input", this.loadImageEvent.bind(this))
+        this.menus.imageLoader.addEventListener("click", this.loadImageEvent.bind(this))
+        this.menus.imageLoaderLocal.addEventListener("input", this.loadLocalImageEvent.bind(this))
         this.menus.boardZoom.addEventListener("input", this.boardZoomChange.bind(this));
     }
     boardZoomChange() {
@@ -168,6 +174,19 @@ class PaintingBoard {
         this.layerManager.needRefresh = true;
     }
     loadImageEvent(evt) {
+        if (confirm('Load image from URL (Yes) or from Local file (No) ?')) {
+            const url = prompt("Image URL:", "https://");
+            if (!url) return;
+            const img = new Image();
+
+            img.onload = this.imageOnload.bind(this, img)
+
+            img.src = url
+        } else {
+            this.menus.imageLoaderLocal.click();
+        }
+    }
+    loadLocalImageEvent(evt) {
         if (!evt.target.files || !evt.target.files.length) return;
         //const f = evt.target.files[0];
         for (const f of evt.target.files) {
@@ -184,35 +203,37 @@ class PaintingBoard {
 
             const img = new Image();
 
-            img.onload = imageOnload.bind(this, img)
+            img.onload = this.imageOnload.bind(this, img)
 
             img.src = evt.target.result;
         }
 
-        function imageOnload(img) {
-            if ((
-                img.width > this.menus.resolution.width.value ||
-                img.height > this.menus.resolution.height.value
-            ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
-            ) {
-                _this.menus.resolution.width.value = img.width;
-                _this.menus.resolution.height.value = img.height;
-                (_this.resolutionChangeEvent.bind(_this))();
-            }
-            const elem = new Picture();
-            elem.img = img;
-            elem.src = img.src;
-            elem.sx = 0;
-            elem.sy = 0;
-            elem.sw = img.width;
-            elem.sh = img.height;
-            elem.x = 0;
-            elem.y = 0;
-            elem.width = img.width;
-            elem.height = img.height;
-            this.layerManager.createShape(elem);
-            this.layerManager.needRefresh = true;
+
+    }
+
+    imageOnload(img) {
+        if ((
+            img.width > this.menus.resolution.width.value ||
+            img.height > this.menus.resolution.height.value
+        ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
+        ) {
+            _this.menus.resolution.width.value = img.width;
+            _this.menus.resolution.height.value = img.height;
+            (_this.resolutionChangeEvent.bind(_this))();
         }
+        const elem = new Picture();
+        elem.img = img;
+        elem.src = img.src;
+        elem.sx = 0;
+        elem.sy = 0;
+        elem.sw = img.width;
+        elem.sh = img.height;
+        elem.x = 0;
+        elem.y = 0;
+        elem.width = img.width;
+        elem.height = img.height;
+        this.layerManager.createShape(elem);
+        this.layerManager.needRefresh = true;
     }
 
     resolutionChangeEvent() {
@@ -232,7 +253,6 @@ class PaintingBoard {
         function onResize(entries) {
             for (const entry of entries) {
                 if (entry.target.id === 'canvas') {
-                    console.log("RESIZE ", entry)
                     this.resolutionChangeEvent();
                 }
             }
@@ -301,7 +321,6 @@ class PaintingBoard {
 
     }
     loadLayerManager() {
-        console.log("refreshLayerManager")
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
 
@@ -342,7 +361,10 @@ class PaintingBoard {
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
-        if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+        if (evt.button === CONST.MOUSE_KEYS.LEFT && this.movingShape) {
+            this.movingShape = null;
+            this.layerManager.needRefresh = true;
+        } else if (evt.button === CONST.MOUSE_KEYS.LEFT) {
             const currentPos = this.getCurrentPos(evt);
             switch (this.selectedTool) {
                 case CONST.PENCIL:
@@ -380,6 +402,11 @@ class PaintingBoard {
         } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
             evt.stopImmediatePropagation();
             evt.stopPropagation();
+            if (this.movingShape) {
+                this.movingShape.item.x = this.movingShape.oldPos.x;
+                this.movingShape.item.y = this.movingShape.oldPos.y;
+                this.movingShape = null;
+            }
             if (this.drawingObj && this.selectedTool === CONST.POLYGON) {
                 this.drawingObj.shape.points.pop();
                 if (!this.drawingObj.shape.points.length) {
@@ -444,6 +471,13 @@ class PaintingBoard {
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
+        if (this.movingShape) {
+
+            this.movingShape.item.x = currentPos.x;
+            this.movingShape.item.y = currentPos.y;
+            this.layerManager.needRefresh = true;
+
+        }
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
             case CONST.PENCIL:

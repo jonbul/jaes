@@ -1,5 +1,6 @@
 import CONST from '../canvas/constants.js';
 import { Layer, Rect } from '../canvas/canvasClasses.js';
+import { showAlert } from '../functions.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -10,11 +11,15 @@ class LayerManager {
         const exampleCanvas = this.layersManagerDiv.parentElement.querySelector("canvas");
         this.exampleCanvasContext = exampleCanvas.getContext("2d");
         this.movingItem = undefined;
+        this.shapePropertiesTable = document.getElementById("shapePropertiesTable");
+        this.shapeEditorWindow = document.getElementById("shapeEditor");
 
         document.body.addEventListener('mouseup', layersManagerMouseUp.bind(this));
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
+        shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
+        document.getElementById("closeShapeEditor").addEventListener('click', closeShapeEditor.bind(this, this.shapeEditorWindow));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -59,26 +64,14 @@ class LayerManager {
         layerHead.appendChild(tools);
 
         // layer visibility toggle button
-        const layerHideBtn = document.createElement("button");
-        layerHideBtn.classList.add("btnLayerHide")
-        layerHideBtn.innerHTML = "&#9215;";
-        tools.appendChild(layerHideBtn);
-        layerHideBtn.addEventListener('click', layerToggleVisible.bind(this, layer, layerHideBtn))
+        const layerHideBtn = createButton("&#128065;", "btnLayerHide", "Show/Hide layer", layerToggleVisible.bind(this, layer), tools);
         if (!layer.visible) layerHideBtn.setAttribute("hide", "true")
 
         // layer rename button
-        const layerRename = document.createElement("button");
-        layerRename.classList.add("btnLayerEdit")
-        layerRename.innerHTML = "&#128393;";
-        tools.appendChild(layerRename);
-        layerRename.addEventListener('click', editLayer.bind(null, layer, layerTitle))
-
+        createButton("&#128393;", "btnLayerEdit", "Edit layer", editLayer.bind(null, layer, layerTitle), tools);
+        
         // layer delete button
-        const btnDeleteLayer = document.createElement("button");
-        btnDeleteLayer.classList.add("btnDeleteLayer")
-        btnDeleteLayer.innerHTML = "&Cross;";
-        tools.appendChild(btnDeleteLayer);
-        btnDeleteLayer.addEventListener('click', deleteLayer.bind(this, layer, this.layers, layerBlock));
+        createButton("&Cross;", "btnDeleteLayer", "Delete layer", deleteLayer.bind(this, layer, this.layers, layerBlock), tools);
 
         // layer show/hide shapes button
         const btnShowShapes = document.createElement("button");
@@ -127,21 +120,14 @@ class LayerManager {
         tools.classList.add("layersManager_shape_tools")
         shapeHead.appendChild(tools);
 
-        // shape visibility toggle button
+        // shape move toggle button
+        createButton("&#10021;", "btnShapeMove", "Move shape", layersManager_movingShape.bind(this, shape), tools);
 
         // shape rename button
-        const shapeRename = document.createElement("button");
-        shapeRename.classList.add("btnShapeEdit")
-        shapeRename.innerHTML = "&#128393;";
-        tools.appendChild(shapeRename);
-        shapeRename.addEventListener('click', editShape.bind(null, shape, shapeTitle))
+        createButton("&#128393;", "btnShapeEdit", "Edit shape", editShape.bind(this, shape, shapeTitle), tools);
 
         // shape delete button
-        const btnDeleteShape = document.createElement("button");
-        btnDeleteShape.classList.add("btnDeleteShape")
-        btnDeleteShape.innerHTML = "&Cross;";
-        tools.appendChild(btnDeleteShape);
-        btnDeleteShape.addEventListener('click', deleteShape.bind(this, shape, layer.shapes, shapeHead));
+        createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
 
 
         // endregion shape buttons
@@ -170,7 +156,7 @@ class LayerManager {
 
             this.exampleCanvasContext.canvas.width = resolution.width.value;
             this.exampleCanvasContext.canvas.height = resolution.height.value;
-            
+
             const visible = this.currentLayer.visible;
             this.currentLayer.visible = true;
             this.currentLayer.draw(this.exampleCanvasContext);
@@ -188,6 +174,21 @@ class LayerManager {
 
 // region Layer events functions
 
+function createButton(text, className, title, onClick, parent) {
+    const button = document.createElement("button");
+    button.classList.add(className);
+    button.innerHTML = text;
+    button.title = title;
+    button.addEventListener('click', onClick);
+    parent.appendChild(button);
+    return button;
+}
+
+function layersManager_movingShape(shape, evt) {
+    if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+    this.paintingBoard.movingShape = { item: shape, oldPos: { x: shape.x, y: shape.y } };
+    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel', duration: 5000 })
+}
 
 function hideLayerShapes(btn, layerShapesBlock) {
     layerShapesBlock.classList.toggle("hidden");
@@ -218,12 +219,12 @@ function editLayer(layer, layerTitle) {
     }
 }
 
-function layerToggleVisible(layer, btn) {
+function layerToggleVisible(layer, evt) {
     layer.visible = !layer.visible;
     if (layer.visible) {
-        btn.removeAttribute("hide")
+        evt.target.removeAttribute("hide")
     } else {
-        btn.setAttribute("hide", "true")
+        evt.target.setAttribute("hide", "true")
     }
     setTimeout(() => this.needRefresh = true, 1);
 }
@@ -251,24 +252,114 @@ function layersManager_shapeOut(shape) {
 // region Shape events functions
 
 function editShape(shape, shapeTitle) {
-    const newName = prompt("New shape name", shape.name);
-    if (newName) {
-        shape.name = newName;
-        if (shapeTitle) {
-            shapeTitle.innerText = newName;
+    this.editingShape = { shape, shapeTitle };
+    const shapePropertiesTable = this.shapePropertiesTable;
+    shapePropertiesTable.querySelectorAll(".propertyRow").forEach(r => r.classList.add("hidden"));
+    for (const prop in shape) {
+        const input = shapePropertiesTable.querySelector(`[name="${prop}"] input.propertyValue`);
+        console.log(prop, input);
+        input?.parentElement.parentElement.classList.remove("hidden");
+        if (input) {
+            let value = shape[prop];
+            if (value && "backgroundColor" === prop) {
+                input?.parentElement.parentElement.nextElementSibling.classList.remove("hidden");
+                const [rgb, alpha] = splitColorAlpha(value);
+                value = rgbToHex(rgb);
+                shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
+
+            } else if (["startAngle", "endAngle", "rotation"].includes(prop)) {
+                // specific property conversion
+                value = radiansToDegrees(value);
+            }
+            input.value = value;
         }
     }
+    this.shapeEditorWindow.style.zIndex = 1000;
+    this.shapeEditorWindow.classList.remove("hidden");
+}
+
+function radiansToDegrees(rad) {
+    return rad * (180 / Math.PI);
+}
+function degreesToRadians(deg) {
+    return deg * (Math.PI / 180);
+}
+
+function splitColorAlpha(rgba) {
+    let parts;
+    if (parts = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)) {
+        const r = parseInt(parts[1]);
+        const g = parseInt(parts[2]);
+        const b = parseInt(parts[3]);
+        const a = parseFloat(parts[4]);
+        return [[r, g, b], a];
+    } else if (parts = rgba.match(/#([0-9a-fA-F]{6})/)) {
+        const hex = parts[1];
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return [[r, g, b], 1];
+    }
+    return [[0, 0, 0], 1];
+}
+
+function rgbToHex(rgb) {
+    if (Array.isArray(rgb) && rgb.length === 3) {
+        const r = rgb[0].toString(16).padStart(2, '0');
+        const g = rgb[1].toString(16).padStart(2, '0');
+        const b = rgb[2].toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`;
+    }
+    return '#000000';
+}
+
+
+function editShapeProperty(evt) {
+    const shape = this.editingShape.shape;
+    const shapeTitle = this.editingShape.shapeTitle;
+    if (!shape) return;
+    if (evt.target.tagName !== "INPUT") return;
+    const propName = evt.target.name;
+    if (propName === "desc") return;
+    const propValue = evt.target.value;
+
+    if (propName === "opacity" || propName === "backgroundColor") {
+        const bgColorInput = this.shapePropertiesTable.querySelector(`[name="backgroundColor"] input`);
+        const opacityInput = this.shapePropertiesTable.querySelector(`[name="opacity"] input`);
+        const [rgb,] = splitColorAlpha(bgColorInput.value);
+        let alpha = parseFloat(opacityInput.value);
+        if (isNaN(alpha) || alpha < 0 || alpha > 1) alpha = 1;
+
+        shape.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+    } else if (["startAngle", "endAngle", "rotation"].includes(propName)) {
+        // specific property conversion
+        evt.target.setAttribute("title", `${propValue}°`);
+        shape[propName] = degreesToRadians(propValue);
+    } else if (evt.target.type === "checkbox") {
+        shape[propName] = evt.target.checked;
+    } else if (propName === "src") {
+        shape.src = encodeURIComponent(propValue);
+    } else {
+        if (propName === 'name' && shapeTitle) {
+            shapeTitle.innerText = propValue;
+            shapeTitle.title = `${propValue} (${shape.desc})`
+        }
+        shape[propName] = propValue;
+    }
+
+    this.needRefresh = true;
+    this.updateExampleCanvas();
 }
 
 function deleteShape(shape, shapes, shapeBlock) {
-    if (confirm("Delete shape " + shape.name + "?")) {
+    //if (confirm("Delete shape " + shape.name + "?")) {
         shapes.splice(shapes.indexOf(shape), 1);
         shapeBlock.remove();
 
         this.updateExampleCanvas();
         this.shapeOver = null;
         this.needRefresh = true;
-    }
+    //}
 }
 
 // endregion Shape events functions
@@ -371,6 +462,12 @@ function layersManagerMouseUp(evt) {
         }
     }
 }
+
+function closeShapeEditor(shapeEditorWindow) {
+    this.editingShape = null;
+    shapeEditorWindow.classList.add("hidden");
+}
+
 function layersManagerMouseMove(evt) {
     const movingItem = this.movingItem;
     if (!movingItem) return
@@ -380,8 +477,6 @@ function layersManagerMouseMove(evt) {
 
     movingItem.div.style.left = x + "px"
     movingItem.div.style.top = y + "px"
-
-
 }
 
 export default LayerManager

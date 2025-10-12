@@ -30,44 +30,6 @@ function windowsEvents(canvas) {
 
     boardL = board.getBoundingClientRect().left;
     boardT = board.getBoundingClientRect().top;
-    //EVENTS
-    //CLICK EVENTS
-    /*
-        board.addEventListener("mousedown", clickedDown);
-        //board.addEventListener("touchstart", clickedDown);
-        board.addEventListener("dblclick", dblClicked);
-        document.body.addEventListener("mouseup", clickedUp);
-        //document.body.addEventListener("touchend", clickedUp);
-        document.addEventListener("mousemove", clickedMove);
-        //document.addEventListener("touchmove", clickedMove);
-    
-        //KEY EVENTS
-        ////BODY
-        ////UNDO REDO
-        document.body.addEventListener("keydown", function (evt) {
-            keys[evt.keyCode] = true;
-            document.getElementById("txtPressedKey").value = evt.keyCode;
-            //CTRL+Z
-            if (keys[17] && keys[90] && undoEnabled && elements.length > 0) {
-                undoEnabled = false;
-                delElements.push(elements.pop());
-                redoElemTable();
-            }
-            //CTRL+Y
-            if (keys[17] && keys[89] && undoEnabled && delElements.length > 0) {
-                undoEnabled = false;
-                elements.push(delElements.pop());
-                redoElemTable();
-            }
-        });
-    
-        document.body.addEventListener("keyup", function (evt) {
-            keys[evt.keyCode] = false;
-    
-            if (!keys[17] || (!keys[90] && !keys[89])) {
-                undoEnabled = true;
-            }
-        });*/
 
     //RADIOBUTTON CHANGE
     let rdBtns = document.getElementsByName("action");
@@ -83,10 +45,11 @@ function windowsEvents(canvas) {
 
     //WINDOW EVENTS
     let i = 0;
+
     for (let window of document.getElementsByClassName("window")) {
         window.style.zIndex = i++;
         windows.push(window)
-        window.onmousedown = clickedWin;
+        window.onmousedown = clickedWin.bind(this, window);
     }
 
 
@@ -97,6 +60,12 @@ function windowsEvents(canvas) {
     }
     document.body.onmousemove = movedWinBar
     document.body.onmouseup = unclickedWinBar
+
+    const shapeRotationInput = document.getElementById("shapeRotation");
+
+    document.getElementById("shapeRotationRangeStep").addEventListener('input', e => {
+        shapeRotationInput.setAttribute("step", e.target.value);
+    });
 
     eventsLoaded = true;
 }
@@ -128,16 +97,19 @@ function clickedWinBar(evt) {
     }
 }
 
-function clickedWin(evt) {
+function clickedWin(window, evt) {
+    selWin = window;
     if (evt.button === CONST.MOUSE_KEYS.LEFT) {
-        selWin = evt.currentTarget;
-        selWin.style.zIndex = 2;
-        if (selWin.style.left) {
-            selWin.difX = evt.clientX - parseInt(selWin.style.left);
-        } else {
-            selWin.difX = evt.clientX - (parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width) - parseInt(selWin.style.right));
+        for (let win of windows) {
+            win.style.zIndex = 1;
         }
-        selWin.difY = evt.clientY - parseInt(selWin.style.top)
+        window.style.zIndex = 2;
+        if (window.style.left) {
+            window.difX = evt.clientX - parseInt(window.style.left);
+        } else {
+            window.difX = evt.clientX - (parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(window).width) - parseInt(window.style.right));
+        }
+        window.difY = evt.clientY - parseInt(window.style.top)
     }
 }
 

@@ -53,11 +53,11 @@ function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     alertBlock.className = `alert ${type} alert-dismissible fade customAlert`;
     alertBlock.setAttribute('role', '');
     alertBlock.innerHTML = `
-    <strong id="alertTitle">${title || '&nbsp;'}</strong>
-    <span id="alertMessage"></span>
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
-    </button>`;
+    </button>
+    <strong id="alertTitle">${title || '&nbsp;'}</strong>
+    <div id="alertMessage"></div>`;
     if (window.alerts.firstElementChild) {
         window.alerts.insertBefore(alertBlock, window.alerts.firstElementChild);
     } else {
@@ -76,6 +76,11 @@ function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     } else {
         alertMessage.innerHTML = msg;
     }
+    alertBlock.querySelector('.close').addEventListener('click', e => {
+        e.preventDefault();
+        closeAlert(alertBlock);
+    });
+
     setTimeout(() => { alertBlock.classList.add('show'); }, 0);
     setTimeout(closeAlert.bind(null, alertBlock), duration);
 }
