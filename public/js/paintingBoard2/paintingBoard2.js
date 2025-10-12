@@ -472,11 +472,28 @@ class PaintingBoard {
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
         if (this.movingShape) {
+            const oldPos = this.movingShape.oldPos;
+            const shape = this.movingShape.item;
 
-            this.movingShape.item.x = currentPos.x;
-            this.movingShape.item.y = currentPos.y;
-            this.layerManager.needRefresh = true;
+            if ([CONST.LINE, CONST.PENCIL, CONST.POLYGON, CONST.ABSTRACT, CONST.RUBBER].includes(shape.desc)) {
+                const adjustX = oldPos.width / 2;
+                const adjustY = oldPos.height / 2;
+                const newPoints = oldPos.points.map(point => {
+                    return {
+                        x: point.x + currentPos.x - adjustX,
+                        y: point.y + currentPos.y - adjustY
+                    };
+                });
+                shape.points = newPoints;
+            } if ([CONST.ARC, CONST.ELLIPSE, CONST.SEMIARC].includes(shape.desc)) {
 
+                shape.x = currentPos.x;
+                shape.y = currentPos.y;
+            } else {
+                shape.x = currentPos.x - shape.width / 2;
+                shape.y = currentPos.y - shape.height / 2;
+            }
+                this.layerManager.needRefresh = true;
         }
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
