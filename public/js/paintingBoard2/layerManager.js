@@ -64,26 +64,14 @@ class LayerManager {
         layerHead.appendChild(tools);
 
         // layer visibility toggle button
-        const layerHideBtn = document.createElement("button");
-        layerHideBtn.classList.add("btnLayerHide")
-        layerHideBtn.innerHTML = "&#9215;";
-        tools.appendChild(layerHideBtn);
-        layerHideBtn.addEventListener('click', layerToggleVisible.bind(this, layer, layerHideBtn))
+        const layerHideBtn = createButton("&#128065;", "btnLayerHide", "Show/Hide layer", layerToggleVisible.bind(this, layer), tools);
         if (!layer.visible) layerHideBtn.setAttribute("hide", "true")
 
         // layer rename button
-        const layerRename = document.createElement("button");
-        layerRename.classList.add("btnLayerEdit")
-        layerRename.innerHTML = "&#128393;";
-        tools.appendChild(layerRename);
-        layerRename.addEventListener('click', editLayer.bind(null, layer, layerTitle))
-
+        createButton("&#128393;", "btnLayerEdit", "Edit layer", editLayer.bind(null, layer, layerTitle), tools);
+        
         // layer delete button
-        const btnDeleteLayer = document.createElement("button");
-        btnDeleteLayer.classList.add("btnDeleteLayer")
-        btnDeleteLayer.innerHTML = "&Cross;";
-        tools.appendChild(btnDeleteLayer);
-        btnDeleteLayer.addEventListener('click', deleteLayer.bind(this, layer, this.layers, layerBlock));
+        createButton("&Cross;", "btnDeleteLayer", "Delete layer", deleteLayer.bind(this, layer, this.layers, layerBlock), tools);
 
         // layer show/hide shapes button
         const btnShowShapes = document.createElement("button");
@@ -132,29 +120,14 @@ class LayerManager {
         tools.classList.add("layersManager_shape_tools")
         shapeHead.appendChild(tools);
 
-        // shape visibility toggle button
-
-
-
-        const shapeMove = document.createElement("button");
-        shapeMove.classList.add("btnShapeMove")
-        shapeMove.innerHTML = "&#10021;";
-        tools.appendChild(shapeMove);
-        shapeMove.addEventListener("click", layersManager_movingShape.bind(this, shape));
+        // shape move toggle button
+        createButton("&#10021;", "btnShapeMove", "Move shape", layersManager_movingShape.bind(this, shape), tools);
 
         // shape rename button
-        const shapeEdit = document.createElement("button");
-        shapeEdit.classList.add("btnShapeEdit")
-        shapeEdit.innerHTML = "&#128393;";
-        tools.appendChild(shapeEdit);
-        shapeEdit.addEventListener('click', editShape.bind(this, shape, shapeTitle))
+        createButton("&#128393;", "btnShapeEdit", "Edit shape", editShape.bind(this, shape, shapeTitle), tools);
 
         // shape delete button
-        const btnDeleteShape = document.createElement("button");
-        btnDeleteShape.classList.add("btnDeleteShape")
-        btnDeleteShape.innerHTML = "&Cross;";
-        tools.appendChild(btnDeleteShape);
-        btnDeleteShape.addEventListener('click', deleteShape.bind(this, shape, layer.shapes, shapeHead));
+        createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
 
 
         // endregion shape buttons
@@ -201,6 +174,16 @@ class LayerManager {
 
 // region Layer events functions
 
+function createButton(text, className, title, onClick, parent) {
+    const button = document.createElement("button");
+    button.classList.add(className);
+    button.innerHTML = text;
+    button.title = title;
+    button.addEventListener('click', onClick);
+    parent.appendChild(button);
+    return button;
+}
+
 function layersManager_movingShape(shape, evt) {
     if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
     this.paintingBoard.movingShape = { item: shape, oldPos: { x: shape.x, y: shape.y } };
@@ -236,12 +219,12 @@ function editLayer(layer, layerTitle) {
     }
 }
 
-function layerToggleVisible(layer, btn) {
+function layerToggleVisible(layer, evt) {
     layer.visible = !layer.visible;
     if (layer.visible) {
-        btn.removeAttribute("hide")
+        evt.target.removeAttribute("hide")
     } else {
-        btn.setAttribute("hide", "true")
+        evt.target.setAttribute("hide", "true")
     }
     setTimeout(() => this.needRefresh = true, 1);
 }

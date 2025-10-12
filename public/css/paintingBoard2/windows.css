@@ -160,17 +160,13 @@
                         }
 
                         >.layersManager_shapes_head {
-
                             padding: 5px 5px 5px 20px;
-
-                            >span.layersManager_shapes_title {}
                         }
                     }
 
                     /* All buttons */
                     .layersManager_layer_tools,
                     .layersManager_shape_tools {
-                        display: inline-block;
                         float: right;
 
                         >button {
