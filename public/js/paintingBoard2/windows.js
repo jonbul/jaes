@@ -45,7 +45,7 @@ function windowsEvents(canvas) {
 
     //WINDOW EVENTS
     let i = 0;
-    
+
     for (let window of document.getElementsByClassName("window")) {
         window.style.zIndex = i++;
         windows.push(window)
@@ -60,6 +60,12 @@ function windowsEvents(canvas) {
     }
     document.body.onmousemove = movedWinBar
     document.body.onmouseup = unclickedWinBar
+
+    const shapeRotationInput = document.getElementById("shapeRotation");
+
+    document.getElementById("shapeRotationRangeStep").addEventListener('input', e => {
+        shapeRotationInput.setAttribute("step", e.target.value);
+    });
 
     eventsLoaded = true;
 }

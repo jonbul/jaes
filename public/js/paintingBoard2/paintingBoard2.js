@@ -208,33 +208,33 @@ class PaintingBoard {
             img.src = evt.target.result;
         }
 
-        
+
     }
 
     imageOnload(img) {
-            if ((
-                img.width > this.menus.resolution.width.value ||
-                img.height > this.menus.resolution.height.value
-            ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
-            ) {
-                _this.menus.resolution.width.value = img.width;
-                _this.menus.resolution.height.value = img.height;
-                (_this.resolutionChangeEvent.bind(_this))();
-            }
-            const elem = new Picture();
-            elem.img = img;
-            elem.src = img.src;
-            elem.sx = 0;
-            elem.sy = 0;
-            elem.sw = img.width;
-            elem.sh = img.height;
-            elem.x = 0;
-            elem.y = 0;
-            elem.width = img.width;
-            elem.height = img.height;
-            this.layerManager.createShape(elem);
-            this.layerManager.needRefresh = true;
+        if ((
+            img.width > this.menus.resolution.width.value ||
+            img.height > this.menus.resolution.height.value
+        ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
+        ) {
+            _this.menus.resolution.width.value = img.width;
+            _this.menus.resolution.height.value = img.height;
+            (_this.resolutionChangeEvent.bind(_this))();
         }
+        const elem = new Picture();
+        elem.img = img;
+        elem.src = img.src;
+        elem.sx = 0;
+        elem.sy = 0;
+        elem.sw = img.width;
+        elem.sh = img.height;
+        elem.x = 0;
+        elem.y = 0;
+        elem.width = img.width;
+        elem.height = img.height;
+        this.layerManager.createShape(elem);
+        this.layerManager.needRefresh = true;
+    }
 
     resolutionChangeEvent() {
         this.canvas.height = this.menus.resolution.height.value;
@@ -361,7 +361,10 @@ class PaintingBoard {
         return currentPos.getSimple();
     }
     canvasMouseDown(evt) {
-        if (evt.button === CONST.MOUSE_KEYS.LEFT) {
+        if (evt.button === CONST.MOUSE_KEYS.LEFT && this.movingShape) {
+            this.movingShape = null;
+            this.layerManager.needRefresh = true;
+        } else if (evt.button === CONST.MOUSE_KEYS.LEFT) {
             const currentPos = this.getCurrentPos(evt);
             switch (this.selectedTool) {
                 case CONST.PENCIL:
@@ -399,6 +402,11 @@ class PaintingBoard {
         } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
             evt.stopImmediatePropagation();
             evt.stopPropagation();
+            if (this.movingShape) {
+                this.movingShape.item.x = this.movingShape.oldPos.x;
+                this.movingShape.item.y = this.movingShape.oldPos.y;
+                this.movingShape = null;
+            }
             if (this.drawingObj && this.selectedTool === CONST.POLYGON) {
                 this.drawingObj.shape.points.pop();
                 if (!this.drawingObj.shape.points.length) {
@@ -463,6 +471,13 @@ class PaintingBoard {
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
+        if (this.movingShape) {
+
+            this.movingShape.item.x = currentPos.x;
+            this.movingShape.item.y = currentPos.y;
+            this.layerManager.needRefresh = true;
+
+        }
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
             case CONST.PENCIL:

@@ -1,5 +1,6 @@
 import CONST from '../canvas/constants.js';
 import { Layer, Rect } from '../canvas/canvasClasses.js';
+import { showAlert } from '../functions.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -133,18 +134,20 @@ class LayerManager {
 
         // shape visibility toggle button
 
+
+
+        const shapeMove = document.createElement("button");
+        shapeMove.classList.add("btnShapeMove")
+        shapeMove.innerHTML = "&#10021;";
+        tools.appendChild(shapeMove);
+        shapeMove.addEventListener("click", layersManager_movingShape.bind(this, shape));
+
         // shape rename button
         const shapeEdit = document.createElement("button");
         shapeEdit.classList.add("btnShapeEdit")
         shapeEdit.innerHTML = "&#128393;";
         tools.appendChild(shapeEdit);
         shapeEdit.addEventListener('click', editShape.bind(this, shape, shapeTitle))
-
-        const shapeRotationInput = document.getElementById("shapeRotation");
-
-        document.getElementById("shapeRotationRangeStep").addEventListener('input', e => {
-            shapeRotationInput.setAttribute("step", e.target.value);
-        });
 
         // shape delete button
         const btnDeleteShape = document.createElement("button");
@@ -198,6 +201,11 @@ class LayerManager {
 
 // region Layer events functions
 
+function layersManager_movingShape(shape, evt) {
+    if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
+    this.paintingBoard.movingShape = { item: shape, oldPos: { x: shape.x, y: shape.y } };
+    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel', duration: 5000 })
+}
 
 function hideLayerShapes(btn, layerShapesBlock) {
     layerShapesBlock.classList.toggle("hidden");
@@ -486,8 +494,6 @@ function layersManagerMouseMove(evt) {
 
     movingItem.div.style.left = x + "px"
     movingItem.div.style.top = y + "px"
-
-
 }
 
 export default LayerManager
