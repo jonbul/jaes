@@ -186,7 +186,21 @@ function createButton(text, className, title, onClick, parent) {
 
 function layersManager_movingShape(shape, evt) {
     if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
-    this.paintingBoard.movingShape = { item: shape, oldPos: { x: shape.x, y: shape.y } };
+    const oldPos = {};
+    if ([CONST.LINE, CONST.PENCIL, CONST.POLYGON, CONST.ABSTRACT, CONST.RUBBER].includes(shape.desc)) {
+        oldPos.minX = Math.min(...shape.points.map(p => p.x));
+        oldPos.minY = Math.min(...shape.points.map(p => p.y));
+        const maxX = Math.max(...shape.points.map(p => p.x));
+        const maxY = Math.max(...shape.points.map(p => p.y));
+        oldPos.width = maxX - oldPos.minX;
+        oldPos.height = maxY - oldPos.minY;
+        oldPos.points = shape.points.map(p => ({ x: p.x - oldPos.minX, y: p.y - oldPos.minY }));
+        oldPos.origPoints = shape.points;
+    } else {
+        oldPos.x = shape.x;
+        oldPos.y = shape.y;
+    }
+    this.paintingBoard.movingShape = { item: shape, oldPos: oldPos };
     showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel', duration: 5000 })
 }
 
