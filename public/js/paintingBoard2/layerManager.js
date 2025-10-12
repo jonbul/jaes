@@ -369,14 +369,14 @@ function editShapeProperty(evt) {
 }
 
 function deleteShape(shape, shapes, shapeBlock) {
-    if (confirm("Delete shape " + shape.name + "?")) {
+    //if (confirm("Delete shape " + shape.name + "?")) {
         shapes.splice(shapes.indexOf(shape), 1);
         shapeBlock.remove();
 
         this.updateExampleCanvas();
         this.shapeOver = null;
         this.needRefresh = true;
-    }
+    //}
 }
 
 // endregion Shape events functions

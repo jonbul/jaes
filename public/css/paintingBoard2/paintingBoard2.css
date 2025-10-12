@@ -4,6 +4,10 @@
     user-select: none;
 }
 
+body {
+    overflow: hidden;
+}
+
 #projectTitleBar {
     padding-left: 5px;
 
