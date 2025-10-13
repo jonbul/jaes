@@ -131,7 +131,6 @@ class Arc {
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -156,7 +155,7 @@ class Arc {
             context.stroke();
         }
         context.fill();
-        
+
         if (this.rotation > 0) {
             const moveX = this.x
             const moveY = this.y
@@ -205,7 +204,6 @@ class Ellipse {
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -262,7 +260,6 @@ class Line {
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -312,7 +309,6 @@ class Polygon {
     }
     draw(context, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
-
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -586,7 +582,7 @@ class Abstract {
         if (context.lineWidth > 0) {
             context.stroke();
         }
-        
+
         if (this.rotation > 0) {
             context.translate(moveX, moveY);
             context.rotate(-this.rotation);
@@ -595,7 +591,7 @@ class Abstract {
     }
 }
 class Rubber {
-    constructor(points, borderWidth, name) {
+    constructor(points, borderWidth = 0, name, rotation = 0) {
         this.desc = CONST.RUBBER;
         this.name = name || this.desc;
         if (points !== undefined) {
@@ -604,12 +600,50 @@ class Rubber {
             this.points = [];
         }
         this.borderWidth = parseInt(borderWidth);
+
+        this.rotation = rotation;
     }
-    draw(context) {
+    draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        let moveX, moveY;
+        if (this.rotation > 0) {
+            // min x and y in points
+            const minX = Math.min(...this.points.map(p => p.x));
+            const minY = Math.min(...this.points.map(p => p.y));
+            // max x and y in points
+            const maxX = Math.max(...this.points.map(p => p.x)) + this.borderWidth;
+            const maxY = Math.max(...this.points.map(p => p.y)) + this.borderWidth;
+            moveX = minX + (maxX - minX) / 2;
+            moveY = minY + (maxY - minY) / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+
         for (var i = 0; i < this.points.length - 1; i++) {
             context.clearRect(this.points[i].x - this.borderWidth / 2, this.points[i].y - this.borderWidth / 2, this.borderWidth / 2, this.borderWidth / 2);
         }
         context.stroke();
+
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0, rotate: 0 }) {
         context.translate(options.x, options.y);
@@ -667,6 +701,7 @@ class Picture {
 
     }
     draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -684,7 +719,7 @@ class Picture {
 
         //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.drawImage(this.img, this.x, this.y, this.width, this.height);
-        
+
         if (this.rotation > 0) {
             context.translate(moveX, moveY);
             context.rotate(-this.rotation);
@@ -694,9 +729,12 @@ class Picture {
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -719,7 +757,9 @@ class Picture {
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.translate(-options.x, -options.y);
     }
     getImageFromSrc(src) {
         var image = new Image();
