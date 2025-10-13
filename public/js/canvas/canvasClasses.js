@@ -61,7 +61,13 @@ class Rect {
             context.stroke();
         }
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (this.rotation > 0) {
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -69,7 +75,6 @@ class Rect {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawResized(context, resizeSize) {
@@ -100,7 +105,13 @@ class Rect {
             context.strokeRect(moveX, moveY, this.width, this.height);
         }
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (this.rotation > 0) {
+            const moveX = this.x + this.width / 2;
+            const moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
     }
 }
 class Arc {
@@ -128,8 +139,8 @@ class Arc {
         }
 
         if (this.rotation > 0) {
-            const moveX = this.x// + this.width / 2;
-            const moveY = this.y// + this.height / 2;
+            const moveX = this.x
+            const moveY = this.y
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -145,7 +156,14 @@ class Arc {
             context.stroke();
         }
         context.fill();
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        if (this.rotation > 0) {
+            const moveX = this.x
+            const moveY = this.y
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -153,7 +171,6 @@ class Arc {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         const radius = resizeSize / 2;
@@ -333,15 +350,22 @@ class Polygon {
             }
 
             context.fill();
-            context.setTransform(1, 0, 0, 1, 0, 0);
         }
+
+        if (this.rotation > 0) {
+            const moveX = this.x;
+            const moveY = this.y;
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -355,6 +379,7 @@ class Polygon {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
+        let moveX, moveY;
         if (this.rotation > 0) {
             // min x and y in points
             const minX = Math.min(...this.points.map(p => p.x));
@@ -362,8 +387,8 @@ class Polygon {
             // max x and y in points
             const maxX = Math.max(...this.points.map(p => p.x));
             const maxY = Math.max(...this.points.map(p => p.y));
-            const moveX = minX + (maxX - minX) / 2;
-            const moveY = minY + (maxY - minY) / 2;
+            moveX = minX + (maxX - minX) / 2;
+            moveY = minY + (maxY - minY) / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -389,7 +414,11 @@ class Polygon {
         }
 
         context.fill();
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
     }
 }
 class Pencil {
@@ -423,7 +452,6 @@ class Pencil {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -470,6 +498,7 @@ class Abstract {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
+        let moveX, moveY;
         if (this.rotation > 0) {
             // min x and y in points
             const minX = Math.min(...this.points.map(p => p.x));
@@ -477,8 +506,8 @@ class Abstract {
             // max x and y in points
             const maxX = Math.max(...this.points.map(p => p.x));
             const maxY = Math.max(...this.points.map(p => p.y));
-            const moveX = minX + (maxX - minX) / 2;
-            const moveY = minY + (maxY - minY) / 2;
+            moveX = minX + (maxX - minX) / 2;
+            moveY = minY + (maxY - minY) / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -499,7 +528,11 @@ class Abstract {
             context.stroke();
         }
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
@@ -507,7 +540,6 @@ class Abstract {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-        //context.setTransform(1, 0, 0, 1, 0, 0);
     }
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
@@ -521,6 +553,7 @@ class Abstract {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
+        let moveX, moveY;
         if (this.rotation > 0) {
             // min x and y in points
             const minX = Math.min(...this.points.map(p => p.x));
@@ -528,8 +561,8 @@ class Abstract {
             // max x and y in points
             const maxX = Math.max(...this.points.map(p => p.x));
             const maxY = Math.max(...this.points.map(p => p.y));
-            const moveX = minX + (maxX - minX) / 2;
-            const moveY = minY + (maxY - minY) / 2;
+            moveX = minX + (maxX - minX) / 2;
+            moveY = minY + (maxY - minY) / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -553,7 +586,12 @@ class Abstract {
         if (context.lineWidth > 0) {
             context.stroke();
         }
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
     }
 }
 class Rubber {
@@ -635,9 +673,10 @@ class Picture {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
+        let moveX, moveY;
         if (this.rotation > 0) {
-            const moveX = this.x + this.width / 2;
-            const moveY = this.y + this.height / 2;
+            moveX = this.x + this.width / 2;
+            moveY = this.y + this.height / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -646,7 +685,11 @@ class Picture {
         //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
         context.drawImage(this.img, this.x, this.y, this.width, this.height);
         
-        context.setTransform(1, 0, 0, 1, 0, 0);
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
 
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
