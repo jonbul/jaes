@@ -1,6 +1,6 @@
 import CONST from '../canvas/constants.js';
 import { Layer, Rect } from '../canvas/canvasClasses.js';
-import { showAlert } from '../functions.js';
+import { parseShape, parseLayer, showAlert } from '../functions.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -69,7 +69,10 @@ class LayerManager {
 
         // layer rename button
         createButton("&#128393;", "btnLayerEdit", "Edit layer", editLayer.bind(null, layer, layerTitle), tools);
-        
+
+        // copy layer button
+        createButton("&#128203;", "btnLayerCopy", "Copy layer", copyLayer.bind(this, layer), tools);
+
         // layer delete button
         createButton("&Cross;", "btnDeleteLayer", "Delete layer", deleteLayer.bind(this, layer, this.layers, layerBlock), tools);
 
@@ -123,8 +126,11 @@ class LayerManager {
         // shape move toggle button
         createButton("&#10021;", "btnShapeMove", "Move shape", layersManager_movingShape.bind(this, shape), tools);
 
-        // shape rename button
+        // shape edit button
         createButton("&#128393;", "btnShapeEdit", "Edit shape", editShape.bind(this, shape, shapeTitle), tools);
+
+        // shape copy button
+        createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
 
         // shape delete button
         createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
@@ -233,6 +239,15 @@ function editLayer(layer, layerTitle) {
     }
 }
 
+function copyLayer(layer) {
+    const newLayer = parseLayer(JSON.parse(JSON.stringify(layer)));
+    newLayer.name = layer.name + " copy";
+    this.createLayer(newLayer);
+    this.selectLayer(newLayer, { currentTarget: this.layersManagerDiv.lastChild, button: CONST.MOUSE_KEYS.LEFT });
+    this.needRefresh = true;
+}
+
+
 function layerToggleVisible(layer, evt) {
     layer.visible = !layer.visible;
     if (layer.visible) {
@@ -290,6 +305,24 @@ function editShape(shape, shapeTitle) {
     }
     this.shapeEditorWindow.style.zIndex = 1000;
     this.shapeEditorWindow.classList.remove("hidden");
+}
+
+function copyShape(shape, layer = this.currentLayer) {
+    const newShape = JSON.parse(JSON.stringify(shape));
+    newShape.name = (newShape.name || newShape.desc) + " copy";
+    if ([CONST.LINE, CONST.PENCIL, CONST.POLYGON, CONST.ABSTRACT, CONST.RUBBER].includes(newShape.desc)) {
+        const offset = 10;
+        newShape.points = newShape.points.map(p => ({ x: p.x + offset, y: p.y + offset }));
+        if (newShape.controlPoints) {
+            newShape.controlPoints = newShape.controlPoints.map(p => ({ x: p.x + offset, y: p.y + offset }));
+        }
+    } else {
+        newShape.x += 10;
+        newShape.y += 10;
+    }
+    
+    this.createShape(parseShape(newShape));
+    this.needRefresh = true;
 }
 
 function radiansToDegrees(rad) {

@@ -95,22 +95,30 @@ function closeAlert(alertBlock) {
 function parseLayers(layers) {
     const parsedLayers = [];
     layers.forEach(layer => {
-        const newLayer = new CanvasClasses.Layer(layer.name);
-        layer.shapes.forEach(shape => {
-            const newShape = new CanvasClasses[shape.desc]();
-            for (const prop in shape) newShape[prop] = shape[prop]
-            newLayer.shapes.push(newShape);
-
-            if (CONST.PICTURE === newShape.desc) {
-                const img = new Image()
-                img.src = newShape.src;
-                newShape.img = img;
-            }
-        });
-        parsedLayers.push(newLayer);
+        parsedLayers.push(parseLayer(layer));
     });
     return parsedLayers
 }
 
-export default { asyncRequest, showAlert, parseLayers };
-export { asyncRequest, showAlert, parseLayers };
+function parseLayer(layer) {
+    const newLayer = new CanvasClasses.Layer(layer.name);
+    layer.shapes.forEach(shape => {
+        newLayer.shapes.push(parseShape(shape));
+    });
+    return newLayer;
+}
+
+function parseShape(shape) {
+    const newShape = new CanvasClasses[shape.desc]();
+    for (const prop in shape) newShape[prop] = shape[prop]
+
+    if (CONST.PICTURE === newShape.desc) {
+        const img = new Image()
+        img.src = newShape.src;
+        newShape.img = img;
+    }
+    return newShape;
+}
+
+export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
+export { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
