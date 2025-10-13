@@ -144,6 +144,7 @@
 
 
                     >.layersManager_layer_head {
+                        display: flow-root;
                         padding: 5px;
                         border-bottom: solid 1px black;
                         border-top: solid 1px black;
@@ -161,6 +162,7 @@
 
                         >.layersManager_shapes_head {
                             padding: 5px 5px 5px 20px;
+                            display: flow-root;
                         }
                     }
 
@@ -188,11 +190,11 @@
                             &.btnShowShapes {
 
                                 &:before {
-                                    content: "\002B"
+                                    content: "\002D"
                                 }
 
                                 &.closed:before {
-                                    content: "\002D" !important
+                                    content: "\002B" !important
                                 }
 
                             }
