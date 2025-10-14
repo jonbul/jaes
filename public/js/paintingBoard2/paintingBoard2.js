@@ -337,13 +337,14 @@ class PaintingBoard {
     toolProjectShapeClickEvent() {
         const projectShapeWindow = document.getElementById('projectShapeWindow');
 
-        fetch('/paintingBoard2/projects/all').then(async res => res.json()).then(projects => {
+        asyncRequest({url: '/paintingBoard2/projects/all'}).then(projects => {
             const selectShapeToProject = document.getElementById('selectShapeToProject');
-            selectShapeToProject.c
+            selectShapeToProject.innerHTML = '';
             projects.forEach(project => {
                 const option = document.createElement('option');
                 option.value = project.id;
                 option.textContent = project.name;
+                option.project = project;
                 selectShapeToProject.appendChild(option);
             });
             projectShapeWindow.classList.remove('hidden');
@@ -414,6 +415,23 @@ class PaintingBoard {
                     break;
                 case CONST.SEMIARC:
                     this.semiArcClick(evt);
+                    break;
+                case CONST.PROJECT_SHAPE:
+                    const shape = this.painting.shape;
+                    if (!shape) {
+                        showAlert({ type: 'danger', msg: 'No shape selected to paint' })
+                        return;
+                    }
+                    if (!this.painting) {
+                        this.painting = { shape: null };
+                    }
+                    const pos = { 
+                        x: parseInt(currentPos.x / shape.width) * shape.width, 
+                        y: parseInt(currentPos.y / shape.height) * shape.height
+                    };
+
+                    this.painting.shape.add(pos);
+                    this.layerManager.needRefresh = true;
                     break;
             }
         } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {

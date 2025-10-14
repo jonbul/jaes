@@ -863,7 +863,7 @@ class Layer {
 }
 
 class ProjectShape {
-    constructor(layers = [], width, height, name, backgroundColor = '#rgba(0,0,0,0)', rotation = 0) {
+    constructor(layers = [], width, height, name, backgroundColor, rotation = 0) {
         this.layers = layers;
         this.width = width;
         this.height = height;
@@ -874,7 +874,9 @@ class ProjectShape {
         this.points = [];
     }
     add(point) {
-        this.points.push(point);
+        if (this.points.filter(p => p.x === point.x && p.y === point.y).length === 0) {
+            this.points.push(point);
+        }
     }
     remove(point) {
         this.points = this.points.filter(p => p.x !== point.x || p.y !== point.y);
@@ -897,8 +899,10 @@ class ProjectShape {
             context.translate(-moveX, -moveY);
         }
 
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(0, 0, this.width, this.height);
+        if (this.backgroundColor) {
+            context.fillStyle = this.backgroundColor;
+            context.fillRect(0, 0, this.width, this.height);
+        }
 
         this.points.forEach(p => {
             this.layers.forEach(layer => {

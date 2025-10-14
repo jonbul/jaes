@@ -1,6 +1,6 @@
 import CONST from '../canvas/constants.js';
-import { Layer, Rect } from '../canvas/canvasClasses.js';
-import { parseShape, parseLayer, showAlert } from '../functions.js';
+import { Layer, Rect, ProjectShape } from '../canvas/canvasClasses.js';
+import { parseShape, parseLayer, showAlert, parseLayers } from '../functions.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -22,6 +22,8 @@ class LayerManager {
         document.querySelectorAll('.window .closeButton').forEach(btn => {
             btn.addEventListener('click', closeWindow.bind(this, btn.parentElement.parentElement));
         });
+        const selectShapeToProject = document.getElementById("selectShapeToProject");
+        document.getElementById("projectShapeButton").addEventListener('click', selectProjectShape.bind(this, selectShapeToProject));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -131,8 +133,14 @@ class LayerManager {
         // shape edit button
         createButton("&#128393;", "btnShapeEdit", "Edit shape", editShape.bind(this, shape, shapeTitle), tools);
 
-        // shape copy button
-        createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
+        if (shape.desc !== CONST.PROJECT_SHAPE) {
+            // shape copy button
+            createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
+
+        } else if (shape.desc === CONST.PROJECT_SHAPE) {
+            // paint shape button
+            createButton("&#128394;", "btnShapePaint", "Paint Tile", paintShape.bind(this, shape), tools);
+        }
 
         // shape delete button
         createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
@@ -267,6 +275,8 @@ function layersManager_shapeOver(shape) {
         pictureRect.width = shape.width;
         pictureRect.height = shape.height;
         this.shapeOver = pictureRect;
+    } else if (shape.desc === CONST.PROJECT_SHAPE) {
+
     } else {
         this.shapeOver = shape;
     }
@@ -411,6 +421,12 @@ function deleteShape(shape, shapes, shapeBlock) {
     //}
 }
 
+function paintShape(shape) {
+    this.paintingBoard.selectedTool = CONST.PROJECT_SHAPE;
+    this.paintingBoard.painting = { shape };
+    showAlert({ type: 'info', msg: 'Click on canvas to paint the shape. Right click to stop painting', duration: 5000 })
+}
+
 // endregion Shape events functions
 
 
@@ -512,7 +528,17 @@ function layersManagerMouseUp(evt) {
     }
 }
 
+function selectProjectShape(selectShapeToProject) {
+    const project = selectShapeToProject.selectedOptions[0]?.project;
+    if (!project) {
+        showAlert({ type: 'danger', msg: 'No project shape selected', duration: 5000 });
+        return;
+    }
 
+    const newShape = new ProjectShape(parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
+    this.createShape(newShape);
+    this.needRefresh = true;
+}
 
 function closeWindow(window) {
     if (window.id == "shapeEditor") {
