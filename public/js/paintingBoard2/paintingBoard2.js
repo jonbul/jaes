@@ -337,7 +337,7 @@ class PaintingBoard {
     toolProjectShapeClickEvent() {
         const projectShapeWindow = document.getElementById('projectShapeWindow');
 
-        asyncRequest({url: '/paintingBoard2/projects/all'}).then(projects => {
+        asyncRequest({ url: '/paintingBoard2/projects/all' }).then(projects => {
             const selectShapeToProject = document.getElementById('selectShapeToProject');
             selectShapeToProject.innerHTML = '';
             projects.forEach(project => {
@@ -506,7 +506,28 @@ class PaintingBoard {
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
-        if (this.movingShape) {
+
+        if (CONST.PROJECT_SHAPE === this.selectedTool) {
+            if (evt.buttons & CONST.MOUSE_KEYS_BUTTONS.LEFT) {
+                const shape = this.painting.shape;
+                if (!shape) {
+                    showAlert({ type: 'danger', msg: 'No shape selected to paint' })
+                    return;
+                }
+                if (!this.painting) {
+                    this.painting = { shape: null };
+                }
+                const pos = {
+                    x: parseInt(currentPos.x / shape.width) * shape.width,
+                    y: parseInt(currentPos.y / shape.height) * shape.height
+                };
+
+                this.painting.shape.add(pos);
+                this.layerManager.needRefresh = true;
+            } else if (evt.buttons === CONST.MOUSE_KEYS.RIGHT) {
+
+            }
+        } else if (this.movingShape) {
             const oldPos = this.movingShape.oldPos;
             const shape = this.movingShape.item;
 
@@ -528,7 +549,7 @@ class PaintingBoard {
                 shape.x = currentPos.x - shape.width / 2;
                 shape.y = currentPos.y - shape.height / 2;
             }
-                this.layerManager.needRefresh = true;
+            this.layerManager.needRefresh = true;
         }
         if (!this.drawingObj) return;
         switch (this.drawingObj.tool) {
