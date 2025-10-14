@@ -19,7 +19,9 @@ class LayerManager {
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
         shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
-        document.getElementById("closeShapeEditor").addEventListener('click', closeShapeEditor.bind(this, this.shapeEditorWindow));
+        document.querySelectorAll('.window .closeButton').forEach(btn => {
+            btn.addEventListener('click', closeWindow.bind(this, btn.parentElement.parentElement));
+        });
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -320,7 +322,7 @@ function copyShape(shape, layer = this.currentLayer) {
         newShape.x += 10;
         newShape.y += 10;
     }
-    
+
     this.createShape(parseShape(newShape));
     this.needRefresh = true;
 }
@@ -400,12 +402,12 @@ function editShapeProperty(evt) {
 
 function deleteShape(shape, shapes, shapeBlock) {
     //if (confirm("Delete shape " + shape.name + "?")) {
-        shapes.splice(shapes.indexOf(shape), 1);
-        shapeBlock.remove();
+    shapes.splice(shapes.indexOf(shape), 1);
+    shapeBlock.remove();
 
-        this.updateExampleCanvas();
-        this.shapeOver = null;
-        this.needRefresh = true;
+    this.updateExampleCanvas();
+    this.shapeOver = null;
+    this.needRefresh = true;
     //}
 }
 
@@ -510,9 +512,13 @@ function layersManagerMouseUp(evt) {
     }
 }
 
-function closeShapeEditor(shapeEditorWindow) {
-    this.editingShape = null;
-    shapeEditorWindow.classList.add("hidden");
+
+
+function closeWindow(window) {
+    if (window.id == "shapeEditor") {
+        this.editingShape = null;
+    }
+    window.classList.add("hidden");
 }
 
 function layersManagerMouseMove(evt) {

@@ -52,6 +52,7 @@ class PaintingBoard {
             },
             rotation: document.getElementById('rectRotate'),
             toolList: document.getElementById('toolList'),
+            toolProjectShape: document.getElementById('toolProjectShape'),
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
             imageLoaderLocal: document.getElementById('imageLoaderLocal'),
@@ -156,6 +157,7 @@ class PaintingBoard {
         this.menus.resolution.height.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.resolution.width.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
+        this.menus.toolProjectShape.addEventListener('click', this.toolProjectShapeClickEvent.bind(this));
         this.loadColorEvents();
         this.loadLayerComponentsEvents();
         this.loadLayerManager();
@@ -331,6 +333,21 @@ class PaintingBoard {
         const selectedTool = this.menus.toolList.querySelector('input:checked')
         this.selectedTool = selectedTool.value;
         this.canvas.setAttribute('tool', selectedTool.value);
+    }
+    toolProjectShapeClickEvent() {
+        const projectShapeWindow = document.getElementById('projectShapeWindow');
+
+        fetch('/paintingBoard2/projects/all').then(async res => res.json()).then(projects => {
+            const selectShapeToProject = document.getElementById('selectShapeToProject');
+            selectShapeToProject.c
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                selectShapeToProject.appendChild(option);
+            });
+            projectShapeWindow.classList.remove('hidden');
+        });
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
