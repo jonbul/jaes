@@ -777,7 +777,8 @@ class Picture {
 }
 
 class Text {
-    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000', width) {
+    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000', width, rotation = 0, name) {
+        this.desc = CONST.TEXT;
         this.text = text;
         this.x = x;
         this.y = y;
@@ -785,11 +786,42 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
         this.width = width;
+        this.name = name || this.desc;
+        this.rotation
     }
     draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        let moveX, moveY;
+        if (this.rotation > 0) {
+            moveX = this.x + this.width / 2;
+            moveY = this.y + this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         context.font = `${this.fontSize}px ${this.fontFamily}`;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x + options.x, this.y + options.y, this.width);
+
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
     }
 }
 
@@ -830,6 +862,93 @@ class Layer {
     }
 }
 
+class ProjectShape {
+    constructor(layers = [], width = 800, height = 600, name, backgroundColor = '#rgba(0,0,0,0)', rotation = 0) {
+        this.layers = layers;
+        this.width = width;
+        this.height = height;
+        this.backgroundColor = backgroundColor;
+        this.desc = CONST.PROJECT_SHAPE;
+        this.name = name || this.desc;
+        this.rotation = rotation;
+
+    }
+    draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        let moveX, moveY;
+        if (this.rotation > 0) {
+            moveX = this.width / 2;
+            moveY = this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        context.fillStyle = this.backgroundColor;
+        context.fillRect(0, 0, this.width, this.height);
+        this.layers.forEach(layer => {
+            layer.draw(context, options);
+        });
+
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+    }
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        let moveX, moveY;
+        if (this.rotation > 0) {
+            moveX = this.width / 2;
+            moveY = this.height / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        context.fillStyle = this.backgroundColor;
+        context.fillRect(0, 0, resizeSize, resizeSize * this.height / this.width);
+        this.layers.forEach(layer => {
+            layer.drawResized(context, resizeSize);
+        });
+
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
+    }
+}
+
 export {
     Abstract,
     Arc,
@@ -843,7 +962,8 @@ export {
     Polygon,
     Rect,
     Rubber,
-    Text
+    Text,
+    ProjectShape
 }
 
 export default {
@@ -859,5 +979,6 @@ export default {
     Polygon,
     Rect,
     Rubber,
-    Text
+    Text,
+    ProjectShape
 }
