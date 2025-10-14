@@ -863,7 +863,7 @@ class Layer {
 }
 
 class ProjectShape {
-    constructor(layers = [], width = 800, height = 600, name, backgroundColor = '#rgba(0,0,0,0)', rotation = 0) {
+    constructor(layers = [], width, height, name, backgroundColor = '#rgba(0,0,0,0)', rotation = 0) {
         this.layers = layers;
         this.width = width;
         this.height = height;
@@ -871,7 +871,13 @@ class ProjectShape {
         this.desc = CONST.PROJECT_SHAPE;
         this.name = name || this.desc;
         this.rotation = rotation;
-
+        this.points = [];
+    }
+    add(point) {
+        this.points.push(point);
+    }
+    remove(point) {
+        this.points = this.points.filter(p => p.x !== point.x || p.y !== point.y);
     }
     draw(context, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
@@ -893,8 +899,14 @@ class ProjectShape {
 
         context.fillStyle = this.backgroundColor;
         context.fillRect(0, 0, this.width, this.height);
-        this.layers.forEach(layer => {
-            layer.draw(context, options);
+
+        this.points.forEach(p => {
+            this.layers.forEach(layer => {
+                const newOptions = JSON.parse(JSON.stringify(options));
+                newOptions.x += p.x;
+                newOptions.y += p.y;
+                layer.draw(context, newOptions);
+            });
         });
 
         if (this.rotation > 0) {
@@ -930,8 +942,14 @@ class ProjectShape {
 
         context.fillStyle = this.backgroundColor;
         context.fillRect(0, 0, resizeSize, resizeSize * this.height / this.width);
-        this.layers.forEach(layer => {
-            layer.drawResized(context, resizeSize);
+
+        this.points.forEach(p => {
+            const newOptions = JSON.parse(JSON.stringify(options));
+            newOptions.x += p.x;
+            newOptions.y += p.y;
+            this.layers.forEach(layer => {
+                layer.drawResized(context, resizeSize, newOptions);
+            });
         });
 
         if (this.rotation > 0) {
