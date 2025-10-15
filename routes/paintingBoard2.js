@@ -10,9 +10,6 @@ module.exports = (app) => {
     app.get(CONTROLLER, async (req, res) => {
         const id = req.query.id;
         let project;
-        if (id) {
-            project = await PaintingProject.findById(id).exec();
-        }
 
         let user;
         if (req.session.passport && req.session.passport.user) {
@@ -21,7 +18,6 @@ module.exports = (app) => {
                 title: 'PaintingBoard',
                 username: user.username,
                 isAdmin: user.admin,
-                project
             });
         } else {
             res.redirect('/');
@@ -73,6 +69,25 @@ module.exports = (app) => {
             res.send(projects);
         } else {
             res.redirect('/');
+        }
+    });
+
+    /**
+     * Get a project by id
+     * Response: Project object
+     */
+    app.get(CONTROLLER + '/projects/id', async (req, res) => {
+        const id = req.query.id;
+        if (!id) {
+            return res.status(400).send('Project id is required');
+        }
+        let user;
+        if (req.session.passport && req.session.passport.user) {
+            user = req.session.passport.user;
+            const projects = await PaintingProject.find({ userId: req.session.passport.user._id, _id: id }) || [];
+            res.send(projects[0]);
+        } else {
+            res.status(401).send('Unauthorized');
         }
     });
 

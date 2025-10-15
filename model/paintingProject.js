@@ -38,6 +38,7 @@ const PaintingProject = new mongoose.Schema(
                     src: String,
                     name: String,
                     mirror: Boolean,
+                    projectId: String,
                 }]
             }
         ]

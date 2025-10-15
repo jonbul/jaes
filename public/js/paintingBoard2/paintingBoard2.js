@@ -18,7 +18,9 @@ import {
 import LayerManager from './layerManager.js'
 
 class PaintingBoard {
-    constructor(canvas, project) {
+    constructor() {
+        const canvas = document.getElementById('canvas');
+
         //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
         const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
@@ -60,32 +62,53 @@ class PaintingBoard {
             boardZoom: document.getElementById('boardZoom'),
         }
 
-        if (!project) {
-            this.layers = [];
-            this.currentLayer = new Layer('Layer', this.currentLayer);
-            this.layers.push(this.currentLayer);
-            this.project = { layers: this.layers };
-            this.project.dateCreated = Date.now();
-            this.menus.resolution.width.value = canvas.width;
-            this.menus.resolution.height.value = canvas.height;
-        } else {
-            this.project = this.parseProject(project);
-            this.layers = this.project.layers;
-            this.currentLayer = project.layers[0];
-            this.dateCreated = project.dateCreated;
-            document.getElementById('projectName').value = project.name;
-            this.menus.resolution.width.value = project.canvas.width;
-            this.menus.resolution.height.value = project.canvas.height;
-            this.canvas.width = project.canvas.width;
-            this.canvas.height = project.canvas.height;
-        }
+        this.loadProject();
 
-        this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
 
-        this.loadEvents();
-        setTimeout(this.drawAll.bind(this), 1);
-        this.interval = setInterval(this.canvasInterval.bind(this));
     }
+    loadProject() {
+        const requestParams = {};
+        location.search.replace("?", "").split("&").forEach(p => { const split = p.split("="); requestParams[split[0]] = split[1] })
+        let project = null;
+        (async () => {
+            if (requestParams.id) {
+                project = await asyncRequest({ url: `/paintingBoard2/projects/id?id=${requestParams.id}` })
+            }
+            //this.projects = {};
+            //projects.forEach(p => this.projects[p._id] = this.parseProject(p));
+            //if (requestParams.id) {
+            //    project = projects.filter(p => p._id === requestParams.id)[0];
+            //}
+            if (!project) {
+                this.layers = [];
+                this.currentLayer = new Layer('Layer', this.currentLayer);
+                this.layers.push(this.currentLayer);
+                this.project = { layers: this.layers };
+                this.project.dateCreated = Date.now();
+                this.menus.resolution.width.value = canvas.width;
+                this.menus.resolution.height.value = canvas.height;
+            } else {
+                this.project = this.parseProject(project);
+                this.layers = this.project.layers;
+                this.currentLayer = project.layers[0];
+                this.dateCreated = project.dateCreated;
+                document.getElementById('projectName').value = project.name;
+                this.menus.resolution.width.value = project.canvas.width;
+                this.menus.resolution.height.value = project.canvas.height;
+                this.canvas.width = project.canvas.width;
+                this.canvas.height = project.canvas.height;
+            }
+
+            this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
+
+            this.loadEvents();
+            setTimeout(this.drawAll.bind(this), 1);
+            this.interval = setInterval(this.canvasInterval.bind(this));
+
+        })();
+    }
+
+
     parseProject(project) {
         return {
             _id: project._id,
@@ -98,9 +121,10 @@ class PaintingBoard {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     canvasInterval() {
-        if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh) {
+        if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh || window.needRefresh) {
             this.drawAll();
             this.layerManager.needRefresh = false;
+            delete window.needRefresh;
         }
     }
     drawAll() {
@@ -425,8 +449,8 @@ class PaintingBoard {
                     if (!this.painting) {
                         this.painting = { shape: null };
                     }
-                    const pos = { 
-                        x: parseInt(currentPos.x / shape.width) * shape.width, 
+                    const pos = {
+                        x: parseInt(currentPos.x / shape.width) * shape.width,
                         y: parseInt(currentPos.y / shape.height) * shape.height
                     };
 
@@ -826,4 +850,4 @@ class PaintingBoard {
     }
 }
 
-export default PaintingBoard;
+new PaintingBoard();

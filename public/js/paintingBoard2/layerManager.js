@@ -535,7 +535,7 @@ function selectProjectShape(selectShapeToProject) {
         return;
     }
 
-    const newShape = new ProjectShape(parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
+    const newShape = new ProjectShape(project._id,parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
     this.createShape(newShape);
     this.needRefresh = true;
 }

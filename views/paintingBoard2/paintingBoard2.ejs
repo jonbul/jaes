@@ -20,15 +20,5 @@
     <% include windows %>
     <link rel="stylesheet" href="/css/paintingBoard2/paintingBoard2.css" type="text/css">
     <link rel="stylesheet" href="/css/paintingBoard2/windows.css" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
-        integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
-        crossorigin="anonymous"></script>
-    <script type="module">
-        import PaintingBoard from '/js/paintingBoard2/paintingBoard2.js';
-        window.PaintingBoard = PaintingBoard;
-        const json = `<%-JSON.stringify(project)%>`;
-        let project;
-        if(json) project = JSON.parse(json);
-        new PaintingBoard(document.getElementById('canvas'), project);
-    </script>
+    <script type="module" src="/js/paintingBoard2/paintingBoard2.js"></script>
 </div>

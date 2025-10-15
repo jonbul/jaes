@@ -863,7 +863,8 @@ class Layer {
 }
 
 class ProjectShape {
-    constructor(layers = [], width, height, name, backgroundColor, rotation = 0) {
+    constructor(projectId, layers = [], width, height, name, backgroundColor, rotation = 0) {
+        this.projectId = projectId;
         this.layers = layers;
         this.width = width;
         this.height = height;

@@ -108,6 +108,8 @@ function parseLayer(layer) {
     return newLayer;
 }
 
+const parsedProjects = {};
+
 function parseShape(shape) {
     const newShape = new CanvasClasses[shape.desc]();
     for (const prop in shape) newShape[prop] = shape[prop]
@@ -116,8 +118,25 @@ function parseShape(shape) {
         const img = new Image()
         img.src = newShape.src;
         newShape.img = img;
+    } else if (CONST.PROJECT_SHAPE === newShape.desc) {
+        parseProjectShape(newShape);
     }
     return newShape;
+}
+
+async function parseProjectShape(projectShape) {
+    if (!projectShape.projectId) return;
+    if (!parsedProjects[projectShape.projectId]) {
+        asyncRequest({ url: `/paintingBoard2/projects/id?id=${projectShape.projectId}` })
+            .then(project => {
+                parsedProjects[project._id] = project;
+                projectShape.layers = parseLayers(project.layers);
+                window.needRefresh = true;
+            });
+    } else {
+        const project = parsedProjects[projectShape.projectId];
+        projectShape.layers = parseLayers(project.layers);
+    }
 }
 
 export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
