@@ -29,4 +29,4 @@ const Shape = new mongoose.Schema(
 )
 
 
-module.exports = mongoose.model('shape', Shape);
+module.exports = Shape;

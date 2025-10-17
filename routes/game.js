@@ -12,7 +12,6 @@ module.exports = (app, io, mongoose) => {
     let newBullets = [];
     let bulletsToRemove = [];
 
-
     let currentResolution = 2;
     let allowedPlayerType = allowedPlayerTypes.All;
 

@@ -106,7 +106,6 @@ class Bullet {
         this.rotation = rotation;
         this.bulletCharge = bulletCharge;
 
-
         const quad = parseInt(this.angle / (Math.PI / 2));
 
         this.moveX = Math.abs(Math.cos(angle));

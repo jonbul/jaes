@@ -52,7 +52,6 @@ function windowsEvents(canvas) {
         window.onmousedown = clickedWin.bind(this, window);
     }
 
-
     let windowBars = document.getElementsByClassName("windowBar");
     for (let windowBar of windowBars) {
         windowBar.parentElement.style.zIndex = 1;

@@ -26,7 +26,6 @@ class PaintingBoard {
         const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
         canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20 - windowsSpace}px)`
 
-
         windowsEvents(canvas);
         window._this = this;
         this.canvas = canvas;
@@ -63,9 +62,8 @@ class PaintingBoard {
         }
 
         this.loadProject();
-
-
     }
+
     loadProject() {
         const requestParams = {};
         location.search.replace("?", "").split("&").forEach(p => { const split = p.split("="); requestParams[split[0]] = split[1] })
@@ -107,7 +105,6 @@ class PaintingBoard {
 
         })();
     }
-
 
     parseProject(project) {
         return {
@@ -233,8 +230,6 @@ class PaintingBoard {
 
             img.src = evt.target.result;
         }
-
-
     }
 
     imageOnload(img) {
@@ -393,7 +388,6 @@ class PaintingBoard {
         y *= (this.canvas.height / styleHeight);
         x *= (this.canvas.width / styleWidth);
 
-
         const round = !this.menus.followGrid.checked ? undefined : {
             x: this.menus.gridH.value || 1,
             y: this.menus.gridV.value || 1,
@@ -480,9 +474,6 @@ class PaintingBoard {
 
             this.menus.backgroundColor.value = colorData.hex;
             this.menus.opacity.value = colorData.alpha;
-
-
-
         }
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
@@ -769,7 +760,6 @@ class PaintingBoard {
 
                 arc.startAngle = a;
                 arc.endAngle = a;
-
 
                 Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
 

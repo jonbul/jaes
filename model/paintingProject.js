@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Int32 } = require('mongodb');
-const Shape = require('./shape');
+const Layer = require('./layer');
 
 const PaintingProject = new mongoose.Schema(
     {
@@ -12,36 +12,7 @@ const PaintingProject = new mongoose.Schema(
             width: Number,
             height: Number
         },
-        layers: [
-            {
-                name: String,
-                visible: Boolean,
-                shapes: [{
-                    desc: String,
-                    x: Number,
-                    y: Number,
-                    points: [{
-                        x: Number,
-                        y: Number,
-                    }],
-                    width: Number,
-                    height: Number,
-                    radius: Number,
-                    radiusX: Number,
-                    radiusY: Number,
-                    startAngle: Number,
-                    endAngle: Number,
-                    backgroundColor: String,
-                    borderColor: String,
-                    borderWidth: Number,
-                    rotation: Number,
-                    src: String,
-                    name: String,
-                    mirror: Boolean,
-                    projectId: String,
-                }]
-            }
-        ]
+        layers: [Layer]
     }
 );
 

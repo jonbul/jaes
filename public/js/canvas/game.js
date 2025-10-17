@@ -56,7 +56,6 @@ class Game {
                 ship = baseShips[index]
             }
 
-
             this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = socket.id;
@@ -212,7 +211,6 @@ class Game {
         }
         this.viewRect = viewRect;
 
-
         this.drawablePlayers.shapes = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
@@ -328,7 +326,6 @@ class Game {
 
         if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
-
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
         const angle = player.rotate - Math.PI / 2 * quad;

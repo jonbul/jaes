@@ -40,7 +40,6 @@ class LayerManager {
         this.layersManagerDiv.innerHTML = "";
     }
 
-
     createLayer(layer) {
         const layerBlock = document.createElement("div");
         layerBlock.classList.add("layersManager_layer");
@@ -86,7 +85,6 @@ class LayerManager {
         tools.appendChild(btnShowShapes);
         // endregion layer buttons
 
-
         const layerShapesBlock = document.createElement("div");
         layerShapesBlock.classList.add("layersManager_layer_shapes")
         layerBlock.appendChild(layerShapesBlock);
@@ -120,7 +118,6 @@ class LayerManager {
 
         shapeHead.appendChild(shapeTitle);
 
-
         // region shape buttons
 
         const tools = document.createElement("div");
@@ -144,7 +141,6 @@ class LayerManager {
 
         // shape delete button
         createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
-
 
         // endregion shape buttons
 

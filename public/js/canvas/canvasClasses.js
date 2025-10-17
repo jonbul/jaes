@@ -315,7 +315,6 @@ class Polygon {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
-
         if (this.rotation > 0) {
             // min x and y in points
             const minX = Math.min(...this.points.map(p => p.x));
@@ -625,7 +624,6 @@ class Rubber {
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
         }
-
 
         for (var i = 0; i < this.points.length - 1; i++) {
             context.clearRect(this.points[i].x - this.borderWidth / 2, this.points[i].y - this.borderWidth / 2, this.borderWidth / 2, this.borderWidth / 2);
