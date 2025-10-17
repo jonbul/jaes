@@ -213,7 +213,7 @@ function layersManager_movingShape(shape, evt) {
         oldPos.y = shape.y;
     }
     this.paintingBoard.movingShape = { item: shape, oldPos: oldPos };
-    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel', duration: 5000 })
+    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to delete last one.', duration: 5000 })
 }
 
 function hideLayerShapes(btn, layerShapesBlock) {
