@@ -785,7 +785,7 @@ class Text {
         this.color = color;
         this.width = width;
         this.name = name || this.desc;
-        this.rotation
+        this.rotation = rotation;
     }
     draw(context, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
@@ -798,7 +798,7 @@ class Text {
         let moveX, moveY;
         if (this.rotation > 0) {
             moveX = this.x + this.width / 2;
-            moveY = this.y + this.height / 2;
+            moveY = this.y + this.fontSize / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -863,7 +863,7 @@ class Layer {
 class ProjectShape {
     constructor(projectId, layers = [], width, height, name, backgroundColor, rotation = 0) {
         this.projectId = projectId;
-        this.layers = layers;
+        this.layers = Array.isArray(layers) ? layers : [];
         this.width = width;
         this.height = height;
         this.backgroundColor = backgroundColor;

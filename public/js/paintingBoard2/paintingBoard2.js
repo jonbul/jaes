@@ -65,8 +65,9 @@ class PaintingBoard {
     }
 
     loadProject() {
-        const requestParams = {};
-        location.search.replace("?", "").split("&").forEach(p => { const split = p.split("="); requestParams[split[0]] = split[1] })
+        const requestParams = new URLSearchParams(location.search);
+        requestParams.forEach((v, k) => { requestParams[k] = v; });
+        
         let project = null;
         (async () => {
             if (requestParams.id) {
