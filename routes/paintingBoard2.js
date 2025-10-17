@@ -54,6 +54,11 @@ module.exports = (app) => {
         if (req.session.passport && req.session.passport.user) {
             const userId = req.session.passport.user._id;
             const id = req.query.id;
+            if (!id  || id.trim() === '') {
+                return res.status(400).send('Project id is required');
+            } else if (!(await getPaintingProjectByIdAndUser(id, userId)) == null) {
+                return res.status(403).send('Forbidden');
+            }
             if (id) {
                 await PaintingProject.deleteOne({ _id: id, userId }).exec();
             }

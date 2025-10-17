@@ -67,7 +67,7 @@ class PaintingBoard {
     loadProject() {
         const requestParams = new URLSearchParams(location.search);
         requestParams.forEach((v, k) => { requestParams[k] = v; });
-        
+
         let project = null;
         (async () => {
             if (requestParams.id) {
@@ -362,7 +362,7 @@ class PaintingBoard {
             selectShapeToProject.innerHTML = '';
             projects.forEach(project => {
                 const option = document.createElement('option');
-                option.value = project.id;
+                option.value = project._id;
                 option.textContent = project.name;
                 option.project = project;
                 selectShapeToProject.appendChild(option);
@@ -444,9 +444,10 @@ class PaintingBoard {
                     if (!this.painting) {
                         this.painting = { shape: null };
                     }
+                    shape.addedPoints = 1;
                     const pos = {
-                        x: parseInt(currentPos.x / shape.width) * shape.width,
-                        y: parseInt(currentPos.y / shape.height) * shape.height
+                        x: currentPos.x - (shape.width / 2),
+                        y: currentPos.y - (shape.height / 2)
                     };
 
                     this.painting.shape.add(pos);
@@ -466,6 +467,11 @@ class PaintingBoard {
                 if (!this.drawingObj.shape.points.length) {
                     this.drawingObj = null;
                 }
+            }
+            if (this.selectedTool === CONST.PROJECT_SHAPE) {
+                this.painting.shape.points.pop();
+                this.layerManager.needRefresh = true;
+                this.layerManager.refreshShapeOver();
             }
         }
     }
@@ -533,6 +539,14 @@ class PaintingBoard {
                 if (!this.painting) {
                     this.painting = { shape: null };
                 }
+                if (shape.addedPoints === 1) {
+                    const clickPoint = shape.points[shape.points.length - 1];
+                    shape.points[shape.points.length - 1] = {
+                        x: parseInt(clickPoint.x / shape.width) * shape.width,
+                        y: parseInt(clickPoint.y / shape.height) * shape.height
+                    };
+                }
+                shape.addedPoints++;
                 const pos = {
                     x: parseInt(currentPos.x / shape.width) * shape.width,
                     y: parseInt(currentPos.y / shape.height) * shape.height
