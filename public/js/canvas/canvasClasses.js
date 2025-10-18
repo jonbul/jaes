@@ -851,10 +851,10 @@ class Layer {
             });
         }
     }
-    drawResized(context, scale) {
+    drawResized(context, scale, options) {
         if (this.visible) {
             this.shapes.forEach(shape => {
-                shape.drawResized(context, scale);
+                shape.drawResized(context, scale, options);
             });
         }
     }
@@ -869,7 +869,6 @@ class ProjectShape {
         this.rotation = rotation;
         this.desc = CONST.PROJECT_SHAPE;
         this.name = name || this.desc;
-        this.rotation = rotation;
         this.points = [];
     }
     add(point) {
@@ -904,7 +903,7 @@ class ProjectShape {
 
         this.points.forEach(p => {
             this.layers.forEach(layer => {
-                layer.draw(context, {
+                layer.drawResized(context, resizeSize, {
                     x: p.x,
                     y: p.y,
                     rotate: this.rotation,

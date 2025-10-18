@@ -70,8 +70,9 @@ class PaintingBoard {
 
         let project = null;
         (async () => {
-            if (requestParams.id) {
-                project = await asyncRequest({ url: `/paintingBoard2/projects/id?id=${requestParams.id}` })
+            const id = requestParams.get('id');
+            if (id) {
+                project = await asyncRequest({ url: `/paintingBoard2/projects/id?id=${id}` })
             }
             //this.projects = {};
             //projects.forEach(p => this.projects[p._id] = this.parseProject(p));
@@ -425,13 +426,13 @@ class PaintingBoard {
                     this.semiArcClick(evt);
                     break;
                 case CONST.PROJECT_SHAPE:
+                    if (!this.painting) {
+                        this.painting = { shape: null };
+                    }
                     const shape = this.painting.shape;
                     if (!shape) {
                         showAlert({ type: 'danger', msg: 'No shape selected to paint' })
                         return;
-                    }
-                    if (!this.painting) {
-                        this.painting = { shape: null };
                     }
                     shape.addedPoints = 1;
                     const pos = {

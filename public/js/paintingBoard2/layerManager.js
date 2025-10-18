@@ -213,7 +213,7 @@ function layersManager_movingShape(shape, evt) {
         oldPos.y = shape.y;
     }
     this.paintingBoard.movingShape = { item: shape, oldPos: oldPos };
-    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to delete last one.', duration: 5000 })
+    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel.', duration: 5000 })
 }
 
 function hideLayerShapes(btn, layerShapesBlock) {
@@ -420,7 +420,7 @@ function deleteShape(shape, shapes, shapeBlock) {
 function paintShape(shape) {
     this.paintingBoard.selectedTool = CONST.PROJECT_SHAPE;
     this.paintingBoard.painting = { shape };
-    showAlert({ type: 'info', msg: 'Click on canvas to paint the shape. Right click to stop painting', duration: 5000 })
+    showAlert({ type: 'info', msg: 'Click on canvas to paint the shape. Right click to remove last tile.', duration: 5000 })
 }
 
 // endregion Shape events functions

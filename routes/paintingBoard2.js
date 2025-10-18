@@ -56,8 +56,6 @@ module.exports = (app) => {
             const id = req.query.id;
             if (!id  || id.trim() === '') {
                 return res.status(400).send('Project id is required');
-            } else if (!(await getPaintingProjectByIdAndUser(id, userId))) {
-                return res.status(403).send('Forbidden');
             }
             if (id) {
                 await PaintingProject.deleteOne({ _id: id, userId }).exec();
