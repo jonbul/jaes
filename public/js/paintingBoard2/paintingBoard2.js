@@ -831,12 +831,12 @@ class PaintingBoard {
             url: '/paintingBoard2/save',
             method: 'POST',
             data: {
-                id: this.projectId,
+                id: this.project._id,
                 project: this.project
             }
         });
         if (response.success) {
-            this.project._id = response.response.id;
+            this.project._id = response.id;
         }
     }
 }

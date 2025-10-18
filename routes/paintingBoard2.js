@@ -140,7 +140,7 @@ module.exports = (app) => {
             project.dateCreated = projectData.dateCreated;
             project.dateModified = Date.now();
             const answer = await project.save();
-            res.send({ id: answer._id });
+            res.send({ success: true, id: answer._id });
         } else {
             res.status(401).send('Unauthorized');
         }
