@@ -454,7 +454,7 @@ class PaintingBoard {
                     this.layerManager.needRefresh = true;
                     break;
             }
-        } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
+        } else if (evt.buttons & CONST.MOUSE_KEYS_BUTTONS.RIGHT) {
             evt.stopImmediatePropagation();
             evt.stopPropagation();
             if (this.movingShape) {
@@ -471,7 +471,6 @@ class PaintingBoard {
             if (this.selectedTool === CONST.PROJECT_SHAPE) {
                 this.painting.shape.points.pop();
                 this.layerManager.needRefresh = true;
-                this.layerManager.refreshShapeOver();
             }
         }
     }
@@ -554,8 +553,6 @@ class PaintingBoard {
 
                 this.painting.shape.add(pos);
                 this.layerManager.needRefresh = true;
-            } else if (evt.buttons === CONST.MOUSE_KEYS.RIGHT) {
-
             }
         } else if (this.movingShape) {
             const oldPos = this.movingShape.oldPos;
@@ -581,36 +578,36 @@ class PaintingBoard {
             }
             this.layerManager.needRefresh = true;
         }
-        if (!this.drawingObj) return;
-        switch (this.drawingObj.tool) {
-            case CONST.PENCIL:
-                this.drawingPencil(evt, this.drawingObj);
-                break;
-            case CONST.ABSTRACT:
-                this.drawingAbstract(evt, this.drawingObj);
-                break;
-            case CONST.ARC:
-                this.drawingArc(evt, this.drawingObj);
-                break;
-            case CONST.ELLIPSE:
-                this.drawingEllipse(evt, this.drawingObj);
-                break;
-            case CONST.RECT:
-                this.drawingRect(evt, this.drawingObj);
-                break;
-            case CONST.LINE:
-                this.drawingLine(evt, this.drawingObj);
-                break;
-            case CONST.POLYGON:
-                this.drawingPolygon(evt, this.drawingObj);
-                break;
-            case CONST.SEMIARC:
-                this.drawingSemiArc(evt, this.drawingObj);
-                break;
-            case CONST.RUBBER:
-                this.drawingRubber(evt, this.drawingObj);
-                break;
-
+        if (this.drawingObj) {
+            switch (this.drawingObj.tool) {
+                case CONST.PENCIL:
+                    this.drawingPencil(evt, this.drawingObj);
+                    break;
+                case CONST.ABSTRACT:
+                    this.drawingAbstract(evt, this.drawingObj);
+                    break;
+                case CONST.ARC:
+                    this.drawingArc(evt, this.drawingObj);
+                    break;
+                case CONST.ELLIPSE:
+                    this.drawingEllipse(evt, this.drawingObj);
+                    break;
+                case CONST.RECT:
+                    this.drawingRect(evt, this.drawingObj);
+                    break;
+                case CONST.LINE:
+                    this.drawingLine(evt, this.drawingObj);
+                    break;
+                case CONST.POLYGON:
+                    this.drawingPolygon(evt, this.drawingObj);
+                    break;
+                case CONST.SEMIARC:
+                    this.drawingSemiArc(evt, this.drawingObj);
+                    break;
+                case CONST.RUBBER:
+                    this.drawingRubber(evt, this.drawingObj);
+                    break;
+            }
         }
     }
     canvasDblClick(evt) {
