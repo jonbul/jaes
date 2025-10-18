@@ -1,5 +1,5 @@
 const PaintingProject = require('../model/paintingProject');
-const CONST = require('../shared/constants');
+const CONST = require('/constants');
 
 const CONTROLLER = '/paintingBoard2'
 module.exports = (app) => {
