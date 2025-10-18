@@ -113,6 +113,7 @@ module.exports = (app) => {
      * If id is provided, updates the existing project.
      * If provided id does not exist, 400 Bad Request is returned.
      * If provided id does not belong to the user, returns 403 Forbidden.
+     * If no id is provided, creates a new project for the user.
      * 
      */
     app.post(CONTROLLER + '/save', async (req, res) => {
