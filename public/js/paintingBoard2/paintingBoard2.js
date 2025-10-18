@@ -531,8 +531,8 @@ class PaintingBoard {
                 if (shape.addedPoints === 1) {
                     const clickPoint = shape.points[shape.points.length - 1];
                     shape.points[shape.points.length - 1] = {
-                        x: parseInt(clickPoint.x / shape.width) * shape.width,
-                        y: parseInt(clickPoint.y / shape.height) * shape.height
+                        x: parseInt((clickPoint.x + shape.width/2) / shape.width) * shape.width,
+                        y: parseInt((clickPoint.y + shape.height/2) / shape.height) * shape.height
                     };
                 }
                 shape.addedPoints++;
