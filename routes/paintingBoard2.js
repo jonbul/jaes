@@ -56,7 +56,7 @@ module.exports = (app) => {
             const id = req.query.id;
             if (!id  || id.trim() === '') {
                 return res.status(400).send('Project id is required');
-            } else if (!(await getPaintingProjectByIdAndUser(id, userId)) == null) {
+            } else if (!(await getPaintingProjectByIdAndUser(id, userId))) {
                 return res.status(403).send('Forbidden');
             }
             if (id) {
@@ -145,25 +145,17 @@ module.exports = (app) => {
         }
     });
 
-    async function addProjectShapes(project, userId) {
+    async function addProjectShapes(project, projects) {
         if (!project.layers || project.layers.length === 0) {
             return;
         }
-        const projects = {}
+
         for (const layer of project.layers) {
             for (const shape of (layer.shapes || [])) {
                 if (shape.desc === CONST.PROJECT_SHAPE) {
                     const projectId = shape.projectId;
                     if (projects[projectId]) {
                         shape.layers = projects[projectId].layers;
-                        continue;
-                    } else {
-                        const project = await getPaintingProjectByIdAndUser(projectId, userId);
-                        if (project) {
-                            projects[projectId] = project;
-                            shape.layers = project.layers;
-                            shape.jajaja = "jajaja"
-                        }
                     }
                 }
             }
@@ -172,12 +164,24 @@ module.exports = (app) => {
     }
 
     async function getPaintingProjectByIdAndUser(id, userId) {
-        const project = await PaintingProject.findOne({ _id: id, userId }).exec();
-        return addProjectShapes(project.toObject(), userId);
+        const userProjects = await getPaintingProjectsByUserId(userId);
+        if (!userProjects || userProjects.length === 0) {
+            return null;
+        }
+        return userProjects.find(project => project._id.toString() === id);
     }
 
     async function getPaintingProjectsByUserId(userId) {
         const projects = await PaintingProject.find({ userId }).exec();
-        return Promise.all(projects.map(project => addProjectShapes(project.toObject(), userId)));
+        if (!projects || projects.length === 0) {
+            return [];
+        }
+        const projectsMap = {};
+        const projectsList = [];
+        projects.forEach(project => {
+            projectsMap[project._id] = project.toObject();
+            projectsList.push(project.toObject());
+        });
+        return Promise.all(projectsList.map(project => addProjectShapes(project, projectsMap)));
     }
 }

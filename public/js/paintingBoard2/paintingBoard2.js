@@ -119,10 +119,9 @@ class PaintingBoard {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     canvasInterval() {
-        if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh || window.needRefresh) {
+        if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh) {
             this.drawAll();
             this.layerManager.needRefresh = false;
-            delete window.needRefresh;
         }
     }
     drawAll() {
@@ -181,7 +180,6 @@ class PaintingBoard {
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
         this.menus.toolProjectShape.addEventListener('click', this.toolProjectShapeClickEvent.bind(this));
         this.loadColorEvents();
-        this.loadLayerComponentsEvents();
         this.loadLayerManager();
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
@@ -332,15 +330,6 @@ class PaintingBoard {
             r = "0" + r;
         }
         return r;
-    }
-    loadLayerComponentsEvents() {
-
-        this.layers.forEach(layer => {
-            const option = document.createElement('option');
-            option.setAttribute('name', layer.name);
-            option.innerHTML = layer.name;
-        });
-
     }
     loadLayerManager() {
         const layersManager = this.menus.layersManager;

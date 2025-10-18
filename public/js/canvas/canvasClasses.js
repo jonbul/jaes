@@ -861,12 +861,12 @@ class Layer {
 }
 
 class ProjectShape {
-    constructor(projectId, layers = [], width, height, name, backgroundColor, rotation = 0) {
+    constructor(projectId, layers = [], width, height, name, rotation = 0) {
         this.projectId = projectId;
         this.layers = Array.isArray(layers) ? layers : [];
         this.width = width;
         this.height = height;
-        this.backgroundColor = backgroundColor;
+        this.rotation = rotation;
         this.desc = CONST.PROJECT_SHAPE;
         this.name = name || this.desc;
         this.rotation = rotation;
@@ -883,89 +883,39 @@ class ProjectShape {
     draw(context, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
 
-        if (options.rotationCenter && options.rotate) {
-            context.translate(options.rotationCenter.x, options.rotationCenter.y);
-            context.rotate(options.rotate);
-            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
-        }
-
-        let moveX, moveY;
-        if (this.rotation > 0) {
-            moveX = this.width / 2;
-            moveY = this.height / 2;
-            context.translate(moveX, moveY);
-            context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
-        }
-
-        if (this.backgroundColor) {
-            context.fillStyle = this.backgroundColor;
-            context.fillRect(0, 0, this.width, this.height);
-        }
-
         this.points.forEach(p => {
             this.layers.forEach(layer => {
-                const newOptions = JSON.parse(JSON.stringify(options));
-                newOptions.x += p.x;
-                newOptions.y += p.y;
-                layer.draw(context, newOptions);
+                layer.draw(context, {
+                    x: p.x,
+                    y: p.y,
+                    rotate: this.rotation,
+                    rotationCenter: {
+                        x: this.width / 2,
+                        y: this.height / 2
+                    }
+                });
             });
         });
 
-        if (this.rotation > 0) {
-            context.translate(moveX, moveY);
-            context.rotate(-this.rotation);
-            context.translate(-moveX, -moveY);
-        }
-
-        if (options.rotationCenter && options.rotate) {
-            context.translate(options.rotationCenter.x, options.rotationCenter.y);
-            context.rotate(-options.rotate);
-            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
-        }
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
 
-        if (options.rotationCenter && options.rotate) {
-            context.translate(options.rotationCenter.x, options.rotationCenter.y);
-            context.rotate(options.rotate);
-            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
-        }
-
-        let moveX, moveY;
-        if (this.rotation > 0) {
-            moveX = this.width / 2;
-            moveY = this.height / 2;
-            context.translate(moveX, moveY);
-            context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
-        }
-
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(0, 0, resizeSize, resizeSize * this.height / this.width);
-
         this.points.forEach(p => {
-            const newOptions = JSON.parse(JSON.stringify(options));
-            newOptions.x += p.x;
-            newOptions.y += p.y;
             this.layers.forEach(layer => {
-                layer.drawResized(context, resizeSize, newOptions);
+                layer.draw(context, {
+                    x: p.x,
+                    y: p.y,
+                    rotate: this.rotation,
+                    rotationCenter: {
+                        x: this.width / 2,
+                        y: this.height / 2
+                    }
+                });
             });
         });
 
-        if (this.rotation > 0) {
-            context.translate(moveX, moveY);
-            context.rotate(-this.rotation);
-            context.translate(-moveX, -moveY);
-        }
-
-        if (options.rotationCenter && options.rotate) {
-            context.translate(options.rotationCenter.x, options.rotationCenter.y);
-            context.rotate(-options.rotate);
-            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
-        }
         context.translate(-options.x, -options.y);
     }
 }
