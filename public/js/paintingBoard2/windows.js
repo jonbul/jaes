@@ -14,7 +14,7 @@ import {
         Picture,
         Polygon*/
 } from '../canvas/canvasClasses.js';
-import CONST from '../canvas/constants.js';
+import CONST from '../../../constants.js';
 
 let eventsLoaded = false;
 let bool_movingWin = false;

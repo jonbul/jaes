@@ -1,7 +1,7 @@
 "use strict";
 import CanvasClasses from './canvas/canvasClasses.js';
-import CONST from './canvas/constants.js';
-import { ALERT_TYPES } from './canvas/constants.js';
+import CONST from '../../constants.js';
+import { ALERT_TYPES } from '../../constants.js';
 function asyncRequest({ url, method, data }) {
     return fetch(url, {
         method: method || 'GET',

@@ -1,4 +1,4 @@
-import CONST from '../canvas/constants.js';
+import CONST from '../../../constants.js';
 import { Layer, Rect, ProjectShape } from '../canvas/canvasClasses.js';
 import { parseShape, parseLayer, showAlert, parseLayers } from '../functions.js';
 
