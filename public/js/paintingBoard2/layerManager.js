@@ -534,13 +534,13 @@ function selectProjectShape(selectShapeToProject) {
         return;
     }
 
-    const newShape = new ProjectShape(project._id,parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
+    const newShape = new ProjectShape(project._id, parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
     this.createShape(newShape);
     this.needRefresh = true;
 }
 
 function closeWindow(window) {
-    if (window.id == "shapeEditor") {
+    if (window.id === "shapeEditor") {
         this.editingShape = null;
     }
     window.classList.add("hidden");

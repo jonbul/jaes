@@ -24,7 +24,7 @@ class Game {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
-        this.inFullScreen = window.innerHeight == parseInt(getComputedStyle(canvas).height);
+        this.inFullScreen = window.innerHeight === parseInt(getComputedStyle(canvas).height);
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         //if (window.fullScreen) this.toFullScreen()

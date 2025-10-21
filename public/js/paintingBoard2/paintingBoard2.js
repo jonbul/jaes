@@ -452,7 +452,7 @@ class PaintingBoard {
                     this.layerManager.needRefresh = true;
                     break;
             }
-        } else if (evt.buttons & CONST.MOUSE_KEYS_BUTTONS.RIGHT) {
+        } else if ((evt.buttons & CONST.MOUSE_KEYS_BUTTONS.RIGHT) !== 0) {
             evt.stopImmediatePropagation();
             evt.stopPropagation();
             if (this.movingShape) {
@@ -527,7 +527,7 @@ class PaintingBoard {
         const currentPos = this.getCurrentPos(evt);
 
         if (CONST.PROJECT_SHAPE === this.selectedTool) {
-            if (evt.buttons & CONST.MOUSE_KEYS_BUTTONS.LEFT) {
+            if ((evt.buttons & CONST.MOUSE_KEYS_BUTTONS.LEFT) !== 0) {
                 const shape = this.painting.shape;
                 if (!shape) {
                     showAlert({ type: 'danger', msg: 'No shape selected to paint' })

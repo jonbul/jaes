@@ -130,7 +130,7 @@ class Bullet {
         const extraRadiusX = (this.bulletCharge - 1) * this.radiusX / 2;
         const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
         let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16,2)
-        colorHex = colorHex.length == 1 ? "0" + colorHex : colorHex;
+        colorHex = colorHex.length === 1 ? "0" + colorHex : colorHex;
         this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
     updatePosition(x, y) {
