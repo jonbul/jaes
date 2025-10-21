@@ -272,14 +272,17 @@ function layersManager_shapeOver(shape) {
         pictureRect.height = shape.height;
         this.shapeOver = pictureRect;
     } else if (shape.desc === CONST.PROJECT_SHAPE) {
-
+        pictureRect.points = shape.points;
+        pictureRect.width = shape.width;
+        pictureRect.height = shape.height;
+        this.shapeOver = pictureRect;
     } else {
         this.shapeOver = shape;
     }
 }
 
 function layersManager_shapeOut(shape) {
-    if (this.shapeOver === shape) {
+    if (this.shapeOver === shape || this.shapeOver === pictureRect) {
         this.shapeOver = null;
         this.needRefresh = true;
     }

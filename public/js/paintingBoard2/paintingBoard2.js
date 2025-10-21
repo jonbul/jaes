@@ -153,7 +153,15 @@ class PaintingBoard {
                 "backgroundColor" : "borderColor";
             const color = shapeOver[prop];
             shapeOver[prop] = "rgba(255,255,0,0.5)"
-            this.layerManager.shapeOver.draw(this.context);
+            if (!shapeOver.points) {
+                shapeOver.draw(this.context);
+            } else {
+                for (const point of shapeOver.points) {
+                    shapeOver.x = point.x;
+                    shapeOver.y = point.y;
+                    shapeOver.draw(this.context);
+                }
+            }
             shapeOver[prop] = color;
 
         }
@@ -531,8 +539,8 @@ class PaintingBoard {
                 if (shape.addedPoints === 1) {
                     const clickPoint = shape.points[shape.points.length - 1];
                     shape.points[shape.points.length - 1] = {
-                        x: parseInt((clickPoint.x + shape.width/2) / shape.width) * shape.width,
-                        y: parseInt((clickPoint.y + shape.height/2) / shape.height) * shape.height
+                        x: parseInt((clickPoint.x + shape.width / 2) / shape.width) * shape.width,
+                        y: parseInt((clickPoint.y + shape.height / 2) / shape.height) * shape.height
                     };
                 }
                 shape.addedPoints++;

@@ -1,5 +1,5 @@
 const PaintingProject = require('../model/paintingProject');
-const CONST = require('/constants');
+const CONST = require('../shared/constants');
 
 const CONTROLLER = '/paintingBoard2'
 module.exports = (app) => {
@@ -151,7 +151,7 @@ module.exports = (app) => {
 
         for (const layer of project.layers) {
             for (const shape of (layer.shapes || [])) {
-                if (shape.desc === CONST.PROJECT_SHAPE) {
+                if (shape.desc === CONST.PROJECT_SHAPE && shape.projectId != project._id) {
                     const projectId = shape.projectId;
                     if (projects[projectId]) {
                         shape.layers = projects[projectId].layers;
