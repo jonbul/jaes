@@ -12,7 +12,7 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from './constants.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '../../../../constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
@@ -24,7 +24,7 @@ class Game {
         window.game = this;
         this.isGuest = guest;
         this.isSmartphone = isSmartphone;
-        this.inFullScreen = window.innerHeight == parseInt(getComputedStyle(canvas).height);
+        this.inFullScreen = window.innerHeight === parseInt(getComputedStyle(canvas).height);
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         //if (window.fullScreen) this.toFullScreen()
@@ -55,7 +55,6 @@ class Game {
                 const index = parseInt(Math.random() * baseShips.length)
                 ship = baseShips[index]
             }
-
 
             this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
@@ -212,7 +211,6 @@ class Game {
         }
         this.viewRect = viewRect;
 
-
         this.drawablePlayers.shapes = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
@@ -328,7 +326,6 @@ class Game {
 
         if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
-
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
         const angle = player.rotate - Math.PI / 2 * quad;

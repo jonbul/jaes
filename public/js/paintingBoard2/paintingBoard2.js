@@ -1,5 +1,5 @@
 import { asyncRequest, showAlert, parseLayers } from '../functions.js';
-import CONST from '../canvas/constants.js';
+import CONST from '../../../constants.js';
 import windowsEvents from './windows.js';
 import {
     Abstract,
@@ -18,12 +18,13 @@ import {
 import LayerManager from './layerManager.js'
 
 class PaintingBoard {
-    constructor(canvas, project) {
+    constructor() {
+        const canvas = document.getElementById('canvas');
+
         //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
         const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
         canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20 - windowsSpace}px)`
-
 
         windowsEvents(canvas);
         window._this = this;
@@ -52,6 +53,7 @@ class PaintingBoard {
             },
             rotation: document.getElementById('rectRotate'),
             toolList: document.getElementById('toolList'),
+            toolProjectShape: document.getElementById('toolProjectShape'),
             visibleLayer: document.getElementById('visibleLayer'),
             imageLoader: document.getElementById('imageLoader'),
             imageLoaderLocal: document.getElementById('imageLoaderLocal'),
@@ -59,32 +61,53 @@ class PaintingBoard {
             boardZoom: document.getElementById('boardZoom'),
         }
 
-        if (!project) {
-            this.layers = [];
-            this.currentLayer = new Layer('Layer', this.currentLayer);
-            this.layers.push(this.currentLayer);
-            this.project = { layers: this.layers };
-            this.project.dateCreated = Date.now();
-            this.menus.resolution.width.value = canvas.width;
-            this.menus.resolution.height.value = canvas.height;
-        } else {
-            this.project = this.parseProject(project);
-            this.layers = this.project.layers;
-            this.currentLayer = project.layers[0];
-            this.dateCreated = project.dateCreated;
-            document.getElementById('projectName').value = project.name;
-            this.menus.resolution.width.value = project.canvas.width;
-            this.menus.resolution.height.value = project.canvas.height;
-            this.canvas.width = project.canvas.width;
-            this.canvas.height = project.canvas.height;
-        }
-
-        this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
-
-        this.loadEvents();
-        setTimeout(this.drawAll.bind(this), 1);
-        this.interval = setInterval(this.canvasInterval.bind(this));
+        this.loadProject();
     }
+
+    loadProject() {
+        const requestParams = new URLSearchParams(location.search);
+        requestParams.forEach((v, k) => { requestParams[k] = v; });
+
+        let project = null;
+        (async () => {
+            const id = requestParams.get('id');
+            if (id) {
+                project = await asyncRequest({ url: `/paintingBoard2/projects/id?id=${id}` })
+            }
+            //this.projects = {};
+            //projects.forEach(p => this.projects[p._id] = this.parseProject(p));
+            //if (requestParams.id) {
+            //    project = projects.filter(p => p._id === requestParams.id)[0];
+            //}
+            if (!project) {
+                this.layers = [];
+                this.currentLayer = new Layer('Layer', this.currentLayer);
+                this.layers.push(this.currentLayer);
+                this.project = { layers: this.layers };
+                this.project.dateCreated = Date.now();
+                this.menus.resolution.width.value = canvas.width;
+                this.menus.resolution.height.value = canvas.height;
+            } else {
+                this.project = this.parseProject(project);
+                this.layers = this.project.layers;
+                this.currentLayer = project.layers[0];
+                this.dateCreated = project.dateCreated;
+                document.getElementById('projectName').value = project.name;
+                this.menus.resolution.width.value = project.canvas.width;
+                this.menus.resolution.height.value = project.canvas.height;
+                this.canvas.width = project.canvas.width;
+                this.canvas.height = project.canvas.height;
+            }
+
+            this.selectedTool = this.menus.toolList.querySelector('input:checked').value;
+
+            this.loadEvents();
+            setTimeout(this.drawAll.bind(this), 1);
+            this.interval = setInterval(this.canvasInterval.bind(this));
+
+        })();
+    }
+
     parseProject(project) {
         return {
             _id: project._id,
@@ -130,7 +153,15 @@ class PaintingBoard {
                 "backgroundColor" : "borderColor";
             const color = shapeOver[prop];
             shapeOver[prop] = "rgba(255,255,0,0.5)"
-            this.layerManager.shapeOver.draw(this.context);
+            if (!shapeOver.points) {
+                shapeOver.draw(this.context);
+            } else {
+                for (const point of shapeOver.points) {
+                    shapeOver.x = point.x;
+                    shapeOver.y = point.y;
+                    shapeOver.draw(this.context);
+                }
+            }
             shapeOver[prop] = color;
 
         }
@@ -156,8 +187,8 @@ class PaintingBoard {
         this.menus.resolution.height.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.resolution.width.addEventListener('input', this.resolutionChangeEvent.bind(this));
         this.menus.toolList.addEventListener('click', this.toolClickEvent.bind(this));
+        this.menus.toolProjectShape.addEventListener('click', this.toolProjectShapeClickEvent.bind(this));
         this.loadColorEvents();
-        this.loadLayerComponentsEvents();
         this.loadLayerManager();
         this.loadCanvasEvents();
         document.getElementById('save').addEventListener('click', this.save.bind(this));
@@ -207,8 +238,6 @@ class PaintingBoard {
 
             img.src = evt.target.result;
         }
-
-
     }
 
     imageOnload(img) {
@@ -311,15 +340,6 @@ class PaintingBoard {
         }
         return r;
     }
-    loadLayerComponentsEvents() {
-
-        this.layers.forEach(layer => {
-            const option = document.createElement('option');
-            option.setAttribute('name', layer.name);
-            option.innerHTML = layer.name;
-        });
-
-    }
     loadLayerManager() {
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
@@ -331,6 +351,22 @@ class PaintingBoard {
         const selectedTool = this.menus.toolList.querySelector('input:checked')
         this.selectedTool = selectedTool.value;
         this.canvas.setAttribute('tool', selectedTool.value);
+    }
+    toolProjectShapeClickEvent() {
+        const projectShapeWindow = document.getElementById('projectShapeWindow');
+
+        asyncRequest({ url: '/paintingBoard2/projects/all' }).then(projects => {
+            const selectShapeToProject = document.getElementById('selectShapeToProject');
+            selectShapeToProject.innerHTML = '';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project._id;
+                option.textContent = project.name;
+                option.project = project;
+                selectShapeToProject.appendChild(option);
+            });
+            projectShapeWindow.classList.remove('hidden');
+        });
     }
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
@@ -350,7 +386,6 @@ class PaintingBoard {
 
         y *= (this.canvas.height / styleHeight);
         x *= (this.canvas.width / styleWidth);
-
 
         const round = !this.menus.followGrid.checked ? undefined : {
             x: this.menus.gridH.value || 1,
@@ -398,8 +433,26 @@ class PaintingBoard {
                 case CONST.SEMIARC:
                     this.semiArcClick(evt);
                     break;
+                case CONST.PROJECT_SHAPE:
+                    if (!this.painting) {
+                        this.painting = { shape: null };
+                    }
+                    const shape = this.painting.shape;
+                    if (!shape) {
+                        showAlert({ type: 'danger', msg: 'No shape selected to paint' })
+                        return;
+                    }
+                    shape.addedPoints = 1;
+                    const pos = {
+                        x: currentPos.x - (shape.width / 2),
+                        y: currentPos.y - (shape.height / 2)
+                    };
+
+                    this.painting.shape.add(pos);
+                    this.layerManager.needRefresh = true;
+                    break;
             }
-        } else if (evt.button === CONST.MOUSE_KEYS.RIGHT) {
+        } else if ((evt.buttons & CONST.MOUSE_KEYS_BUTTONS.RIGHT) !== 0) {
             evt.stopImmediatePropagation();
             evt.stopPropagation();
             if (this.movingShape) {
@@ -413,6 +466,10 @@ class PaintingBoard {
                     this.drawingObj = null;
                 }
             }
+            if (this.selectedTool === CONST.PROJECT_SHAPE) {
+                this.painting.shape.points.pop();
+                this.layerManager.needRefresh = true;
+            }
         }
     }
     canvasMouseUp(evt) {
@@ -421,9 +478,6 @@ class PaintingBoard {
 
             this.menus.backgroundColor.value = colorData.hex;
             this.menus.opacity.value = colorData.alpha;
-
-
-
         }
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
@@ -471,7 +525,34 @@ class PaintingBoard {
     }
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
-        if (this.movingShape) {
+
+        if (CONST.PROJECT_SHAPE === this.selectedTool) {
+            if ((evt.buttons & CONST.MOUSE_KEYS_BUTTONS.LEFT) !== 0) {
+                const shape = this.painting.shape;
+                if (!shape) {
+                    showAlert({ type: 'danger', msg: 'No shape selected to paint' })
+                    return;
+                }
+                if (!this.painting) {
+                    this.painting = { shape: null };
+                }
+                if (shape.addedPoints === 1) {
+                    const clickPoint = shape.points[shape.points.length - 1];
+                    shape.points[shape.points.length - 1] = {
+                        x: parseInt((clickPoint.x + shape.width / 2) / shape.width) * shape.width,
+                        y: parseInt((clickPoint.y + shape.height / 2) / shape.height) * shape.height
+                    };
+                }
+                shape.addedPoints++;
+                const pos = {
+                    x: parseInt(currentPos.x / shape.width) * shape.width,
+                    y: parseInt(currentPos.y / shape.height) * shape.height
+                };
+
+                this.painting.shape.add(pos);
+                this.layerManager.needRefresh = true;
+            }
+        } else if (this.movingShape) {
             const oldPos = this.movingShape.oldPos;
             const shape = this.movingShape.item;
 
@@ -493,38 +574,38 @@ class PaintingBoard {
                 shape.x = currentPos.x - shape.width / 2;
                 shape.y = currentPos.y - shape.height / 2;
             }
-                this.layerManager.needRefresh = true;
+            this.layerManager.needRefresh = true;
         }
-        if (!this.drawingObj) return;
-        switch (this.drawingObj.tool) {
-            case CONST.PENCIL:
-                this.drawingPencil(evt, this.drawingObj);
-                break;
-            case CONST.ABSTRACT:
-                this.drawingAbstract(evt, this.drawingObj);
-                break;
-            case CONST.ARC:
-                this.drawingArc(evt, this.drawingObj);
-                break;
-            case CONST.ELLIPSE:
-                this.drawingEllipse(evt, this.drawingObj);
-                break;
-            case CONST.RECT:
-                this.drawingRect(evt, this.drawingObj);
-                break;
-            case CONST.LINE:
-                this.drawingLine(evt, this.drawingObj);
-                break;
-            case CONST.POLYGON:
-                this.drawingPolygon(evt, this.drawingObj);
-                break;
-            case CONST.SEMIARC:
-                this.drawingSemiArc(evt, this.drawingObj);
-                break;
-            case CONST.RUBBER:
-                this.drawingRubber(evt, this.drawingObj);
-                break;
-
+        if (this.drawingObj) {
+            switch (this.drawingObj.tool) {
+                case CONST.PENCIL:
+                    this.drawingPencil(evt, this.drawingObj);
+                    break;
+                case CONST.ABSTRACT:
+                    this.drawingAbstract(evt, this.drawingObj);
+                    break;
+                case CONST.ARC:
+                    this.drawingArc(evt, this.drawingObj);
+                    break;
+                case CONST.ELLIPSE:
+                    this.drawingEllipse(evt, this.drawingObj);
+                    break;
+                case CONST.RECT:
+                    this.drawingRect(evt, this.drawingObj);
+                    break;
+                case CONST.LINE:
+                    this.drawingLine(evt, this.drawingObj);
+                    break;
+                case CONST.POLYGON:
+                    this.drawingPolygon(evt, this.drawingObj);
+                    break;
+                case CONST.SEMIARC:
+                    this.drawingSemiArc(evt, this.drawingObj);
+                    break;
+                case CONST.RUBBER:
+                    this.drawingRubber(evt, this.drawingObj);
+                    break;
+            }
         }
     }
     canvasDblClick(evt) {
@@ -690,7 +771,6 @@ class PaintingBoard {
                 arc.startAngle = a;
                 arc.endAngle = a;
 
-
                 Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
 
                 drawingObj.extraShapes = [];
@@ -760,14 +840,14 @@ class PaintingBoard {
             url: '/paintingBoard2/save',
             method: 'POST',
             data: {
-                id: this.projectId,
+                id: this.project._id,
                 project: this.project
             }
         });
         if (response.success) {
-            this.project._id = response.response.id;
+            this.project._id = response.id;
         }
     }
 }
 
-export default PaintingBoard;
+new PaintingBoard();

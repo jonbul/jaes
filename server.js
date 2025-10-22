@@ -69,6 +69,7 @@ app.use(flash());
 global.io = io;
 app.use(passport.initialize());
 app.use(express.static('public'));
+app.use(express.static('shared'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 

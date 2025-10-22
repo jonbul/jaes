@@ -14,7 +14,7 @@ import {
         Picture,
         Polygon*/
 } from '../canvas/canvasClasses.js';
-import CONST from '../canvas/constants.js';
+import CONST from '../../../constants.js';
 
 let eventsLoaded = false;
 let bool_movingWin = false;
@@ -51,7 +51,6 @@ function windowsEvents(canvas) {
         windows.push(window)
         window.onmousedown = clickedWin.bind(this, window);
     }
-
 
     let windowBars = document.getElementsByClassName("windowBar");
     for (let windowBar of windowBars) {

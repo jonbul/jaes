@@ -374,10 +374,8 @@ class PaintingBoard {
 
             this.menus.background.value = colorData.hex;
             this.menus.opacity.value = colorData.alpha;
-
-
-            
         }
+
         if (!this.drawingObj) return;
         if (this.drawingObj.tool === CONST.POLYGON || this.drawingObj.tool === CONST.SEMIARC) return;
         const shape = this.drawingObj.shape;
@@ -621,7 +619,6 @@ class PaintingBoard {
 
                 arc.startAngle = a;
                 arc.endAngle = a;
-
 
                 Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
 

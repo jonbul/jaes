@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { Int32 } = require('mongodb');
 
 const Shape = new mongoose.Schema(
     {
@@ -24,8 +23,9 @@ const Shape = new mongoose.Schema(
         src: String,
         name: String,
         mirror: Boolean,
+        projectId: String,
     }
 )
 
 
-module.exports = mongoose.model('shape', Shape);
+module.exports = Shape;

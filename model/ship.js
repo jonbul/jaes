@@ -1,27 +1,9 @@
 const mongoose = require('mongoose');
+const Layer = require('./layer');
 const Ship = new mongoose.Schema(
     {
         name: String,
-        layers: [{
-            desc: String,
-            x: Number,
-            y: Number,
-            points: [{
-                x: Number,
-                y: Number,
-            }],
-            width: Number,
-            height: Number,
-            radius: Number,
-            radiusX: Number,
-            radiusY: Number,
-            startAngle: Number,
-            endAngle: Number,
-            backgroundColor: String,
-            borderColor: String,
-            borderWidth: Number,
-            rotation: Number,
-        }],
+        layers: [Layer],
     }
 )
 

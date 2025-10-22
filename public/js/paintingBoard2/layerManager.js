@@ -1,6 +1,6 @@
-import CONST from '../canvas/constants.js';
-import { Layer, Rect } from '../canvas/canvasClasses.js';
-import { parseShape, parseLayer, showAlert } from '../functions.js';
+import CONST from '../../../constants.js';
+import { Layer, Rect, ProjectShape } from '../canvas/canvasClasses.js';
+import { parseShape, parseLayer, showAlert, parseLayers } from '../functions.js';
 
 class LayerManager {
     constructor(paintingBoard) {
@@ -19,7 +19,11 @@ class LayerManager {
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
         shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
-        document.getElementById("closeShapeEditor").addEventListener('click', closeShapeEditor.bind(this, this.shapeEditorWindow));
+        document.querySelectorAll('.window .closeButton').forEach(btn => {
+            btn.addEventListener('click', closeWindow.bind(this, btn.parentElement.parentElement));
+        });
+        const selectShapeToProject = document.getElementById("selectShapeToProject");
+        document.getElementById("projectShapeButton").addEventListener('click', selectProjectShape.bind(this, selectShapeToProject));
 
         if (this.layers) {
             this.currentLayer = this.layers[0];
@@ -35,7 +39,6 @@ class LayerManager {
     cleanLayersManager() {
         this.layersManagerDiv.innerHTML = "";
     }
-
 
     createLayer(layer) {
         const layerBlock = document.createElement("div");
@@ -82,7 +85,6 @@ class LayerManager {
         tools.appendChild(btnShowShapes);
         // endregion layer buttons
 
-
         const layerShapesBlock = document.createElement("div");
         layerShapesBlock.classList.add("layersManager_layer_shapes")
         layerBlock.appendChild(layerShapesBlock);
@@ -116,7 +118,6 @@ class LayerManager {
 
         shapeHead.appendChild(shapeTitle);
 
-
         // region shape buttons
 
         const tools = document.createElement("div");
@@ -129,12 +130,17 @@ class LayerManager {
         // shape edit button
         createButton("&#128393;", "btnShapeEdit", "Edit shape", editShape.bind(this, shape, shapeTitle), tools);
 
-        // shape copy button
-        createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
+        if (shape.desc !== CONST.PROJECT_SHAPE) {
+            // shape copy button
+            createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
+
+        } else if (shape.desc === CONST.PROJECT_SHAPE) {
+            // paint shape button
+            createButton("&#128394;", "btnShapePaint", "Paint Tile", paintShape.bind(this, shape), tools);
+        }
 
         // shape delete button
         createButton("&Cross;", "btnDeleteShape", "Delete shape", deleteShape.bind(this, shape, layer.shapes, shapeHead), tools);
-
 
         // endregion shape buttons
 
@@ -207,7 +213,7 @@ function layersManager_movingShape(shape, evt) {
         oldPos.y = shape.y;
     }
     this.paintingBoard.movingShape = { item: shape, oldPos: oldPos };
-    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel', duration: 5000 })
+    showAlert({ type: 'info', msg: 'Left click in canvas to move the shape. Right click to cancel.', duration: 5000 })
 }
 
 function hideLayerShapes(btn, layerShapesBlock) {
@@ -265,13 +271,18 @@ function layersManager_shapeOver(shape) {
         pictureRect.width = shape.width;
         pictureRect.height = shape.height;
         this.shapeOver = pictureRect;
+    } else if (shape.desc === CONST.PROJECT_SHAPE) {
+        pictureRect.points = shape.points;
+        pictureRect.width = shape.width;
+        pictureRect.height = shape.height;
+        this.shapeOver = pictureRect;
     } else {
         this.shapeOver = shape;
     }
 }
 
 function layersManager_shapeOut(shape) {
-    if (this.shapeOver === shape) {
+    if (this.shapeOver === shape || this.shapeOver === pictureRect) {
         this.shapeOver = null;
         this.needRefresh = true;
     }
@@ -320,7 +331,7 @@ function copyShape(shape, layer = this.currentLayer) {
         newShape.x += 10;
         newShape.y += 10;
     }
-    
+
     this.createShape(parseShape(newShape));
     this.needRefresh = true;
 }
@@ -400,13 +411,19 @@ function editShapeProperty(evt) {
 
 function deleteShape(shape, shapes, shapeBlock) {
     //if (confirm("Delete shape " + shape.name + "?")) {
-        shapes.splice(shapes.indexOf(shape), 1);
-        shapeBlock.remove();
+    shapes.splice(shapes.indexOf(shape), 1);
+    shapeBlock.remove();
 
-        this.updateExampleCanvas();
-        this.shapeOver = null;
-        this.needRefresh = true;
+    this.updateExampleCanvas();
+    this.shapeOver = null;
+    this.needRefresh = true;
     //}
+}
+
+function paintShape(shape) {
+    this.paintingBoard.selectedTool = CONST.PROJECT_SHAPE;
+    this.paintingBoard.painting = { shape };
+    showAlert({ type: 'info', msg: 'Click on canvas to paint the shape. Right click to remove last tile.', duration: 5000 })
 }
 
 // endregion Shape events functions
@@ -510,9 +527,23 @@ function layersManagerMouseUp(evt) {
     }
 }
 
-function closeShapeEditor(shapeEditorWindow) {
-    this.editingShape = null;
-    shapeEditorWindow.classList.add("hidden");
+function selectProjectShape(selectShapeToProject) {
+    const project = selectShapeToProject.selectedOptions[0]?.project;
+    if (!project) {
+        showAlert({ type: 'danger', msg: 'No project shape selected', duration: 5000 });
+        return;
+    }
+
+    const newShape = new ProjectShape(project._id, parseLayers(project.layers), project.canvas.width, project.canvas.height, project.name);
+    this.createShape(newShape);
+    this.needRefresh = true;
+}
+
+function closeWindow(window) {
+    if (window.id === "shapeEditor") {
+        this.editingShape = null;
+    }
+    window.classList.add("hidden");
 }
 
 function layersManagerMouseMove(evt) {

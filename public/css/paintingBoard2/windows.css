@@ -209,7 +209,7 @@
         }
 
 
-        &#shapeEditor {
+        &#shapeEditor,&#projectShapeWindow {
             width: 500px;
             z-index: 999999;
 
@@ -217,7 +217,7 @@
                 display: none;
             }
 
-            #closeShapeEditor {
+            .closeButton {
                 float: right;
             }
 

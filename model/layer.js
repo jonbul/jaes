@@ -11,4 +11,4 @@ const Layer = new mongoose.Schema(
 )
 
 
-module.exports = mongoose.model('layer', Layer);
+module.exports = Layer;

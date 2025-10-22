@@ -1,4 +1,4 @@
-import CONST from './constants.js';
+import CONST from '../../../constants.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
         this.canvas = function (cnvW, cnvH) {
@@ -315,7 +315,6 @@ class Polygon {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
-
         if (this.rotation > 0) {
             // min x and y in points
             const minX = Math.min(...this.points.map(p => p.x));
@@ -626,7 +625,6 @@ class Rubber {
             context.translate(-moveX, -moveY);
         }
 
-
         for (var i = 0; i < this.points.length - 1; i++) {
             context.clearRect(this.points[i].x - this.borderWidth / 2, this.points[i].y - this.borderWidth / 2, this.borderWidth / 2, this.borderWidth / 2);
         }
@@ -777,7 +775,8 @@ class Picture {
 }
 
 class Text {
-    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000', width) {
+    constructor(text, x, y, fontSize = 12, fontFamily = 'Helvetica', color = '#000000', width, rotation = 0, name) {
+        this.desc = CONST.TEXT;
         this.text = text;
         this.x = x;
         this.y = y;
@@ -785,11 +784,42 @@ class Text {
         this.fontFamily = fontFamily;
         this.color = color;
         this.width = width;
+        this.name = name || this.desc;
+        this.rotation = rotation;
     }
     draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+
+        let moveX, moveY;
+        if (this.rotation > 0) {
+            moveX = this.x + this.width / 2;
+            moveY = this.y + this.fontSize / 2;
+            context.translate(moveX, moveY);
+            context.rotate(this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
         context.font = `${this.fontSize}px ${this.fontFamily}`;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x + options.x, this.y + options.y, this.width);
+
+        if (this.rotation > 0) {
+            context.translate(moveX, moveY);
+            context.rotate(-this.rotation);
+            context.translate(-moveX, -moveY);
+        }
+
+        if (options.rotationCenter && options.rotate) {
+            context.translate(options.rotationCenter.x, options.rotationCenter.y);
+            context.rotate(-options.rotate);
+            context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
+        }
+        context.translate(-options.x, -options.y);
     }
 }
 
@@ -821,12 +851,71 @@ class Layer {
             });
         }
     }
-    drawResized(context, scale) {
+    drawResized(context, scale, options) {
         if (this.visible) {
             this.shapes.forEach(shape => {
-                shape.drawResized(context, scale);
+                shape.drawResized(context, scale, options);
             });
         }
+    }
+}
+
+class ProjectShape {
+    constructor(projectId, layers = [], width, height, name, rotation = 0) {
+        this.projectId = projectId;
+        this.layers = Array.isArray(layers) ? layers : [];
+        this.width = width;
+        this.height = height;
+        this.rotation = rotation;
+        this.desc = CONST.PROJECT_SHAPE;
+        this.name = name || this.desc;
+        this.points = [];
+    }
+    add(point) {
+        if (this.points.filter(p => p.x === point.x && p.y === point.y).length === 0) {
+            this.points.push(point);
+        }
+    }
+    remove(point) {
+        this.points = this.points.filter(p => p.x !== point.x || p.y !== point.y);
+    }
+    draw(context, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+
+        this.points.forEach(p => {
+            this.layers.forEach(layer => {
+                layer.draw(context, {
+                    x: p.x,
+                    y: p.y,
+                    rotate: this.rotation,
+                    rotationCenter: {
+                        x: this.width / 2,
+                        y: this.height / 2
+                    }
+                });
+            });
+        });
+
+        context.translate(-options.x, -options.y);
+    }
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
+        context.translate(options.x, options.y);
+
+        this.points.forEach(p => {
+            this.layers.forEach(layer => {
+                layer.drawResized(context, resizeSize, {
+                    x: p.x,
+                    y: p.y,
+                    rotate: this.rotation,
+                    rotationCenter: {
+                        x: this.width / 2,
+                        y: this.height / 2
+                    }
+                });
+            });
+        });
+
+        context.translate(-options.x, -options.y);
     }
 }
 
@@ -843,7 +932,8 @@ export {
     Polygon,
     Rect,
     Rubber,
-    Text
+    Text,
+    ProjectShape
 }
 
 export default {
@@ -859,5 +949,6 @@ export default {
     Polygon,
     Rect,
     Rubber,
-    Text
+    Text,
+    ProjectShape
 }
