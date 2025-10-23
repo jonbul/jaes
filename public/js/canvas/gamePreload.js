@@ -1,7 +1,8 @@
 import Game from '/js/canvas/game.js';
 import CharacterSelector from '/js/canvas/characterSelector.js';
 import { ShipsManager } from '/js/canvas/gameClasses.js'
-window.socket = io();
+
+
 const gameData = await (await fetch("/game/data")).json()
 
 let guest = false;
@@ -48,7 +49,6 @@ async function btnStart(e) {
 
     const launch = () => new Game(canvas,
             _username,
-            socket,
             guest,
             credits,
             isSmartphone,

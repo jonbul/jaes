@@ -66,10 +66,10 @@ module.exports = (app) => {
     }));
 
     app.get('/logout', (req, res) => {
-        req.logout();
-
-        req.session.destroy(err => {
-            res.redirect('/');
+        req.logout(() => { 
+            req.session.destroy(err => {
+                res.redirect('/');
+            });
         });
     });
 

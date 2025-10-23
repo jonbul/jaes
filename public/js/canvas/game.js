@@ -19,7 +19,7 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
+    constructor(canvas, username, guest, credits, isSmartphone, ship, shipsManager) {
 
         window.game = this;
         this.isGuest = guest;
@@ -38,7 +38,7 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = io;
+        this.io = io();
         this.loadEvents();
 
         this.createStaticCanvas();
@@ -58,8 +58,8 @@ class Game {
 
             this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
-            this.player.socketId = socket.id;
-            this.players[socket.id] = this.player;
+            this.player.socketId = this.io.id;
+            this.players[this.player.socketId] = this.player;
 
             this.drawableBullets = new Layer('bullets');
             this.drawablePlayers = new Layer('players');
@@ -499,7 +499,7 @@ class Game {
         }
 
         if (data.length) { // TODO update to WebSocket
-            this.io.emit('getBackgroundCards', { socketId: socket.id, data })
+            this.io.emit('getBackgroundCards', { socketId: this.io.id, data })
         }
 
         new Rect(

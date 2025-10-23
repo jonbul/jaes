@@ -1,5 +1,5 @@
 const express = require('express');
-const {collectDefaultMetrics} = require('prom-client');
+const { collectDefaultMetrics } = require('prom-client');
 const session = require('express-session');
 const app = express();
 const fs = require('fs');
@@ -10,7 +10,7 @@ const options = {};
 try {
     options.key = fs.readFileSync('/files/ssl/privkey.pem');
     options.cert = fs.readFileSync('/files/ssl/fullchain.pem');
-} catch(e) {
+} catch (e) {
     console.warn("LOADING DEBUG CERTS!")
     options.key = fs.readFileSync('sslDebug/key.pem');
     options.cert = fs.readFileSync('sslDebug/cert.pem');
@@ -18,8 +18,8 @@ try {
 
 
 const https = require('https').createServer(options, app);
-const io = require('socket.io').listen(https);
-
+const socketIo = require("socket.io");
+const io = new socketIo.Server(https);
 
 const http = require('http');
 http.createServer((req, res) => {
@@ -52,15 +52,7 @@ const mongodb = require('mongodb');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useUnifiedTopology', true);
-
-const connectionString = 'mongodb://jaes:Rednanoj1987!@192.168.1.10/jaes?retryWrites=true&w=majority';
-
-mongoose.connect(connectionString, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect('mongodb://jaes:Rednanoj1987!@192.168.1.10/jaes?retryWrites=true&w=majority');
 
 app.use(flash());
 
