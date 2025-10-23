@@ -1,8 +1,8 @@
-const express = require('express');
-const { collectDefaultMetrics } = require('prom-client');
-const session = require('express-session');
+import express from 'express';
+import { collectDefaultMetrics } from 'prom-client';
+import session from 'express-session';
+import fs from 'fs';
 const app = express();
-const fs = require('fs');
 // SSL
 
 
@@ -16,12 +16,13 @@ try {
     options.cert = fs.readFileSync('sslDebug/cert.pem');
 }
 
+import httpsModule from 'https';
+import { Server } from 'socket.io';
+import http from 'http';
 
-const https = require('https').createServer(options, app);
-const socketIo = require("socket.io");
-const io = new socketIo.Server(https);
+const https = httpsModule.createServer(options, app);
+const io = new Server(https);
 
-const http = require('http');
 http.createServer((req, res) => {
     let host;
     if (/^(\d+\.\d+\.\d+\.\d+):3001$/.test(req.headers['host'])) {
@@ -34,23 +35,22 @@ http.createServer((req, res) => {
     res.end();
 }).listen(3001);
 
-
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const validator = require('express-validator');
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import validator from 'express-validator';
 const PORT = process.env.PORT || 3000;
 
-const passport = require('passport');
+import passport from 'passport';
 
-const flash = require('connect-flash');
+import flash from 'connect-flash';
 
-const ejs = require('ejs');
-const engine = require('ejs-mate');
+import ejs from 'ejs';
+import ejsMate from 'ejs-mate';
 
 //Mongo
-const mongodb = require('mongodb');
-const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo')(session);
+import mongodb from 'mongodb';
+import mongoose from 'mongoose';
+import MongoStore from 'connect-mongo';
 
 mongoose.connect('mongodb://jaes:Rednanoj1987!@192.168.1.10/jaes?retryWrites=true&w=majority');
 
@@ -65,18 +65,20 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 
 
-require('./model/user');
-require('./passport/passport');
+import('./model/user.js');
+import('./passport/passport.js');
 
 app.use(session({
     secret: 'Thisistestkey',
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({ mongooseConnection: mongoose.connection })
+    store: MongoStore.create({
+        client: mongoose.connection.getClient()
+    })
 }));
 
 app.set('view engine', 'ejs');
-app.engine('ejs', engine);
+app.engine('ejs', ejsMate);
 
 app.use(cookieParser());
 
@@ -87,14 +89,21 @@ app.use(bodyParser.json());
 //Grafana
 collectDefaultMetrics();
 
-require('./routes/grafana')(app);
-require('./routes/user')(app);
-require('./routes/game')(app, io, mongoose);
-require('./routes/paintingBoard')(app);
-require('./routes/paintingBoard2')(app);
+import grafanaRoutes from './routes/grafana.js';
+import userRoutes from './routes/user.js';
+import gameRoutes from './routes/game.js';
+//import paintingBoardRoutes from './routes/paintingBoard';
+import paintingBoard2Routes from './routes/paintingBoard2.js';
+
+grafanaRoutes(app);
+userRoutes(app);
+gameRoutes(app, io, mongoose);
+//paintingBoardRoutes(app);
+paintingBoard2Routes(app);
 
 //Server /status
-app.use(require('express-status-monitor')({
+import expressStatusMonitor from 'express-status-monitor';
+app.use(expressStatusMonitor({
     websocket: io
 }));
 

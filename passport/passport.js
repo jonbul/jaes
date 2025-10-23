@@ -1,7 +1,7 @@
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+import passport from 'passport';
+import LocalStrategy from 'passport-local';
 
-const User = require('../model/user');
+import User from '../model/user.js';
 
 passport.use('local.signup', new LocalStrategy({
     usernameField: 'email',

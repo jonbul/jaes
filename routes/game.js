@@ -1,10 +1,9 @@
-const Ship = require('../model/ship');
-const PaintingProject = require('../model/paintingProject');
-const resolutions = require('./constants').resolutions;
-const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
-const User = require('../model/user');
+import Ship from '../model/ship.js';
+import PaintingProject from '../model/paintingProject.js';
+import { resolutions, allowedPlayerTypes } from './constants.js';
+import User from '../model/user.js';
 
-module.exports = (app, io, mongoose) => {
+const gameRoutes = (app, io, mongoose) => {
     const players = {};
     let playersToSend = {};
     let killsList = [];
@@ -269,3 +268,5 @@ module.exports = (app, io, mongoose) => {
         }
     }
 }
+
+export default gameRoutes;

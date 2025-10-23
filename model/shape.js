@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const Shape = new mongoose.Schema(
     {
@@ -28,4 +28,4 @@ const Shape = new mongoose.Schema(
 )
 
 
-module.exports = Shape;
+export default Shape;

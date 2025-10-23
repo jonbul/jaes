@@ -153,15 +153,15 @@ class PaintingBoard {
                 "backgroundColor" : "borderColor";
             const color = shapeOver[prop];
             shapeOver[prop] = "rgba(255,255,0,0.5)"
-            if (!shapeOver.points) {
-                shapeOver.draw(this.context);
-            } else {
+            if (shapeOver.desc === CONST.PROJECT_SHAPE) {
                 for (const point of shapeOver.points) {
                     shapeOver.x = point.x;
                     shapeOver.y = point.y;
                     shapeOver.draw(this.context);
                 }
-            }
+            } else {
+                shapeOver.draw(this.context);
+            } 
             shapeOver[prop] = color;
 
         }

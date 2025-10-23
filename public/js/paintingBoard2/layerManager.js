@@ -263,15 +263,18 @@ function layerToggleVisible(layer, evt) {
     }
     setTimeout(() => this.needRefresh = true, 1);
 }
-const pictureRect = new Rect(0, 0, 100, 100);
+const pictureRect = new Rect(0, 0, 100, 100, name = "Picture Area");
 function layersManager_shapeOver(shape) {
     if (shape.desc === CONST.PICTURE) {
+        pictureRect.desc = CONST.RECT;
         pictureRect.x = shape.x;
         pictureRect.y = shape.y;
         pictureRect.width = shape.width;
         pictureRect.height = shape.height;
+        delete pictureRect.points;
         this.shapeOver = pictureRect;
     } else if (shape.desc === CONST.PROJECT_SHAPE) {
+        pictureRect.desc = CONST.PROJECT_SHAPE;
         pictureRect.points = shape.points;
         pictureRect.width = shape.width;
         pictureRect.height = shape.height;

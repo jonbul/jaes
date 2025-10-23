@@ -1,8 +1,8 @@
-const PaintingProject = require('../model/paintingProject');
-const CONST = require('../shared/constants');
+import PaintingProject from '../model/paintingProject.js';
+import CONST from '../shared/constants.js';
 
 const CONTROLLER = '/paintingBoard2'
-module.exports = (app) => {
+const paintingBoard2Routes = (app) => {
     /**
      * Get painting board page
      * Query parameters: id (optional)
@@ -184,3 +184,5 @@ module.exports = (app) => {
         return Promise.all(projectsList.map(project => addProjectShapes(project, projectsMap)));
     }
 }
+
+export default paintingBoard2Routes;
