@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt-nodejs';
+import bcrypt from 'bcrypt';
 
 const User = new mongoose.Schema(
     {
@@ -13,12 +13,12 @@ const User = new mongoose.Schema(
     }
 )
 
-User.methods.encryptPassword = (password) => {
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
+User.methods.encryptPassword = async function (password) {
+    return await bcrypt.hash(password, 10);
 };
 
-User.methods.validPassword = function (password) {
-    return bcrypt.compareSync(password, this.password);
+User.methods.validPassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
 }
 
 export default mongoose.model('user', User);
