@@ -62,8 +62,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 
 
-import('./model/user.js');
-import('./passport/passport.js');
+import './model/user.js';
+import './passport/passport.js';
 
 app.use(session({
     secret: 'Thisistestkey',
@@ -89,13 +89,11 @@ collectDefaultMetrics();
 import grafanaRoutes from './routes/grafana.js';
 import userRoutes from './routes/user.js';
 import gameRoutes from './routes/game.js';
-//import paintingBoardRoutes from './routes/paintingBoard';
 import paintingBoard2Routes from './routes/paintingBoard2.js';
 
 grafanaRoutes(app);
 userRoutes(app);
 gameRoutes(app, io, mongoose);
-//paintingBoardRoutes(app);
 paintingBoard2Routes(app);
 
 //Server /status
