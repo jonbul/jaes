@@ -23,10 +23,12 @@ class PaintingBoard {
 
         //set CANVAS max Height
         const canvasBorder = document.getElementById("canvasBorder");
+        const colorWindow = document.getElementById("colorWindow");
+        const toolsWindow = document.getElementById("toolsWindow");
         const windowsSpace = parseInt(getComputedStyle(colorWindow).width) + parseInt(getComputedStyle(toolsWindow).width);
         canvasBorder.style.maxHeight = `calc(100vh - ${canvasBorder.getBoundingClientRect().y + 20 - windowsSpace}px)`
 
-        windowsEvents(canvas);
+        windowsEvents();
         window._this = this;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
@@ -85,8 +87,8 @@ class PaintingBoard {
                 this.layers.push(this.currentLayer);
                 this.project = { layers: this.layers };
                 this.project.dateCreated = Date.now();
-                this.menus.resolution.width.value = canvas.width;
-                this.menus.resolution.height.value = canvas.height;
+                this.menus.resolution.width.value = this.canvas.width;
+                this.menus.resolution.height.value = this.canvas.height;
             } else {
                 this.project = this.parseProject(project);
                 this.layers = this.project.layers;
@@ -161,7 +163,7 @@ class PaintingBoard {
                 }
             } else {
                 shapeOver.draw(this.context);
-            } 
+            }
             shapeOver[prop] = color;
 
         }
@@ -204,7 +206,7 @@ class PaintingBoard {
         this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         this.layerManager.needRefresh = true;
     }
-    loadImageEvent(evt) {
+    loadImageEvent() {
         if (confirm('Load image from URL (Yes) or from Local file (No) ?')) {
             const url = prompt("Image URL:", "https://");
             if (!url) return;
@@ -225,7 +227,6 @@ class PaintingBoard {
                 const reader = new FileReader();
                 reader.onloadend = loadImageFinish.bind(this)
                 reader.readAsDataURL(f);
-                const _this = this;
             }
         }
         evt.target.value = '';
@@ -246,9 +247,9 @@ class PaintingBoard {
             img.height > this.menus.resolution.height.value
         ) && confirm(`Do you want to adapt the canvas size to Image ${img.width}x${img.height} ?`)
         ) {
-            _this.menus.resolution.width.value = img.width;
-            _this.menus.resolution.height.value = img.height;
-            (_this.resolutionChangeEvent.bind(_this))();
+            this.menus.resolution.width.value = img.width;
+            this.menus.resolution.height.value = img.height;
+            (this.resolutionChangeEvent.bind(this))();
         }
         const elem = new Picture();
         elem.img = img;
@@ -324,7 +325,6 @@ class PaintingBoard {
         this.menus.colorBlue.value = b;
     }
     updateBgColorFromRadio() {
-        const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
         const r = this.menus.colorRed.value;
         const g = this.menus.colorGreen.value;
         const b = this.menus.colorBlue.value;
@@ -418,38 +418,13 @@ class PaintingBoard {
                     this.canvasMouseMove(evt);
                     break;
                 case CONST.POLYGON:
-                    if (!this.drawingObj) {
-                        this.drawingObj = {
-                            tool: this.selectedTool,
-                            shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
-                            startPosition: currentPos,
-                        };
-                    }
-                    const points = this.drawingObj.shape.points;
-                    if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
-                        points.push(currentPos);
-                    }
+                    this.canvasMouseDownPolygon(currentPos);
                     break;
                 case CONST.SEMIARC:
                     this.semiArcClick(evt);
                     break;
                 case CONST.PROJECT_SHAPE:
-                    if (!this.painting) {
-                        this.painting = { shape: null };
-                    }
-                    const shape = this.painting.shape;
-                    if (!shape) {
-                        showAlert({ type: 'danger', msg: 'No shape selected to paint' })
-                        return;
-                    }
-                    shape.addedPoints = 1;
-                    const pos = {
-                        x: currentPos.x - (shape.width / 2),
-                        y: currentPos.y - (shape.height / 2)
-                    };
-
-                    this.painting.shape.add(pos);
-                    this.layerManager.needRefresh = true;
+                    this.canvasMouseDownProjectShape(currentPos);
                     break;
             }
         } else if ((evt.buttons & CONST.MOUSE_KEYS_BUTTONS.RIGHT) !== 0) {
@@ -471,6 +446,37 @@ class PaintingBoard {
                 this.layerManager.needRefresh = true;
             }
         }
+    }
+    canvasMouseDownPolygon(currentPos) {
+        if (!this.drawingObj) {
+            this.drawingObj = {
+                tool: this.selectedTool,
+                shape: new Polygon([currentPos], this.menus.bgColor, this.menus.borderColor.value, this.menus.borderWidth.value),
+                startPosition: currentPos,
+            };
+        }
+        const points = this.drawingObj.shape.points;
+        if (points[points.length - 1].x !== currentPos.x || points[points.length - 1].y !== currentPos.y) {
+            points.push(currentPos);
+        }
+    }
+    canvasMouseDownProjectShape(currentPos) {
+        if (!this.painting) {
+            this.painting = { shape: null };
+        }
+        const shape = this.painting.shape;
+        if (!shape) {
+            showAlert({ type: 'danger', msg: 'No shape selected to paint' })
+            return;
+        }
+        shape.addedPoints = 1;
+        const pos = {
+            x: currentPos.x - (shape.width / 2),
+            y: currentPos.y - (shape.height / 2)
+        };
+
+        this.painting.shape.add(pos);
+        this.layerManager.needRefresh = true;
     }
     canvasMouseUp(evt) {
         if (evt.target === this.canvas && this.selectedTool === CONST.COLORPICKER) {
@@ -608,7 +614,7 @@ class PaintingBoard {
             }
         }
     }
-    canvasDblClick(evt) {
+    canvasDblClick() {
         if (this.drawingObj.tool === CONST.POLYGON) {
             const shape = this.drawingObj.shape;
             if (shape) {
@@ -715,23 +721,25 @@ class PaintingBoard {
                     new Line([{ x: arc.x, y: arc.y }, { x: currentPos.x, y: currentPos.y }], '#000000', 1)];
                 break;
             case 1:
-                let c1 = currentPos.x - arc.x;//Base
-                let c2 = currentPos.y - arc.y;//Height
-                let h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
-                let a = Math.asin(c2 / h);
-
-                if (c1 < 0 && c2 >= 0) {
-                    a = Math.PI - a;
-                } else if (c1 < 0 && c2 < 0) {
-                    a = a * -1 + Math.PI;
-                } else if (c1 >= 0 && c2 < 0) {
-                    a += 2 * Math.PI;
-                }
-
-                arc.endAngle = a;
-
+                this.drawingSemiArcStep1(arc, currentPos);
                 break;
         }
+    }
+    drawingSemiArcStep1(arc, currentPos) {
+        let c1 = currentPos.x - arc.x;//Base
+        let c2 = currentPos.y - arc.y;//Height
+        let h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
+        let a = Math.asin(c2 / h);
+
+        if (c1 < 0 && c2 >= 0) {
+            a = Math.PI - a;
+        } else if (c1 < 0 && c2 < 0) {
+            a = a * -1 + Math.PI;
+        } else if (c1 >= 0 && c2 < 0) {
+            a += 2 * Math.PI;
+        }
+
+        arc.endAngle = a;
     }
     semiArcClick(evt) {
         const currentPos = this.getCurrentPos(evt);
@@ -750,30 +758,7 @@ class PaintingBoard {
         const drawingObj = this.drawingObj;
         switch (drawingObj.step) {
             case 0:
-                arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
-                const c1 = currentPos.x - arc.x;//Base
-                const c2 = currentPos.y - arc.y;//Height
-                const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
-                let a = Math.asin(c2 / h);
-
-                if (c1 < 0 && h >= 0) {
-                    a = Math.PI - a;
-                } else if (c1 < 0 && h < 0) {
-                    a = -1 * a + Math.PI;
-                } else if (c1 >= 0 && h < 0) {
-                    a += 2 * Math.PI;
-                }
-
-                while (a > 2 * Math.PI) {
-                    a -= 2 * Math.PI;
-                }
-
-                arc.startAngle = a;
-                arc.endAngle = a;
-
-                Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
-
-                drawingObj.extraShapes = [];
+                this.semiArcClickStep0(arc, drawingObj, currentPos)
                 break;
             case 1:
                 if (arc.desc === CONST.ARC) {
@@ -788,6 +773,33 @@ class PaintingBoard {
         }
         if (this.drawingObj)
             this.drawingObj.step++;
+    }
+    semiArcClickStep0(arc, drawingObj, currentPos) {
+        arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
+        const c1 = currentPos.x - arc.x;//Base
+        const c2 = currentPos.y - arc.y;//Height
+        const h = Math.sqrt(Math.pow(c1, 2) + Math.pow(c2, 2));
+        let a = Math.asin(c2 / h);
+
+        if (c1 < 0 && h >= 0) {
+            a = Math.PI - a;
+        } else if (c1 < 0 && h < 0) {
+            a = -1 * a + Math.PI;
+        } else if (c1 >= 0 && h < 0) {
+            a += 2 * Math.PI;
+        }
+
+        while (a > 2 * Math.PI) {
+            a -= 2 * Math.PI;
+        }
+
+        arc.startAngle = a;
+        arc.endAngle = a;
+
+        Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
+
+        drawingObj.extraShapes = [];
+
     }
     drawingRubber(evt, drawingObj) {
         if (!drawingObj.initialized) {

@@ -28,7 +28,7 @@ function asyncRequest({ url, method, data }) {
                 showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
                 try {
                     err += ": " + JSON.parse(text);
-                } catch (e) { if (text) err += `: ${text}`; }
+                } catch { if (text) err += `: ${text}`; }
                 return Promise.reject(err);
             });
         }

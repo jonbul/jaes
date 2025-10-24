@@ -38,7 +38,7 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = io();
+        this.io = window.io();
         this.loadEvents();
 
         this.createStaticCanvas();
@@ -98,7 +98,6 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
-        const _this = this;
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0)
@@ -266,7 +265,6 @@ class Game {
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
-        const angle = player.rotate - Math.PI / 2 * quad;
 
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
@@ -328,7 +326,6 @@ class Game {
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
-        const angle = player.rotate - Math.PI / 2 * quad;
 
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
@@ -483,7 +480,6 @@ class Game {
         if (this.player.x < 0) currentCard.x -= 1;
         if (this.player.y < 0) currentCard.y -= 1;
 
-        const tempCardList = []
         const n = 2;
         const data = [];
         for (var x = -n; x <= n; x++) {
@@ -530,7 +526,7 @@ class Game {
         if (localStorage.getItem("debug")) {
             rotationAxis.x = player.x + player.width / 2;
             rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
-            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
+            new Arc(rotationAxis.x, rotationAxis.y, this.canvas.width * 0.01, '#00ff00').draw(this.context)
             new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
 
@@ -550,13 +546,9 @@ class Game {
                         { x: rotationAxis.x, y: rotationAxis.y },
                         { x: rotationAxis2.x, y: rotationAxis2.y },
                     ], '#ff0000').draw(this.context)
-                    new Arc(rotationAxis2.x, rotationAxis2.y, canvas.width * 0.01, '#ff0000').draw(this.context);
+                    new Arc(rotationAxis2.x, rotationAxis2.y, this.canvas.width * 0.01, '#ff0000').draw(this.context);
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
-                }
-                const scope = {
-                    from: this.canvas.width,
-                    to: this.canvas.width * 2
                 }
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
@@ -602,7 +594,7 @@ class Game {
     }
     drawRadar() {
         this.radar.draw(this.context, { x: this.player.x, y: this.player.y });
-        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
+        const arcPoint = new Arc(0, 0, this.canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
             arcPoint.x = point.x + this.player.x;
             arcPoint.y = point.y + this.player.y;
@@ -620,7 +612,7 @@ class Game {
         }
         this.radar.draw(this.context, options);
 
-        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
+        const arcPoint = new Arc(0, 0, this.canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
 
             arcPoint.x = point.x
@@ -828,7 +820,7 @@ class Game {
     }
     bulletInterval() {
         let bulletsUpdated = false;
-        this.player.bullets = this.player.bullets.filter((bullet, i) => {
+        this.player.bullets = this.player.bullets.filter((bullet) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
@@ -881,7 +873,6 @@ class Game {
         const cellSize = Math.max(rect1.width, rect1.height);
         const playerXB = Math.floor(rect1.x / cellSize)
         const playerYB = Math.floor(rect1.y / cellSize)
-        const validValues = [1, 0, -1]
         for (let id in this.players) {
             const rect2 = this.players[id];
 

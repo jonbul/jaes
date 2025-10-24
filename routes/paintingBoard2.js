@@ -9,9 +9,6 @@ const paintingBoard2Routes = (app) => {
      * Response: HTML page
      */
     app.get(CONTROLLER, async (req, res) => {
-        const id = req.query.id;
-        let project;
-
         let user;
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;

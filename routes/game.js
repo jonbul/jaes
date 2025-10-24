@@ -19,7 +19,6 @@ const gameRoutes = (app, io, mongoose) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
             const sUser = req.session.passport ? req.session.passport.user : {};
 
-            const user = sUser ? await User.findOne({ username: sUser.username }) : {};
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
@@ -39,7 +38,7 @@ const gameRoutes = (app, io, mongoose) => {
         res.send({
             title: 'Game',
             username: sUser.username || '',
-            credits: user ? user.credits :0 || 0,
+            credits: user?.credits || 0,
             canvasWidth: resolutions[currentResolution].width,
             canvasHeight: resolutions[currentResolution].height,
             guestsAllowed: allowedPlayerType === allowedPlayerTypes.All
@@ -156,7 +155,6 @@ const gameRoutes = (app, io, mongoose) => {
 
     app.post('/game/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
-        gameMode = parseInt(req.body.gameMode);
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/game/admin');
     })
@@ -250,11 +248,8 @@ const gameRoutes = (app, io, mongoose) => {
     });
     setInterval(gameStatusBroadcast)
     function gameStatusBroadcast() {
-        let playersToSendLength = 0;
-        
-        for(let k in playersToSend){playersToSendLength++;break};
 
-        if (playersToSendLength || killsList.length || newBullets.length || bulletsToRemove.length) {
+        if ((playersToSend || []).length || killsList.length || newBullets.length || bulletsToRemove.length) {
             io.emit('gameBroadcast', {
                 bulletsToRemove,
                 newBullets,

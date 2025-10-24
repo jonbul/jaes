@@ -10,7 +10,7 @@ const options = {};
 try {
     options.key = fs.readFileSync('/files/ssl/privkey.pem');
     options.cert = fs.readFileSync('/files/ssl/fullchain.pem');
-} catch (e) {
+} catch {
     console.warn("LOADING DEBUG CERTS!")
     options.key = fs.readFileSync('sslDebug/key.pem');
     options.cert = fs.readFileSync('sslDebug/cert.pem');
@@ -37,18 +37,15 @@ http.createServer((req, res) => {
 
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
-import validator from 'express-validator';
 const PORT = process.env.PORT || 3000;
 
 import passport from 'passport';
 
 import flash from 'connect-flash';
 
-import ejs from 'ejs';
 import ejsMate from 'ejs-mate';
 
 //Mongo
-import mongodb from 'mongodb';
 import mongoose from 'mongoose';
 import MongoStore from 'connect-mongo';
 

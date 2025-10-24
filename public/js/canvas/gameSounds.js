@@ -25,7 +25,9 @@ class GameSounds {
         try {
             s.volume = this.volumeElement.value / 100;
             s.play();
-        } catch(e) {}
+        } catch (e) {
+            console.log('Error playing sound: ', e);
+         }
     }
 }
 

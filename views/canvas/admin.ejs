@@ -17,7 +17,7 @@
     </div>
       
     <div class="form-group">
-      <label for="allowedPlayerType" class="">Resolution</label>
+      <label for="allowedPlayerType" class="">Players allowed</label>
       <select type="text" id="allowedPlayerType" class="form-control" required="" autofocus="" name="allowedPlayerType">
         <% for(const type in allowedPlayerTypes) { %>
           <option name="<%= type %>" value="<%= allowedPlayerTypes[type] %>" <%= allowedPlayerType===allowedPlayerTypes[type] ? 'SELECTED' : '' %>><%= type %></option>

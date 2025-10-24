@@ -67,7 +67,7 @@ const userRoutes = (app) => {
 
     app.get('/logout', (req, res) => {
         req.logout(() => { 
-            req.session.destroy(err => {
+            req.session.destroy(() => {
                 res.redirect('/');
             });
         });

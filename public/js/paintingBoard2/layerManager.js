@@ -18,7 +18,7 @@ class LayerManager {
         document.body.addEventListener('mousemove', layersManagerMouseMove.bind(this));
         this.layersManagerDiv.addEventListener('mouseleave', layersManagerMouseUp.bind(this));
         document.getElementById("btnAddLayer").addEventListener('click', this.addNewLayer.bind(this));
-        shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
+        this.shapePropertiesTable.addEventListener('input', editShapeProperty.bind(this));
         document.querySelectorAll('.window .closeButton').forEach(btn => {
             btn.addEventListener('click', closeWindow.bind(this, btn.parentElement.parentElement));
         });
@@ -263,7 +263,7 @@ function layerToggleVisible(layer, evt) {
     }
     setTimeout(() => this.needRefresh = true, 1);
 }
-const pictureRect = new Rect(0, 0, 100, 100, name = "Picture Area");
+const pictureRect = new Rect(0, 0, 100, 100, null, null, null, null, "Picture Area");
 function layersManager_shapeOver(shape) {
     if (shape.desc === CONST.PICTURE) {
         pictureRect.desc = CONST.RECT;
@@ -321,7 +321,7 @@ function editShape(shape, shapeTitle) {
     this.shapeEditorWindow.classList.remove("hidden");
 }
 
-function copyShape(shape, layer = this.currentLayer) {
+function copyShape(shape) {
     const newShape = JSON.parse(JSON.stringify(shape));
     newShape.name = (newShape.name || newShape.desc) + " copy";
     if ([CONST.LINE, CONST.PENCIL, CONST.POLYGON, CONST.ABSTRACT, CONST.RUBBER].includes(newShape.desc)) {
@@ -347,14 +347,15 @@ function degreesToRadians(deg) {
 }
 
 function splitColorAlpha(rgba) {
-    let parts;
-    if (parts = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)) {
+    if (rgba.indexOf('rgba') === 0) {
+        const parts = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)
         const r = parseInt(parts[1]);
         const g = parseInt(parts[2]);
         const b = parseInt(parts[3]);
         const a = parseFloat(parts[4]);
         return [[r, g, b], a];
-    } else if (parts = rgba.match(/#([0-9a-fA-F]{6})/)) {
+    } else if (rgba.indexOf('#') === 0) {
+        const parts = rgba.match(/#([0-9a-fA-F]{6})/)
         const hex = parts[1];
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
@@ -481,7 +482,7 @@ function layersManagerMouseUp(evt) {
                 }
 
             }
-        } catch (e) {
+        } catch {
             overElem = layersManager;
         }
         if (overElem === layersManager) {

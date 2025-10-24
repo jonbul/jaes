@@ -1,47 +1,13 @@
-import {
-    ClickXY
-    /*Arc,
-    Layer,
-    Line,
-    Rect,
-    Text
-        Rubber,
-        ClickXY,
-        Abstract,
-        Ellipse,
-        MasterJasonFile,
-        Pencil,
-        Picture,
-        Polygon*/
-} from '../canvas/canvasClasses.js';
 import CONST from '../../../constants.js';
 
 let eventsLoaded = false;
 let bool_movingWin = false;
-let selWin, selElem, tempElem, tempElem2 = null;
-let checked = null;
+let selWin = null;
 
-let board, boardL, boardT = null;
 let windows = [];
 
-function windowsEvents(canvas) {
+function windowsEvents() {
     if (eventsLoaded) return;
-    board = canvas;
-
-    boardL = board.getBoundingClientRect().left;
-    boardT = board.getBoundingClientRect().top;
-
-    //RADIOBUTTON CHANGE
-    let rdBtns = document.getElementsByName("action");
-    if (rdBtns) {
-        for (let rdBtn of rdBtns) {
-            rdBtn.onchange = function () {
-                tempElem = null;
-                tempElem2 = null;
-                checked = false;
-            };
-        }
-    }
 
     //WINDOW EVENTS
     let i = 0;
@@ -69,27 +35,6 @@ function windowsEvents(canvas) {
     eventsLoaded = true;
 }
 
-
-function getMousePosition(evt) {
-    let click;
-    if (evt.clientX != undefined) {
-        click = new ClickXY({ x: parseInt(evt.clientX - boardL), y: parseInt(evt.clientY - boardT) });
-    } else if (evt.touches[0].clientX != undefined) {
-        click = new ClickXY(parseInt(evt.touches[0].clientX - boardL), parseInt(evt.touches[0].clientY - boardT));
-    }
-    if (document.getElementById("followGrid").checked && !bool_movingWin) {
-        let gridH = document.getElementById("gridH").value;
-        let gridV = document.getElementById("gridV").value;
-        if (gridH > 0) {
-            click.y = Math.round(click.y / gridH) * gridH;
-        }
-        if (gridV > 0) {
-            click.x = Math.round(click.x / gridV) * gridV;
-        }
-    }
-    return click;
-}
-
 function clickedWinBar(evt) {
     if (evt.button === CONST.MOUSE_KEYS.LEFT) {
         bool_movingWin = true;
@@ -114,11 +59,7 @@ function clickedWin(window, evt) {
 
 function movedWinBar(evt) {
     if (bool_movingWin) {
-        let mouse = getMousePosition(evt)
-        mouse = new ClickXY({ x: parseInt(evt.clientX), y: parseInt(evt.clientY) });
-
         const posT = Math.max(evt.clientY - selWin.difY, 0)
-        const minTop = 82; //header height + some
         selWin.style.top = posT + "px";
 
         if (selWin.style.right) {
@@ -136,7 +77,6 @@ function movedWinBar(evt) {
 
 function unclickedWinBar() {
     bool_movingWin = false;
-    selElem = null;
     if (bool_movingWin) {
         selWin.style.zIndex = 1;
     }
