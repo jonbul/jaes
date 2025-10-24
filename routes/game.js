@@ -191,7 +191,7 @@ const gameRoutes = (app, io, mongoose) => {
             }
         });
         socket.on('newBullet', msg => {
-            newBullets.push(msg.bullet);
+              newBullets.push(msg.bullet);
         });
         
         socket.on('getBackgroundCards', msg => {

@@ -36,7 +36,6 @@ http.createServer((req, res) => {
 }).listen(3001);
 
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 const PORT = process.env.PORT || 3000;
 
 import passport from 'passport';
@@ -65,6 +64,8 @@ app.use(express.urlencoded({ limit: '50mb' }));
 import './model/user.js';
 import './passport/passport.js';
 
+app.use(cookieParser());
+
 app.use(session({
     secret: 'Thisistestkey',
     resave: false,
@@ -76,12 +77,6 @@ app.use(session({
 
 app.set('view engine', 'ejs');
 app.engine('ejs', ejsMate);
-
-app.use(cookieParser());
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
 
 //Grafana
 collectDefaultMetrics();
