@@ -1,4 +1,4 @@
-import CONST from '../../../constants.js';
+import CONST from '/constants.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
         this.canvas = function (cnvW, cnvH) {

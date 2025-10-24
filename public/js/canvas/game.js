@@ -12,7 +12,7 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '../../../../constants.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '/constants.js';
 import { asyncRequest } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';

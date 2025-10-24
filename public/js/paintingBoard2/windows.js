@@ -1,4 +1,4 @@
-import CONST from '../../../constants.js';
+import CONST from '/constants.js';
 
 let eventsLoaded = false;
 let bool_movingWin = false;
