@@ -248,11 +248,10 @@ const gameRoutes = (app, io, mongoose) => {
     });
     setInterval(gameStatusBroadcast)
     function gameStatusBroadcast() {
-        let playersToSendLength = 0;
+        const hasPlayersToSend = !!Object.keys(playersToSend).length;
 
-        for (let k in playersToSend) { playersToSendLength++; break };
 
-        if (playersToSendLength || killsList.length || newBullets.length || bulletsToRemove.length) {
+        if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
             io.emit('gameBroadcast', {
                 bulletsToRemove,
                 newBullets,
