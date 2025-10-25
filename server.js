@@ -22,7 +22,20 @@ import { Server } from 'socket.io';
 import http from 'http';
 
 const https = httpsModule.createServer(options, app);
-const io = new Server(https);
+const io = new Server(https, {
+    pingTimeout: 30000,
+    pingInterval: 25000,
+    upgradeTimeout: 10000,
+    maxHttpBufferSize: 1e6, // 1MB
+    transports: ['websocket', 'polling'],
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
+    // ✅ Limitar conexiones por IP
+    perMessageDeflate: false,
+    httpCompression: false
+});
 
 http.createServer((req, res) => {
     let host;
