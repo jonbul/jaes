@@ -1,7 +1,7 @@
-const PaintingProject = require('../model/paintingProject');
+import PaintingProject from '../model/paintingProject.js';
 
 const CONTROLLER = '/paintingBoard'
-module.exports = (app) => {
+const paintingBoardRoutes = (app) => {
     app.get(CONTROLLER, async (req, res) => {
         const id = req.query.id;
         let project;
@@ -57,3 +57,5 @@ module.exports = (app) => {
         res.send({ id: answer._id });
     });
 }
+
+export default paintingBoardRoutes;

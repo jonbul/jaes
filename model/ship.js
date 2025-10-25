@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const Layer = require('./layer');
+import mongoose from 'mongoose';
+import Layer from './layer.js';
+
 const Ship = new mongoose.Schema(
     {
         name: String,
@@ -7,4 +8,4 @@ const Ship = new mongoose.Schema(
     }
 )
 
-module.exports = mongoose.model('ship', Ship);
+export default mongoose.model('ship', Ship);

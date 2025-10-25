@@ -1,6 +1,6 @@
-const passport = require('passport');
+import passport from 'passport';
 
-module.exports = (app) => {
+const userRoutes = (app) => {
     app.get('/', (req, res) => {
         let user;
         if (req.session.passport && req.session.passport.user) {
@@ -66,10 +66,10 @@ module.exports = (app) => {
     }));
 
     app.get('/logout', (req, res) => {
-        req.logout();
-
-        req.session.destroy(err => {
-            res.redirect('/');
+        req.logout(() => { 
+            req.session.destroy(() => {
+                res.redirect('/');
+            });
         });
     });
 
@@ -86,3 +86,4 @@ module.exports = (app) => {
         });
     });
 }
+export default userRoutes;

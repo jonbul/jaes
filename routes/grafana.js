@@ -1,6 +1,6 @@
-const { register } = require('prom-client')
+import { register } from 'prom-client';
 
-module.exports = (app) => {
+const grafanaRoutes = (app) => {
 
     app.get('/grafa_metrics', async (_req, res) => {
         try {
@@ -11,3 +11,4 @@ module.exports = (app) => {
         }
     });
 }
+export default grafanaRoutes;

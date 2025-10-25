@@ -29,7 +29,7 @@
   "_id": {
     "$oid": "5f33b8242a80663274637761"
   },
-  "email": "jondrow2@hotmail.com",
+  "email": "jajaja2@hotmail.com",
   "username": "jonbul2",
   "password": "$2a$10$qH8aHjY2cJzSsZwlPdCsS./EpVP./H7N8ZNRrkna.sAGvt.p7ezp6",
   "admin": false,
@@ -39,7 +39,7 @@
   "_id": {
     "$oid": "5f33b5e7601ad069b093cc6a"
   },
-  "email": "jondrow@hotmail.com",
+  "email": "jajaja@hotmail.com",
   "username": "jonbul",
   "password": "$2a$10$FVtpD8/iTmMUae.oQLsGAeaoNku4dW7ZkYXIxmZuAUQmufkyTp1ZW",
   "admin": true,

@@ -1,18 +1,6 @@
 'use strict';
 import {
-    Arc,
-    ClickXY,
-    Abstract,
-    Ellipse,
-    Layer,
-    Line,
-    MasterJasonFile,
-    Pencil,
-    Picture,
-    Polygon,
     Rect,
-    Rubber,
-    Text
 } from './canvasClasses.js';
 import {
     //Bullet,
@@ -29,7 +17,7 @@ class GameStatus {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight
         this.canvas = document.getElementById('canvas');
-        this.context = canvas.getContext('2d');
+        this.context = this.canvas.getContext('2d');
         this.backgroundCards = {};
         window.backgroundCards = this.backgroundCards;
         this.backgroundCardsSorted = {};
@@ -132,7 +120,6 @@ class GameStatus {
             }
         }
 
-        const length = (this.canvas.width < this.canvas.height ? this.canvas.width : this.canvas.height) / 100;
         for (const sessionId in this.players) {
             const player = this.players[sessionId];
             if (!player.isDead) {
@@ -161,7 +148,7 @@ class GameStatus {
             block.style.top = evt.clientY + 'px';
             block.style.left = (evt.clientX + 20) + 'px';
         });
-        this.canvas.addEventListener('mouseout', evt => {
+        this.canvas.addEventListener('mouseout', () => {
             block.style.display = 'none';
         });
     }

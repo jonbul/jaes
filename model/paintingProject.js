@@ -1,11 +1,10 @@
-const mongoose = require('mongoose');
-const { Int32 } = require('mongodb');
-const Layer = require('./layer');
+import mongoose from 'mongoose';
+import Layer from './layer.js';
 
 const PaintingProject = new mongoose.Schema(
     {
-        userId: {type: String, required: true},
-        name: {type: String, required: true},
+        userId: { type: String, required: true },
+        name: { type: String, required: true },
         dateCreated: Number,
         dateModified: Number,
         canvas: {
@@ -16,4 +15,4 @@ const PaintingProject = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model('paintingProject', PaintingProject);
+export default mongoose.model('paintingProject', PaintingProject);
