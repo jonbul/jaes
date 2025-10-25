@@ -55,7 +55,6 @@ const userRoutes = (app) => {
             hasSuccess: !!success.length,
             errors,
             hasErrors: !!errors.length,
-            email: req.body.email || ''
         });
     });
     

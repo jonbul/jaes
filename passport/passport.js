@@ -17,18 +17,22 @@ passport.use('local.signup', new LocalStrategy({
     if (userByName) {
         req.flash('error', `The username ${userByName.username} already exist`);
     }
-    if (userByEmail || userByName) return done(false, 1);
+    if (userByEmail || userByName) return done(false, false);
 
     const newUser = new User({
-        email,
+        email: email.toLowerCase(),
         username: req.body.username
     });
 
-    newUser.password = newUser.encryptPassword(password);
-    newUser.save(err => {
-        if (err) return done(null, false, req.flash('error', `The email ${email} already exist`));
-        return done(null, newUser);
-    });
+    newUser.password = await newUser.encryptPassword(password);
+    try {
+        const result = await newUser.save();
+        return done(null, result);
+    } catch (err) {
+        req.flash('error', `The email ${email} already exist`)
+        return done(null, false, { message: 'Email already exists' });
+    }
+
 
 }));
 
@@ -38,7 +42,7 @@ passport.use('local.login', new LocalStrategy({
     passReqToCallback: true
 }, async (req, email, password, done) => {
     const user = await User.findOne({ email });
-    if (!user || !user.validPassword(password)) {
+    if (!user || !(await user.validPassword(password))) {
         return done(null, false, req.flash('error', `Invalid email or password`));
     }
     return done(null, user);
