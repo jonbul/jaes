@@ -33,8 +33,8 @@ const io = new Server(https, {
         methods: ["GET", "POST"]
     },
     // ✅ Limitar conexiones por IP
-    perMessageDeflate: false,
-    httpCompression: false
+    //perMessageDeflate: false,
+    //httpCompression: false
 });
 
 http.createServer((req, res) => {
