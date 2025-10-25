@@ -1,19 +1,20 @@
+import 'dotenv/config'; 
 import express from 'express';
 import { collectDefaultMetrics, register } from 'prom-client';
 import session from 'express-session';
 import fs from 'fs';
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 // SSL
-
-
 const options = {};
 try {
-    options.key = fs.readFileSync('/files/ssl/privkey.pem');
-    options.cert = fs.readFileSync('/files/ssl/fullchain.pem');
+    options.key = fs.readFileSync(process.env.SSL_KEY_PATH);
+    options.cert = fs.readFileSync(process.env.SSL_CERT_PATH);
 } catch {
-    console.warn("LOADING DEBUG CERTS!")
-    options.key = fs.readFileSync('sslDebug/key.pem');
-    options.cert = fs.readFileSync('sslDebug/cert.pem');
+    console.warn("⚠️  LOADING DEBUG CERTS!")
+    options.key = fs.readFileSync(process.env.SSL_DEBUG_KEY_PATH);
+    options.cert = fs.readFileSync(process.env.SSL_DEBUG_CERT_PATH);
 }
 
 import httpsModule from 'https';
@@ -36,7 +37,6 @@ http.createServer((req, res) => {
 }).listen(3001);
 
 import cookieParser from 'cookie-parser';
-const PORT = process.env.PORT || 3000;
 
 import passport from 'passport';
 
@@ -48,7 +48,7 @@ import ejsMate from 'ejs-mate';
 import mongoose from 'mongoose';
 import MongoStore from 'connect-mongo';
 
-mongoose.connect('mongodb://jaes:Rednanoj1987!@192.168.1.10/jaes?retryWrites=true&w=majority');
+mongoose.connect(process.env.MONGODB_URI);
 
 app.use(flash());
 
@@ -67,7 +67,7 @@ import './passport/passport.js';
 app.use(cookieParser());
 
 app.use(session({
-    secret: 'Thisistestkey',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -103,4 +103,7 @@ app.get('/metrics', async (req, res) => {
     res.end(await register.metrics());
 });
 
-https.listen(PORT, () => { console.log('Hello from port ' + PORT) });
+https.listen(PORT, () => {
+    console.log('Hello from port ' + PORT)
+    console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+ });
