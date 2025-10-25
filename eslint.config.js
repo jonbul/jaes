@@ -6,7 +6,7 @@ import markdown from "@eslint/markdown";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
-  { ignores: ["DB/**", "node_modules/**", "dist/**", "build/**"] },
+  { ignores: ["DB/**", ".vscode/**", "node_modules/**", "package-lock.json", "build/**"] },
   { files: ["**/*.{js,mjs,cjs}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"] },
   { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc", extends: ["json/recommended"] },

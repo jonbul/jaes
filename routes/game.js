@@ -6,6 +6,7 @@ import User from '../model/user.js';
 const gameRoutes = (app, io, mongoose) => {
     const players = {};
     let playersToSend = {};
+    let hasPlayersToSend = false;
     let killsList = [];
     const backgroundCards = {};
     let newBullets = [];
@@ -182,6 +183,7 @@ const gameRoutes = (app, io, mongoose) => {
         socket.on('player died', async msg => {
             killsList.push(msg);
             if (players[msg.from]) {
+                hasPlayersToSend = true;
                 players[msg.from].credits += 100;
                 if (playersToSend[msg.from]) {
                     playersToSend[msg.from].credits = players[msg.from].credits;
@@ -233,6 +235,7 @@ const gameRoutes = (app, io, mongoose) => {
             playersToSend[socket.id] = msg;
             players[socket.id].lastUpdate = Date.now();
             msg.socketId = socket.id;
+            hasPlayersToSend = true;
         });
 
         setInterval(cleanPlayers, 10000)
@@ -248,9 +251,6 @@ const gameRoutes = (app, io, mongoose) => {
     });
     setInterval(gameStatusBroadcast)
     function gameStatusBroadcast() {
-        const hasPlayersToSend = !!Object.keys(playersToSend).length;
-
-
         if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
             io.emit('gameBroadcast', {
                 bulletsToRemove,
@@ -258,6 +258,7 @@ const gameRoutes = (app, io, mongoose) => {
                 players: playersToSend,
                 kills: killsList
             });
+            hasPlayersToSend = false;
             playersToSend = {};
             killsList = [];
             newBullets = [];

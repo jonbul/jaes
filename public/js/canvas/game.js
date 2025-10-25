@@ -13,7 +13,7 @@ import {
     Player
 } from './gameClasses.js';
 import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '/constants.js';
-import { asyncRequest } from '../functions.js';
+import { asyncRequest, showAlert } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
@@ -44,9 +44,7 @@ class Game {
         this.createStaticCanvas();
 
         // Wait for connection
-        const intervalId = setInterval(async () => {
-            if (!this.io.connected) return;
-            clearInterval(intervalId);
+        this.io.once('connect', async () => {
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -78,8 +76,10 @@ class Game {
 
             this.playerUpdated = true;
             this.beginInterval();
-            this.io.emit('playerData', this.player.getSortDetails());
-        }, 1);
+            setTimeout(() => {
+                this.io.emit('playerData', this.player.getSortDetails());
+            }, 1);
+        });
     }
 
     reloadPlayer() {
@@ -139,6 +139,38 @@ class Game {
                 )
             })
         })
+
+        // ✅ Manage connection events
+        this.io.on('connect_error', (error) => {
+            console.error('❌ Connection error:', error.message);
+            showAlert('Connection error. Reconnecting...', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('connect_timeout', () => {
+            console.error('⏱️ Connection timeout');
+            showAlert('Connection timeout', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Reconnecting... Attempt ${attemptNumber}`);
+        });
+
+        this.io.on('reconnect_failed', () => {
+            console.error('❌ All reconnection attempts failed');
+            showAlert('Failed to reconnect. Please reload the page.', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('connect', () => {
+            console.log('✅ Connected to server:', this.io.id);
+            location.reload();
+        });
+
+        this.io.on('disconnect', (reason) => {
+            console.warn('⚠️ Disconnected:', reason);
+            if (reason === 'io server disconnect') {
+                this.io.connect();
+            }
+        });
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
@@ -573,7 +605,7 @@ class Game {
             this.radar = new Layer('Radar', shapes);
         }
 
-        // alncance del radar
+        // radar scope in game units
         const radarScope = this.canvas.width * (10 / this.radarZoom);
         this.radarPoints = [];
         for (const id in this.players) {
@@ -586,7 +618,7 @@ class Game {
                 if (distance < radarScope) {
                     const radarX = (xLength * r / radarScope) + x;
                     const radarY = (yLength * r / radarScope) + y;
-                    // Coordenadas respecto al centro del radar
+                    // Coordinates relative to radar center
                     this.radarPoints.push({ x: radarX, y: radarY });
                 }
             }
