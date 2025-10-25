@@ -43,8 +43,10 @@ class Game {
 
         this.createStaticCanvas();
 
-        (async () => {
-
+        // Wait for connection
+        const intervalId = setInterval(async () => {
+            if (!this.io.connected) return;
+            clearInterval(intervalId);
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -70,7 +72,6 @@ class Game {
             const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
-            this.player.ioId = this.io.id;
 
             this.messagesManager = new MessagesManager(this);
             this.socketIOEvents();
@@ -78,7 +79,7 @@ class Game {
             this.playerUpdated = true;
             this.beginInterval();
             this.io.emit('playerData', this.player.getSortDetails());
-        })();
+        }, 1);
     }
 
     reloadPlayer() {
@@ -402,7 +403,6 @@ class Game {
             if (!players[plDetails.socketId]) {
                 players[plDetails.socketId] = new Player(this.shipsManager, plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
-                players[plDetails.socketId].ioId = plDetails.ioId;
             }
             players[plDetails.socketId].x = plDetails.x;
             players[plDetails.socketId].y = plDetails.y;

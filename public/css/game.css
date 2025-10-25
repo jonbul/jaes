@@ -9,9 +9,9 @@
 
 #shipSelector {
     width: 100%;
-    position: fixed;
     text-align: center;
     margin-top: 50px;
+    padding: 0;
 }
 
 #shipsBlock {

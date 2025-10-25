@@ -45,7 +45,8 @@ async function btnStart(e) {
     }
 
     const ship = charSelector.getCurrentShip();
-    document.getElementById("shipSelectorControl").style.display = 'none';
+    canvas.style.display = ""
+    document.getElementById("shipSelector").style.display = 'none';
     document.getElementById("shipsBlock").style.display = 'none';
     startBtn.style.display = "none"
     e.preventDefault()
