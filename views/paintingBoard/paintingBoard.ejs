@@ -11,15 +11,15 @@
 </div>
 <div class="row mt-2">
     <div class="col-2">
-        <% include left/leftMenu %>
+        <%- include('left/leftMenu') %>
     </div>
     <div class="col-8">
         <div id="canvasBorder" style="border: solid 1px;"><canvas id="canvas" width="800" height="600" tool="pencil"></canvas></div>
         <label id="currentPosition"></label>
     </div>
     <div class="col-2 ">
-        
-        <% include right/rightMenu %>
+
+        <%- include('right/rightMenu') %>
     </div>
 </div>
 

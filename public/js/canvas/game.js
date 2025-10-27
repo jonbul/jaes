@@ -12,14 +12,14 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '../../../../constants.js';
-import { asyncRequest } from '../functions.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '/constants.js';
+import { asyncRequest, showAlert } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
 class Game {
-    constructor(canvas, username, io, guest, credits, isSmartphone, ship, shipsManager) {
+    constructor(canvas, username, guest, credits, isSmartphone, ship, shipsManager) {
 
         window.game = this;
         this.isGuest = guest;
@@ -38,13 +38,13 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = io;
+        this.io = window.io();
         this.loadEvents();
 
         this.createStaticCanvas();
 
-        (async () => {
-
+        // Wait for connection
+        this.io.once('connect', async () => {
             const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
@@ -58,8 +58,8 @@ class Game {
 
             this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
-            this.player.socketId = socket.id;
-            this.players[socket.id] = this.player;
+            this.player.socketId = this.io.id;
+            this.players[this.player.socketId] = this.player;
 
             this.drawableBullets = new Layer('bullets');
             this.drawablePlayers = new Layer('players');
@@ -70,15 +70,16 @@ class Game {
             const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
             const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
             this.context.translate(tX, tY);
-            this.player.ioId = this.io.id;
 
             this.messagesManager = new MessagesManager(this);
             this.socketIOEvents();
 
             this.playerUpdated = true;
             this.beginInterval();
-            this.io.emit('playerData', this.player.getSortDetails());
-        })();
+            setTimeout(() => {
+                this.io.emit('playerData', this.player.getSortDetails());
+            }, 1);
+        });
     }
 
     reloadPlayer() {
@@ -98,7 +99,6 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
-        const _this = this;
         this.io.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0)
@@ -139,6 +139,38 @@ class Game {
                 )
             })
         })
+
+        // ✅ Manage connection events
+        this.io.on('connect_error', (error) => {
+            console.error('❌ Connection error:', error.message);
+            showAlert('Connection error. Reconnecting...', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('connect_timeout', () => {
+            console.error('⏱️ Connection timeout');
+            showAlert('Connection timeout', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Reconnecting... Attempt ${attemptNumber}`);
+        });
+
+        this.io.on('reconnect_failed', () => {
+            console.error('❌ All reconnection attempts failed');
+            showAlert('Failed to reconnect. Please reload the page.', 'Error', 'danger', 5000);
+        });
+
+        this.io.on('connect', () => {
+            console.log('✅ Connected to server:', this.io.id);
+            location.reload();
+        });
+
+        this.io.on('disconnect', (reason) => {
+            console.warn('⚠️ Disconnected:', reason);
+            if (reason === 'io server disconnect') {
+                this.io.connect();
+            }
+        });
     }
     beginInterval() {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
@@ -266,7 +298,6 @@ class Game {
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
-        const angle = player.rotate - Math.PI / 2 * quad;
 
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
@@ -328,7 +359,6 @@ class Game {
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
 
         const quad = parseInt(player.rotate / (Math.PI / 2));
-        const angle = player.rotate - Math.PI / 2 * quad;
 
         let moveX = Math.abs(Math.cos(player.rotate)) * player.speed;
         let moveY = Math.abs(Math.sin(player.rotate)) * player.speed;
@@ -405,7 +435,6 @@ class Game {
             if (!players[plDetails.socketId]) {
                 players[plDetails.socketId] = new Player(this.shipsManager, plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
-                players[plDetails.socketId].ioId = plDetails.ioId;
             }
             players[plDetails.socketId].x = plDetails.x;
             players[plDetails.socketId].y = plDetails.y;
@@ -483,7 +512,6 @@ class Game {
         if (this.player.x < 0) currentCard.x -= 1;
         if (this.player.y < 0) currentCard.y -= 1;
 
-        const tempCardList = []
         const n = 2;
         const data = [];
         for (var x = -n; x <= n; x++) {
@@ -499,7 +527,7 @@ class Game {
         }
 
         if (data.length) { // TODO update to WebSocket
-            this.io.emit('getBackgroundCards', { socketId: socket.id, data })
+            this.io.emit('getBackgroundCards', { socketId: this.io.id, data })
         }
 
         new Rect(
@@ -530,7 +558,7 @@ class Game {
         if (localStorage.getItem("debug")) {
             rotationAxis.x = player.x + player.width / 2;
             rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
-            new Arc(rotationAxis.x, rotationAxis.y, canvas.width * 0.01, '#00ff00').draw(this.context)
+            new Arc(rotationAxis.x, rotationAxis.y, this.canvas.width * 0.01, '#00ff00').draw(this.context)
             new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
         }
 
@@ -550,13 +578,9 @@ class Game {
                         { x: rotationAxis.x, y: rotationAxis.y },
                         { x: rotationAxis2.x, y: rotationAxis2.y },
                     ], '#ff0000').draw(this.context)
-                    new Arc(rotationAxis2.x, rotationAxis2.y, canvas.width * 0.01, '#ff0000').draw(this.context);
+                    new Arc(rotationAxis2.x, rotationAxis2.y, this.canvas.width * 0.01, '#ff0000').draw(this.context);
                     new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
-                }
-                const scope = {
-                    from: this.canvas.width,
-                    to: this.canvas.width * 2
                 }
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
@@ -581,7 +605,7 @@ class Game {
             this.radar = new Layer('Radar', shapes);
         }
 
-        // alncance del radar
+        // radar scope in game units
         const radarScope = this.canvas.width * (10 / this.radarZoom);
         this.radarPoints = [];
         for (const id in this.players) {
@@ -594,7 +618,7 @@ class Game {
                 if (distance < radarScope) {
                     const radarX = (xLength * r / radarScope) + x;
                     const radarY = (yLength * r / radarScope) + y;
-                    // Coordenadas respecto al centro del radar
+                    // Coordinates relative to radar center
                     this.radarPoints.push({ x: radarX, y: radarY });
                 }
             }
@@ -602,7 +626,7 @@ class Game {
     }
     drawRadar() {
         this.radar.draw(this.context, { x: this.player.x, y: this.player.y });
-        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
+        const arcPoint = new Arc(0, 0, this.canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
             arcPoint.x = point.x + this.player.x;
             arcPoint.y = point.y + this.player.y;
@@ -620,7 +644,7 @@ class Game {
         }
         this.radar.draw(this.context, options);
 
-        const arcPoint = new Arc(0, 0, canvas.width / 300, 'rgba(255,0,0,0.7)');
+        const arcPoint = new Arc(0, 0, this.canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
 
             arcPoint.x = point.x
@@ -828,7 +852,7 @@ class Game {
     }
     bulletInterval() {
         let bulletsUpdated = false;
-        this.player.bullets = this.player.bullets.filter((bullet, i) => {
+        this.player.bullets = this.player.bullets.filter((bullet) => {
             bullet.moveStep();
             if (bullet.isExpired()) {
                 delete this.player.bullets[bullet.id];
@@ -881,7 +905,6 @@ class Game {
         const cellSize = Math.max(rect1.width, rect1.height);
         const playerXB = Math.floor(rect1.x / cellSize)
         const playerYB = Math.floor(rect1.y / cellSize)
-        const validValues = [1, 0, -1]
         for (let id in this.players) {
             const rect2 = this.players[id];
 

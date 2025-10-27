@@ -2,11 +2,16 @@ import { Arc, Layer } from './canvasClasses.js';
 
 class Animation {
     constructor({ repeat=false, frames =[], layer = new Layer(), x=0, y=0, width=0, height = 0, speed = 1, onEnd }) {
-        const details = arguments[0];
-        if (!details.speed) details.speed = 1;
-        for (const prop in details) {
-            this[prop] = details[prop];
-        }
+        this.repeat = repeat;
+        this.frames = frames;
+        this.layer = layer;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.speed = speed;
+        this.onEnd = onEnd;
+        this.playing = false;
         this.currentFrame = -1;
     }
     play() {

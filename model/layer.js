@@ -1,6 +1,5 @@
-const mongoose = require('mongoose');
-const { Int32 } = require('mongodb');
-const Shape = require('./shape');
+import mongoose from 'mongoose';
+import Shape from './shape.js';
 
 const Layer = new mongoose.Schema(
     {
@@ -11,4 +10,4 @@ const Layer = new mongoose.Schema(
 )
 
 
-module.exports = Layer;
+export default Layer;

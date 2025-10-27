@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt-nodejs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const User = new mongoose.Schema(
     {
@@ -7,19 +7,18 @@ const User = new mongoose.Schema(
         username: String,
         password: String,
         email: String,
-        admin: Boolean,
         credits: Number,
         kills: Number,
         deaths: Number
     }
 )
 
-User.methods.encryptPassword = (password) => {
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
+User.methods.encryptPassword = async function (password) {
+    return await bcrypt.hash(password, 10);
 };
 
-User.methods.validPassword = function (password) {
-    return bcrypt.compareSync(password, this.password);
+User.methods.validPassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
 }
 
-module.exports = mongoose.model('user', User);
+export default mongoose.model('user', User);

@@ -1,20 +1,11 @@
 import {
-    Arc,
-    ClickXY,
-    Abstract,
     Ellipse,
-    Layer,
-    Line,
-    MasterJasonFile,
-    Pencil,
-    Picture,
     Polygon,
     Rect,
-    Rubber,
     Text
 } from './canvasClasses.js';
 import Forms from './canvasClasses.js';
-import { parseLayers, asyncRequest } from '../functions.js';
+import { parseLayers } from '../functions.js';
 
 window.forms = Forms;
 class Player {
@@ -154,7 +145,7 @@ class Bullet {
         this.arc.x = this.x;
         this.arc.y = this.y;
     }
-    getSortDetails(bulletCharge) {
+    getSortDetails() {
         return {
             x: this.x,
             y: this.y,

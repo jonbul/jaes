@@ -1,4 +1,4 @@
-import CONST from '../../../constants.js';
+import CONST from '/constants.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
         this.canvas = function (cnvW, cnvH) {
@@ -88,9 +88,9 @@ class Rect {
 
         context.scale(scale, scale);
 
+        const moveX = this.x + this.width / 2;
+        const moveY = this.y + this.height / 2;
         if (this.rotation > 0) {
-            const moveX = this.x + this.width / 2;
-            const moveY = this.y + this.height / 2;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -106,8 +106,6 @@ class Rect {
         }
 
         if (this.rotation > 0) {
-            const moveX = this.x + this.width / 2;
-            const moveY = this.y + this.height / 2;
             context.translate(moveX, moveY);
             context.rotate(-this.rotation);
             context.translate(-moveX, -moveY);
@@ -758,15 +756,6 @@ class Picture {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
         context.translate(-options.x, -options.y);
-    }
-    getImageFromSrc(src) {
-        var image = new Image();
-        image.onload = function () {
-            elem = addImgToElem(elem, this);
-
-            elem.img = image;//ctx.drawImage(this.src,0,0); // Or at whatever offset you like
-        };
-        image.src = src;
     }
     addImgToElem(elem, img) {
         elem.img = img;

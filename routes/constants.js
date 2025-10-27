@@ -1,5 +1,4 @@
-module.exports = {
-    resolutions: [
+const resolutions = [
         {
             name: "FullHD (1920x1080)",
             width: 1920,
@@ -15,9 +14,10 @@ module.exports = {
             width: 3840,
             height: 2160
         }
-    ],
-    allowedPlayerTypes: {
+    ]
+const allowedPlayerTypes = {
         All: 0,
         Registered: 1
     }
-}
+
+export { resolutions, allowedPlayerTypes };
