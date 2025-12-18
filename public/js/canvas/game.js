@@ -19,7 +19,7 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
 class Game {
-    constructor(canvas, username, guest, credits, isSmartphone, ship, shipsManager) {
+    constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
 
         window.game = this;
         this.isSmartphone = isSmartphone;
