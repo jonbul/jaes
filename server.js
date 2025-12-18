@@ -4,7 +4,7 @@ import { collectDefaultMetrics, register } from 'prom-client';
 import session from 'express-session';
 import fs from 'fs';
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT_HTTPS = process.env.PORT || 3000;
 
 // SSL
 const options = {};
@@ -18,24 +18,28 @@ try {
 }
 
 import httpsModule from 'https';
-import { Server } from 'socket.io';
 import http from 'http';
 
 const https = httpsModule.createServer(options, app);
-const io = new Server(https, {
-    pingTimeout: 30000,
-    pingInterval: 25000,
-    upgradeTimeout: 10000,
-    maxHttpBufferSize: 1e6, // 1MB
-    transports: ['websocket', 'polling'],
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    },
-    // ✅ Limitar conexiones por IP
-    //perMessageDeflate: false,
-    //httpCompression: false
-});
+
+import io from 'socket.io';
+const ioServer = io.listen(https);
+// import { Server } from 'socket.io';
+// const ioServer = new Server(https, {
+//     pingTimeout: 30000,
+//     pingInterval: 25000,
+//     upgradeTimeout: 10000,
+//     maxHttpBufferSize: 1e6, // 1MB
+//     transports: ['websocket', 'polling'],
+//     cors: {
+//         origin: "*",
+//         methods: ["GET", "POST"]
+//         methods: ["GET", "POST"]
+//     },
+//     // ✅ Limitar conexiones por IP
+//     //perMessageDeflate: false,
+//     //httpCompression: false
+// });
 
 http.createServer((req, res) => {
     let host;
@@ -66,7 +70,7 @@ mongoose.connect(process.env.MONGODB_URI);
 app.use(flash());
 
 
-global.io = io;
+global.io = ioServer;
 app.use(passport.initialize());
 app.use(express.static('public'));
 app.use(express.static('shared'));
@@ -101,7 +105,7 @@ import paintingBoard2Routes from './routes/paintingBoard2.js';
 
 grafanaRoutes(app);
 userRoutes(app);
-gameRoutes(app, io, mongoose);
+gameRoutes(app, ioServer, mongoose);
 paintingBoard2Routes(app);
 
 //Server /status
@@ -116,7 +120,7 @@ app.get('/metrics', async (req, res) => {
     res.end(await register.metrics());
 });
 
-https.listen(PORT, () => {
-    console.log('Hello from port ' + PORT)
+https.listen(PORT_HTTPS, () => {
+    console.log('Hello from port ' + PORT_HTTPS)
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
  });

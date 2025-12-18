@@ -2,16 +2,12 @@
 import {
     Rect,
 } from './canvasClasses.js';
-import {
-    //Bullet,
-    _player
-} from './gameClasses.js';
+import Player from './gameClasses.js';
 import { asyncRequest } from '../functions.js';
 class GameStatus {
     constructor(canvasWidth, canvasHeight) {
         const _this = this;
         (async function () {
-            _this.Player = await _player;
             _this.drawMapInterval();
         })();
         this.canvasWidth = canvasWidth;
@@ -29,8 +25,8 @@ class GameStatus {
     }
     drawMapInterval() {
         const func = async () => {
-            
-            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted })).response;
+            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted }));
+            if (!data) return;
             this.players = data.players;
             this.writePlayersTable(data.players);
             this.drawMap(data.resultCards);
@@ -50,6 +46,7 @@ class GameStatus {
             const tr = document.createElement('tr');
             props.forEach( prop => {
                 const td = document.createElement('td');
+                td.style.textAlign = 'center';
                 td.innerHTML = player[prop];
                 tr.appendChild(td);
             });
@@ -125,7 +122,7 @@ class GameStatus {
             if (!player.isDead) {
                 const x = (player.x - absoluteValues.x1 * this.canvasWidth) / biggerRelation;
                 const y = (player.y - absoluteValues.y1 * this.canvasHeight) / biggerRelation;
-                const pl = new this.Player(player.name, player.shipId, x, y);
+                const pl = new Player(player.name, player.shipId, x, y);
                 pl.rotate = player.rotate;
                 pl.draw(this.context);
             }

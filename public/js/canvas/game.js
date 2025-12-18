@@ -22,12 +22,10 @@ class Game {
     constructor(canvas, username, guest, credits, isSmartphone, ship, shipsManager) {
 
         window.game = this;
-        this.isGuest = guest;
         this.isSmartphone = isSmartphone;
         this.inFullScreen = window.innerHeight === parseInt(getComputedStyle(canvas).height);
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
-        //if (window.fullScreen) this.toFullScreen()
 
         this.backgroundCards = [];
         this.players = {};
@@ -38,7 +36,14 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = window.io();
+        this.io = window.io(({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5,
+            timeout: 20000,
+            transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
+        }));
         this.loadEvents();
 
         this.createStaticCanvas();
@@ -149,6 +154,7 @@ class Game {
         this.io.on('connect_timeout', () => {
             console.error('⏱️ Connection timeout');
             showAlert('Connection timeout', 'Error', 'danger', 5000);
+            location.reload();
         });
 
         this.io.on('reconnect_attempt', (attemptNumber) => {
@@ -235,13 +241,12 @@ class Game {
         }
         this.bulletInterval();
 
-        const viewRect = {
+        this.viewRect = {
             x: this.player.x - (this.canvas.width / 2 - this.player.width / 2),
             y: this.player.y - (this.canvas.height / 2 - this.player.height / 2),
             width: this.canvas.width,
             height: this.canvas.height
         }
-        this.viewRect = viewRect;
 
         this.drawablePlayers.shapes = [];
         for (const id in this.players) {
@@ -539,8 +544,8 @@ class Game {
         ).draw(this.context);
 
         const cords = [-1, 0, 1];
-        cords.forEach(i => {
-            cords.forEach(j => {
+        for (let i of cords) {
+            for (let j of cords) {
                 const x = currentCard.x + i;
                 const y = currentCard.y + j;
                 if (this.backgroundCards[x] &&
@@ -548,8 +553,8 @@ class Game {
                     this.backgroundCards[x][y].draw) {
                     this.backgroundCards[x][y].draw(this.context)
                 }
-            })
-        });
+            }
+        }
     }
     drawArrows() {
         /****************************** */
@@ -584,7 +589,7 @@ class Game {
                 }
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
             }
-        };
+        }
     }
     loadRadar() {
         const player = this.player;
@@ -598,7 +603,7 @@ class Game {
                 new Arc(x, y, (r / 5) * 4, 'rgba(0,0,0,0)', '#00ff00', 2),
                 new Arc(x, y, (r / 5) * 3, 'rgba(0,0,0,0)', '#00ff00', 2),
                 new Arc(x, y, (r / 5) * 2, 'rgba(0,0,0,0)', '#00ff00', 2),
-                new Arc(x, y, (r / 5) * 1, 'rgba(0,0,0,0)', '#00ff00', 2),
+                new Arc(x, y, (r / 5), 'rgba(0,0,0,0)', '#00ff00', 2),
                 new Line([{ x, y: y - r }, { x, y: y + r }], '#00ff00', 2),
                 new Line([{ x: x - r, y }, { x: x + r, y }], '#00ff00', 2)
             ];
@@ -622,7 +627,7 @@ class Game {
                     this.radarPoints.push({ x: radarX, y: radarY });
                 }
             }
-        };
+        }
     }
     drawRadar() {
         this.radar.draw(this.context, { x: this.player.x, y: this.player.y });
@@ -685,11 +690,9 @@ class Game {
             this.shadowBackground.x = cornerX;
             this.shadowBackground.y = cornerY;
             this.shadowBackground.draw(this.context);
-            const plList = [];
             const textRows = [['Name', 'Kills', 'Deaths']];
             for (const id in this.players) {
                 const player = this.players[id];
-                plList.push(player);
                 textRows.push([player.name, player.kills, player.deaths]);
             }
             const text = new Text('', 0, 0, this.fontSize / 2, 'Digitek', '#13ff03');
@@ -741,7 +744,7 @@ class Game {
             new Text('', 0, 0, fontSize, 'Arcade', '#13ff03')
         ]);
 
-        this.lifeText = new Text('', 0, 0 + 150, this.fontSize, 'Arcade', '#13ff03');
+        this.lifeText = new Text('', 0, 150, this.fontSize, 'Arcade', '#13ff03');
         this.creditsText = new Text('', 0, this.lineHeight + 150, this.fontSize, 'Arcade', '#13ff03');
 
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');

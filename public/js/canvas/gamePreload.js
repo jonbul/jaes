@@ -54,7 +54,6 @@ async function btnStart(e) {
 
     const launch = () => new Game(canvas,
             _username,
-            guest,
             credits,
             isSmartphone,
             ship,

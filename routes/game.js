@@ -162,8 +162,24 @@ const gameRoutes = (app, io, mongoose) => {
 
     //IO
     io.on('connection', (socket) => {
+        let count = 0;
+        for(var prop in io.sockets.sockets) {
+            if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
+                ++count;
+            }
+        }
+        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${count}`);
+
         ///console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', async () => {
+            let count = 0;
+            for(var prop in io.sockets.sockets) {
+                if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
+                    ++count;
+                }
+            }
+            console.log(`❌ Desconexión: ${socket.id} | Total: ${count}`);
+
             if (!players[socket.id]) return;
             const user = await User.findOne({ username: players[socket.id].name });
             if (user) {
