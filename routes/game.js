@@ -1,12 +1,12 @@
-const Ship = require('../model/ship');
-const PaintingProject = require('../model/paintingProject');
-const resolutions = require('./constants').resolutions;
-const allowedPlayerTypes = require('./constants').allowedPlayerTypes;
-const User = require('../model/user');
+import Ship from '../model/ship.js';
+import PaintingProject from '../model/paintingProject.js';
+import { resolutions, allowedPlayerTypes } from './constants.js';
+import User from '../model/user.js';
 
-module.exports = (app, io, mongoose) => {
+const gameRoutes = (app, io, mongoose) => {
     const players = {};
     let playersToSend = {};
+    let hasPlayersToSend = false;
     let killsList = [];
     const backgroundCards = {};
     let newBullets = [];
@@ -20,7 +20,6 @@ module.exports = (app, io, mongoose) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
             const sUser = req.session.passport ? req.session.passport.user : {};
 
-            const user = sUser ? await User.findOne({ username: sUser.username }) : {};
             res.render('canvas/game', {
                 title: 'Game',
                 username: sUser.username || '',
@@ -30,17 +29,17 @@ module.exports = (app, io, mongoose) => {
             res.redirect('/');
         }
     });
-    
+
     app.get('/game/data', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        
+
         const sUser = req.session.passport ? req.session.passport.user : {};
 
         const user = sUser ? await User.findOne({ username: sUser.username }) : {};
         res.send({
             title: 'Game',
             username: sUser.username || '',
-            credits: user ? user.credits :0 || 0,
+            credits: user?.credits || 0,
             canvasWidth: resolutions[currentResolution].width,
             canvasHeight: resolutions[currentResolution].height,
             guestsAllowed: allowedPlayerType === allowedPlayerTypes.All
@@ -52,7 +51,7 @@ module.exports = (app, io, mongoose) => {
         if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
             if (req.session.passport && req.session.passport.user) {
                 res.send({
-                    userShips: await PaintingProject.find({userId: req.session.passport.user})
+                    userShips: await PaintingProject.find({ userId: req.session.passport.user })
                 });
             } else {
                 res.send({
@@ -157,15 +156,30 @@ module.exports = (app, io, mongoose) => {
 
     app.post('/game/admin', (req, res) => {
         currentResolution = parseInt(req.body.resolution);
-        gameMode = parseInt(req.body.gameMode);
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/game/admin');
     })
 
     //IO
     io.on('connection', (socket) => {
+        let count = 0;
+        for(var prop in io.sockets.sockets) {
+            if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
+                ++count;
+            }
+        }
+        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${count}`);
+
         ///console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', async () => {
+            let count = 0;
+            for(var prop in io.sockets.sockets) {
+                if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
+                    ++count;
+                }
+            }
+            console.log(`❌ Desconexión: ${socket.id} | Total: ${count}`);
+
             if (!players[socket.id]) return;
             const user = await User.findOne({ username: players[socket.id].name });
             if (user) {
@@ -185,6 +199,7 @@ module.exports = (app, io, mongoose) => {
         socket.on('player died', async msg => {
             killsList.push(msg);
             if (players[msg.from]) {
+                hasPlayersToSend = true;
                 players[msg.from].credits += 100;
                 if (playersToSend[msg.from]) {
                     playersToSend[msg.from].credits = players[msg.from].credits;
@@ -196,7 +211,7 @@ module.exports = (app, io, mongoose) => {
         socket.on('newBullet', msg => {
             newBullets.push(msg.bullet);
         });
-        
+
         socket.on('getBackgroundCards', msg => {
             const cards = []
             msg.data.forEach(card => {
@@ -236,6 +251,7 @@ module.exports = (app, io, mongoose) => {
             playersToSend[socket.id] = msg;
             players[socket.id].lastUpdate = Date.now();
             msg.socketId = socket.id;
+            hasPlayersToSend = true;
         });
 
         setInterval(cleanPlayers, 10000)
@@ -251,17 +267,14 @@ module.exports = (app, io, mongoose) => {
     });
     setInterval(gameStatusBroadcast)
     function gameStatusBroadcast() {
-        let playersToSendLength = 0;
-        
-        for(let k in playersToSend){playersToSendLength++;break};
-
-        if (playersToSendLength || killsList.length || newBullets.length || bulletsToRemove.length) {
+        if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
             io.emit('gameBroadcast', {
                 bulletsToRemove,
                 newBullets,
                 players: playersToSend,
                 kills: killsList
             });
+            hasPlayersToSend = false;
             playersToSend = {};
             killsList = [];
             newBullets = [];
@@ -269,3 +282,5 @@ module.exports = (app, io, mongoose) => {
         }
     }
 }
+
+export default gameRoutes;

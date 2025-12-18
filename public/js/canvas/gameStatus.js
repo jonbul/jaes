@@ -1,35 +1,19 @@
 'use strict';
 import {
-    Arc,
-    ClickXY,
-    Abstract,
-    Ellipse,
-    Layer,
-    Line,
-    MasterJasonFile,
-    Pencil,
-    Picture,
-    Polygon,
     Rect,
-    Rubber,
-    Text
 } from './canvasClasses.js';
-import {
-    //Bullet,
-    _player
-} from './gameClasses.js';
+import Player from './gameClasses.js';
 import { asyncRequest } from '../functions.js';
 class GameStatus {
     constructor(canvasWidth, canvasHeight) {
         const _this = this;
         (async function () {
-            _this.Player = await _player;
             _this.drawMapInterval();
         })();
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight
         this.canvas = document.getElementById('canvas');
-        this.context = canvas.getContext('2d');
+        this.context = this.canvas.getContext('2d');
         this.backgroundCards = {};
         window.backgroundCards = this.backgroundCards;
         this.backgroundCardsSorted = {};
@@ -41,8 +25,8 @@ class GameStatus {
     }
     drawMapInterval() {
         const func = async () => {
-            
-            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted })).response;
+            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted }));
+            if (!data) return;
             this.players = data.players;
             this.writePlayersTable(data.players);
             this.drawMap(data.resultCards);
@@ -62,6 +46,7 @@ class GameStatus {
             const tr = document.createElement('tr');
             props.forEach( prop => {
                 const td = document.createElement('td');
+                td.style.textAlign = 'center';
                 td.innerHTML = player[prop];
                 tr.appendChild(td);
             });
@@ -132,13 +117,12 @@ class GameStatus {
             }
         }
 
-        const length = (this.canvas.width < this.canvas.height ? this.canvas.width : this.canvas.height) / 100;
         for (const sessionId in this.players) {
             const player = this.players[sessionId];
             if (!player.isDead) {
                 const x = (player.x - absoluteValues.x1 * this.canvasWidth) / biggerRelation;
                 const y = (player.y - absoluteValues.y1 * this.canvasHeight) / biggerRelation;
-                const pl = new this.Player(player.name, player.shipId, x, y);
+                const pl = new Player(player.name, player.shipId, x, y);
                 pl.rotate = player.rotate;
                 pl.draw(this.context);
             }
@@ -161,7 +145,7 @@ class GameStatus {
             block.style.top = evt.clientY + 'px';
             block.style.left = (evt.clientX + 20) + 'px';
         });
-        this.canvas.addEventListener('mouseout', evt => {
+        this.canvas.addEventListener('mouseout', () => {
             block.style.display = 'none';
         });
     }

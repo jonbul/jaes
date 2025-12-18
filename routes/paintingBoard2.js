@@ -1,17 +1,14 @@
-const PaintingProject = require('../model/paintingProject');
-const CONST = require('../shared/constants');
+import PaintingProject from '../model/paintingProject.js';
+import CONST from '../shared/constants.js';
 
 const CONTROLLER = '/paintingBoard2'
-module.exports = (app) => {
+const paintingBoard2Routes = (app) => {
     /**
      * Get painting board page
      * Query parameters: id (optional)
      * Response: HTML page
      */
     app.get(CONTROLLER, async (req, res) => {
-        const id = req.query.id;
-        let project;
-
         let user;
         if (req.session.passport && req.session.passport.user) {
             user = req.session.passport.user;
@@ -184,3 +181,5 @@ module.exports = (app) => {
         return Promise.all(projectsList.map(project => addProjectShapes(project, projectsMap)));
     }
 }
+
+export default paintingBoard2Routes;

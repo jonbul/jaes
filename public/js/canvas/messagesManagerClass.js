@@ -1,5 +1,5 @@
 import { Text } from './canvasClasses.js';
-import { KILLWORDS } from '../../../../constants.js';
+import { KILLWORDS } from '/constants.js';
 
 export default class MessagesManager {
     constructor(game) {

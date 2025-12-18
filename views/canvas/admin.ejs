@@ -1,27 +1,31 @@
 <% layout('layout') %>
 
-<span id="alerts">
-</span>
+  <span id="alerts">
+  </span>
 
-<form action="/game/admin" method="post" class="form-register" id="form-register">
-    <img class="mb-4" src="/docs/4.5/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+  <form action="/game/admin" method="post" class="form-register" id="form-register">
     <h1 class="h3 mb-3 font-weight-normal">Administration panel</h1>
 
     <div class="form-group">
       <label for="resolution" class="">Resolution</label>
-      <select type="text" id="resolution" class="form-control" required="" autofocus="" name="resolution" value="<%= currentResolution %>">
-        <% for(let i = 0; i < resolutions.length; i++) { %>
-          <option name="<%= resolutions[i].name %>" value="<%= parseInt(i) %>" <%= i===currentResolution ? 'SELECTED' : '' %>><%= resolutions[i].name %></option>
-        <% } %>
+      <select type="text" id="resolution" class="form-control" required="" autofocus="" name="resolution"
+        value="<%= currentResolution %>">
+        <% for(let i=0; i < resolutions.length; i++) { %>
+          <option name="<%= resolutions[i].name %>" value="<%= parseInt(i) %>" <%=i===currentResolution ? 'SELECTED'
+            : '' %>><%= resolutions[i].name %>
+          </option>
+          <% } %>
       </select>
     </div>
-      
+
     <div class="form-group">
-      <label for="allowedPlayerType" class="">Resolution</label>
+      <label for="allowedPlayerType" class="">Players allowed</label>
       <select type="text" id="allowedPlayerType" class="form-control" required="" autofocus="" name="allowedPlayerType">
         <% for(const type in allowedPlayerTypes) { %>
-          <option name="<%= type %>" value="<%= allowedPlayerTypes[type] %>" <%= allowedPlayerType===allowedPlayerTypes[type] ? 'SELECTED' : '' %>><%= type %></option>
-        <% } %>
+          <option name="<%= type %>" value="<%= allowedPlayerTypes[type] %>"
+            <%=allowedPlayerType===allowedPlayerTypes[type] ? 'SELECTED' : '' %>><%= type %>
+          </option>
+          <% } %>
       </select>
     </div>
 
@@ -41,6 +45,7 @@
     </div-->
 
     <button class="btn btn-lg btn-primary btn-block" type="submit" id="save">Save</button>
+    <iframe src="/status" style="width:100%; height: 1030px; border: solid 1px #ccc; margin-top:20px;"></iframe>
   </form>
 
   <script type="module">

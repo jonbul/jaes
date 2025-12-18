@@ -1,5 +1,5 @@
 "use strict";
-import {asyncRequest, showAlert} from "/js/functions.js"
+import { asyncRequest, showAlert } from "/js/functions.js"
 
 const initRegister = () => {
     document.getElementById('form-register').addEventListener('submit', onRegisterSubmit);
@@ -7,13 +7,13 @@ const initRegister = () => {
 
 async function onRegisterSubmit(event) {
     event.preventDefault();
-    window.fd = new FormData(document.getElementById('form-register'));
+    const fd = new FormData(document.getElementById('form-register'));
     const form = {};
-    fd.forEach(function(value, key){
+    fd.forEach(function (value, key) {
         form[key] = value;
     });
     const messages = [];
-        
+
     if (form.password !== form.cpassword) {
         messages.push('Passwords must be equals')
     }
@@ -22,7 +22,7 @@ async function onRegisterSubmit(event) {
     }
 
     if (messages.length) {
-        return showAlert({msg: messages, title: 'Some errors found:'});
+        return showAlert({ msg: messages, title: 'Some errors found:' });
     }
     const result = await asyncRequest({
         url: '/register',
@@ -33,10 +33,10 @@ async function onRegisterSubmit(event) {
         return location.href = '/login';
     }
     try {
-        showAlert({msg: JSON.parse(result.response).errors, title: 'Some errors happened:'});
-    } catch (e) {
-        showAlert({msg: result.response || result, title: 'Some errors happened:'});
+        showAlert({ msg: JSON.parse(result.response).errors, title: 'Some errors happened:' });
+    } catch {
+        showAlert({ msg: result.response || result, title: 'Some errors happened:' });
     }
 }
 
-export {initRegister};
+export { initRegister };
