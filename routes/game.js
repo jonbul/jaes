@@ -4,6 +4,7 @@ import { resolutions, allowedPlayerTypes } from './constants.js';
 import User from '../model/user.js';
 
 const gameRoutes = (app, io, mongoose) => {
+    if (io._jaesGameHandlerRegistered) return;
     const players = {};
     let playersToSend = {};
     let hasPlayersToSend = false;
@@ -281,6 +282,7 @@ const gameRoutes = (app, io, mongoose) => {
             bulletsToRemove = [];
         }
     }
+    io._jaesGameHandlerRegistered = true;
 }
 
 export default gameRoutes;
