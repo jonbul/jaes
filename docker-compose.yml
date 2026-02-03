@@ -4,6 +4,7 @@ services:
   app:
     build: .
     container_name: jaes-container
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
