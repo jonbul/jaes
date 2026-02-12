@@ -43,8 +43,8 @@ const charSelector = new CharacterSelector(document.getElementById("shipsBlock")
 
 async function btnStart(e) {
     if (isSmartphone && window.innerHeight > window.innerWidth) {
-            alert("Rotate!")
-            return;
+        alert("Rotate!")
+        return;
     }
 
     const ship = charSelector.getCurrentShip();
@@ -56,16 +56,67 @@ async function btnStart(e) {
     canvas.style.display = ""
 
     const launch = () => new Game(canvas,
-            _username,
-            credits,
-            isSmartphone,
-            ship,
-            shipsManager);
+        _username,
+        credits,
+        isSmartphone,
+        ship,
+        shipsManager);
 
     if (!isSmartphone) {
         launch()
     } else {
         canvas.style.backgroundColor = "#000"
-        canvas.requestFullscreen().then(launch)
+        try {
+            smartphoneLaunch();
+        } catch (err) {
+            canvas.requestFullscreen().then(launch)
+        }
+    }
+    async function smartphoneLaunch() {
+        alert(JSON.stringify({"DeviceOrientationEvent": !!DeviceOrientationEvent, requestPermission: typeof DeviceOrientationEvent.requestPermission}))
+        console.log(DeviceOrientationEvent)
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            const permissionState = await DeviceOrientationEvent.requestPermission();
+            if (permissionState === 'granted') {
+                
+                //canvas.requestFullscreen().then(launch)
+
+                const requestFullScreenEvent = canvas.requestFullScreen ||
+                    canvas.requestFullscreen ||
+                    canvas.webkitRequestFullScreen ||
+                    canvas.webkitRequestFullscreen ||
+                    canvas.mozRequestFullScreen ||
+                    canvas.msRequestFullscreen;
+                if (!requestFullScreenEvent) {
+                    // css fullscreen
+                    canvas.style.display = "block";
+                    canvas.style.position = "fixed";
+                    canvas.style.left = "0";
+                    canvas.style.top = "0";
+                    canvas.style.width = window.innerWidth + "px";
+                    canvas.style.height = window.innerHeight + "px";
+                    setInterval(() => {
+                        // check screen orientation to rotate canvas
+                        if (window.innerHeight > window.innerWidth) {
+                            canvas.style.transform = "rotate(90deg)";
+                            canvas.style.transformOrigin = "center center";
+                        } else {
+                            canvas.style.transform = "";
+                        }
+                    }, 1);
+                }
+
+                requestFullScreenEvent().then(launch).catch(err => {
+                    alert("Failed to enter fullscreen mode. Please allow fullscreen permissions and use https or localhost to play on mobile.", err)
+
+                });
+                launch();
+            } else {
+                alert('Se necesita permiso para los sensores de movimiento');
+            }
+
+        } else { 
+            canvas.requestFullscreen().then(launch)
+        }
     }
 }

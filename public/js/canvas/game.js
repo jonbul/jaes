@@ -196,13 +196,13 @@ class Game {
             document.exitFullscreen()
         } else {
             var canvas = this.canvas;
-            if (canvas.requestFullScreen)
-                canvas.requestFullScreen();
-            else if (canvas.webkitRequestFullScreen)
-                canvas.webkitRequestFullScreen();
-            else if (canvas.mozRequestFullScreen)
-                canvas.mozRequestFullScreen();
-            this.inFullScreen = true;
+            const fullScreenEvent = canvas.requestFullScreen ||
+                canvas.webkitRequestFullScreen ||
+                canvas.mozRequestFullScreen ||
+                canvas.msRequestFullscreen;
+            if (typeof fullScreenEvent === "function") {
+                this.inFullScreen = true;
+            }
         }
     }
     onPlayerDied(msg) {
@@ -764,6 +764,8 @@ class Game {
                 this.deviceorientation = e
             })
 
+            //this.requestOrientationPermission();
+
             /*
             if (location.host.indexOf(3000) > 0) {
                 const div = document.createElement("div")
@@ -775,7 +777,7 @@ class Game {
                 div.style.left = "0";
                 div.style.backgroundColor  = "#fff";
                 document.body.appendChild(div)
-
+ 
                 function log() {
                     let deviceorientation = this.deviceorientation;
                     //let gyroscope = this.gyroscope;
@@ -784,7 +786,7 @@ class Game {
                         text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
                     //if (gyroscope && gyroscope.x)
                     //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
-
+ 
                     text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
                     div.innerText = text;
                 }
