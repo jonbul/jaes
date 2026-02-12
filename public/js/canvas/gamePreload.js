@@ -73,7 +73,6 @@ async function btnStart(e) {
         }
     }
     async function smartphoneLaunch() {
-        alert(JSON.stringify({"DeviceOrientationEvent": !!DeviceOrientationEvent, requestPermission: typeof DeviceOrientationEvent.requestPermission}))
         console.log(DeviceOrientationEvent)
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
             const permissionState = await DeviceOrientationEvent.requestPermission();
