@@ -22,6 +22,14 @@ import http from 'http';
 
 const https = httpsModule.createServer(options, app);
 
+//Server /status - Must be configured BEFORE Socket.IO
+import expressStatusMonitor from 'express-status-monitor';
+app.use(expressStatusMonitor({
+    title: 'JAES Server Status',
+    path: '/status',
+    websocket: https
+}));
+
 import io from 'socket.io';
 const ioServer = io.listen(https);
 // import { Server } from 'socket.io';
@@ -107,13 +115,6 @@ grafanaRoutes(app);
 userRoutes(app);
 gameRoutes(app, ioServer, mongoose);
 paintingBoard2Routes(app);
-
-//Server /status
-import expressStatusMonitor from 'express-status-monitor';
-app.use(expressStatusMonitor({
-    title: 'JAES Server Status',
-    path: '/status'
-}));
 
 app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
