@@ -182,27 +182,26 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     toFullScreen(e) {
-        /*document.body.requestFullscreen().then(n => {
-            screen.orientation.lock('landscape') // o 'portrait'
-                .then(() => {
-                    console.log('Orientación bloqueada')
-                })
-                .catch(err => console.error('No se pudo bloquear la orientación', err)
-        });*/
+
+        console.warn(JSON.stringify({ x: e?.clientX, y: e?.clientY }))
         if (e && Math.max(e.clientX, e.clientY) > 200)
             return;
-        if (this.inFullScreen) {
-            this.inFullScreen = false
-            document.exitFullscreen()
-        } else {
+        const isFullscreen = !!(document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement);
+
+        if (!isFullscreen) {
             var canvas = this.canvas;
-            const fullScreenEvent = canvas.requestFullScreen ||
-                canvas.webkitRequestFullScreen ||
-                canvas.mozRequestFullScreen ||
-                canvas.msRequestFullscreen;
-            if (typeof fullScreenEvent === "function") {
-                this.inFullScreen = true;
-            }
+
+            const requestFullScreen = (canvas.requestFullScreen
+                || canvas.requestFullscreen
+                || canvas.webkitRequestFullscreen
+                || canvas.mozRequestFullScreen
+                || canvas.msRequestFullscreen)
+            if (requestFullScreen) requestFullScreen.call(canvas)
+        } else {
+            document.exitFullscreen()
         }
     }
     onPlayerDied(msg) {

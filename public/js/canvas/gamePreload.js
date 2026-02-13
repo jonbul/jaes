@@ -77,24 +77,23 @@ async function btnStart(e) {
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
             const permissionState = await DeviceOrientationEvent.requestPermission();
             if (permissionState === 'granted') {
-                
+
                 //canvas.requestFullscreen().then(launch)
 
                 const requestFullScreenEvent = canvas.requestFullScreen ||
                     canvas.requestFullscreen ||
-                    canvas.webkitRequestFullScreen ||
                     canvas.webkitRequestFullscreen ||
                     canvas.mozRequestFullScreen ||
                     canvas.msRequestFullscreen;
                 if (!requestFullScreenEvent) {
                     // css fullscreen
-                    canvas.style.display = "block";
-                    canvas.style.position = "fixed";
-                    canvas.style.left = "0";
-                    canvas.style.top = "0";
-                    canvas.style.width = window.innerWidth + "px";
-                    canvas.style.height = window.innerHeight + "px";
                     setInterval(() => {
+                        canvas.style.display = "block";
+                        canvas.style.position = "fixed";
+                        canvas.style.left = "0";
+                        canvas.style.top = "0";
+                        canvas.style.width = window.innerWidth + "px";
+                        canvas.style.height = window.innerHeight + "px";
                         // check screen orientation to rotate canvas
                         if (window.innerHeight > window.innerWidth) {
                             canvas.style.transform = "rotate(90deg)";
@@ -103,18 +102,15 @@ async function btnStart(e) {
                             canvas.style.transform = "";
                         }
                     }, 1);
+                } else {
+                    requestFullScreenEvent.call(canvas)
                 }
-
-                requestFullScreenEvent().then(launch).catch(err => {
-                    alert("Failed to enter fullscreen mode. Please allow fullscreen permissions and use https or localhost to play on mobile.", err)
-
-                });
                 launch();
             } else {
                 alert('Se necesita permiso para los sensores de movimiento');
             }
 
-        } else { 
+        } else {
             canvas.requestFullscreen().then(launch)
         }
     }
