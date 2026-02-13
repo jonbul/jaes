@@ -182,27 +182,26 @@ class Game {
         setInterval(this.intervalMethod.bind(this), 1000 / 60);
     }
     toFullScreen(e) {
-        /*document.body.requestFullscreen().then(n => {
-            screen.orientation.lock('landscape') // o 'portrait'
-                .then(() => {
-                    console.log('Orientación bloqueada')
-                })
-                .catch(err => console.error('No se pudo bloquear la orientación', err)
-        });*/
+
+        console.warn(JSON.stringify({ x: e?.clientX, y: e?.clientY }))
         if (e && Math.max(e.clientX, e.clientY) > 200)
             return;
-        if (this.inFullScreen) {
-            this.inFullScreen = false
-            document.exitFullscreen()
-        } else {
+        const isFullscreen = !!(document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement);
+
+        if (!isFullscreen) {
             var canvas = this.canvas;
-            if (canvas.requestFullScreen)
-                canvas.requestFullScreen();
-            else if (canvas.webkitRequestFullScreen)
-                canvas.webkitRequestFullScreen();
-            else if (canvas.mozRequestFullScreen)
-                canvas.mozRequestFullScreen();
-            this.inFullScreen = true;
+
+            const requestFullScreen = (canvas.requestFullScreen
+                || canvas.requestFullscreen
+                || canvas.webkitRequestFullscreen
+                || canvas.mozRequestFullScreen
+                || canvas.msRequestFullscreen)
+            if (requestFullScreen) requestFullScreen.call(canvas)
+        } else {
+            document.exitFullscreen()
         }
     }
     onPlayerDied(msg) {
@@ -764,6 +763,8 @@ class Game {
                 this.deviceorientation = e
             })
 
+            //this.requestOrientationPermission();
+
             /*
             if (location.host.indexOf(3000) > 0) {
                 const div = document.createElement("div")
@@ -775,7 +776,7 @@ class Game {
                 div.style.left = "0";
                 div.style.backgroundColor  = "#fff";
                 document.body.appendChild(div)
-
+ 
                 function log() {
                     let deviceorientation = this.deviceorientation;
                     //let gyroscope = this.gyroscope;
@@ -784,7 +785,7 @@ class Game {
                         text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
                     //if (gyroscope && gyroscope.x)
                     //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
-
+ 
                     text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
                     div.innerText = text;
                 }

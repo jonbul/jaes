@@ -11,6 +11,9 @@ let _username = "";
 if (gameData.guestsAllowed && !gameData.username) {
     guest = true;
     _username = location.host.indexOf("3000") >= 0 ? "jonbul" : prompt('Username:', 'Username')
+    if (!_username) {
+        _username = "Noname " + parseInt(Date.now() / 1000);
+    }
 }
 
 let isSmartphone = false;
@@ -40,8 +43,8 @@ const charSelector = new CharacterSelector(document.getElementById("shipsBlock")
 
 async function btnStart(e) {
     if (isSmartphone && window.innerHeight > window.innerWidth) {
-            alert("Rotate!")
-            return;
+        alert("Rotate!")
+        return;
     }
 
     const ship = charSelector.getCurrentShip();
@@ -53,16 +56,62 @@ async function btnStart(e) {
     canvas.style.display = ""
 
     const launch = () => new Game(canvas,
-            _username,
-            credits,
-            isSmartphone,
-            ship,
-            shipsManager);
+        _username,
+        credits,
+        isSmartphone,
+        ship,
+        shipsManager);
 
     if (!isSmartphone) {
         launch()
     } else {
         canvas.style.backgroundColor = "#000"
-        canvas.requestFullscreen().then(launch)
+        try {
+            smartphoneLaunch();
+        } catch (err) {
+            canvas.requestFullscreen().then(launch)
+        }
+    }
+    async function smartphoneLaunch() {
+        console.log(DeviceOrientationEvent)
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            const permissionState = await DeviceOrientationEvent.requestPermission();
+            if (permissionState === 'granted') {
+
+                //canvas.requestFullscreen().then(launch)
+
+                const requestFullScreenEvent = canvas.requestFullScreen ||
+                    canvas.requestFullscreen ||
+                    canvas.webkitRequestFullscreen ||
+                    canvas.mozRequestFullScreen ||
+                    canvas.msRequestFullscreen;
+                if (!requestFullScreenEvent) {
+                    // css fullscreen
+                    setInterval(() => {
+                        canvas.style.display = "block";
+                        canvas.style.position = "fixed";
+                        canvas.style.left = "0";
+                        canvas.style.top = "0";
+                        canvas.style.width = window.innerWidth + "px";
+                        canvas.style.height = window.innerHeight + "px";
+                        // check screen orientation to rotate canvas
+                        if (window.innerHeight > window.innerWidth) {
+                            canvas.style.transform = "rotate(90deg)";
+                            canvas.style.transformOrigin = "center center";
+                        } else {
+                            canvas.style.transform = "";
+                        }
+                    }, 1);
+                } else {
+                    requestFullScreenEvent.call(canvas)
+                }
+                launch();
+            } else {
+                alert('Se necesita permiso para los sensores de movimiento');
+            }
+
+        } else {
+            canvas.requestFullscreen().then(launch)
+        }
     }
 }

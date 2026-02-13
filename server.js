@@ -108,11 +108,13 @@ userRoutes(app);
 gameRoutes(app, ioServer, mongoose);
 paintingBoard2Routes(app);
 
-//Server /status
+//Server /status - Reuse existing Socket.IO instance
 import expressStatusMonitor from 'express-status-monitor';
 app.use(expressStatusMonitor({
     title: 'JAES Server Status',
-    path: '/status'
+    path: '/status',
+    websocket: ioServer,
+    port: PORT_HTTPS
 }));
 
 app.get('/metrics', async (req, res) => {
