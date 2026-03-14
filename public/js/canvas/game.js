@@ -179,7 +179,14 @@ class Game {
         });
     }
     beginInterval() {
-        setInterval(this.intervalMethod.bind(this), 1000 / 60);
+        let lastTime = 0;
+        const loop = (timestamp) => {
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+            this.intervalMethod(delta); // puedes usar delta para movimiento frame-rate independent
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
     }
     toFullScreen(e) {
 

@@ -7,7 +7,7 @@ const gameData = await (await fetch("/game/data")).json()
 
 let guest = false;
 let credits = 0;
-let _username = "";
+let _username = gameData.username;
 if (gameData.guestsAllowed && !gameData.username) {
     guest = true;
     _username = location.host.indexOf("3000") >= 0 ? "jonbul" : prompt('Username:', 'Username')
