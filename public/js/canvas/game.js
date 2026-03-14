@@ -214,12 +214,15 @@ class Game {
     onPlayerDied(msg) {
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
+        this.players[msg.playerId].calculateScale();
+        this.players[msg.from].calculateScale();
         const explossionFrames = getExplossionFrames();
+        const playerRealDimension = this.players[msg.playerId].getRealDimension();
         const explossion = new Animation({
             frames: explossionFrames.frames,
             layer: explossionFrames.layer,
-            x: this.players[msg.playerId].x + this.players[msg.playerId].width / 2,
-            y: this.players[msg.playerId].y + this.players[msg.playerId].height / 2,
+            x: playerRealDimension.x + playerRealDimension.width / 2,
+            y: playerRealDimension.y + playerRealDimension.height / 2,
             width: 100,
             height: 100
         });
@@ -280,7 +283,8 @@ class Game {
         this.playerUpdated = false;
     }
     clear() {
-        this.context.clearRect(this.player.x - this.canvas.width, this.player.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
+        const playerRealDimension = this.player.getRealDimension();
+        this.context.clearRect(playerRealDimension.x - this.canvas.width, playerRealDimension.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
     }
     movement() {
         if (this.player.isDead) return;
@@ -460,18 +464,20 @@ class Game {
         let translateX;
         let translateY;
         let globalRotation = this.player.rotate + 90 * Math.PI / 180;
+        const playerRealDimension = this.player.getRealDimension();
         if (this.isSmartphone) {
-            translateX = this.player.x + (this.player.width / 2)
-            translateY = this.player.y + (this.player.height / 2)
+            translateX = playerRealDimension.x + (playerRealDimension.width / 2)
+            translateY = playerRealDimension.y + (playerRealDimension.height / 2)
             this.context.translate(translateX, translateY)
             this.context.rotate(-globalRotation)
             this.context.translate(-translateX, -translateY)
         }
         this.drawBackground();
         this.drawableBullets.draw(this.context);
-        this.drawablePlayers.draw(this.context);
+        this.drawablePlayers.draw(this.context, {sizeStandard: 100});
 
-        this.player.draw(this.context);
+        //this.player.draw(this.context, -1);
+        new Rect(playerRealDimension.x, playerRealDimension.y, playerRealDimension.width, playerRealDimension.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
         this.animations.forEach(anim => {
             if (anim.playing) {
                 anim.drawFrame(this.context, this.checkRectsCollision(anim, this.viewRect));
@@ -492,12 +498,12 @@ class Game {
             //Overflow
             const chargeOverflow = Math.min(chargingTimeSec - CHARGE_TIME, CHARGE_TIME_OVERFLOW);
             if (chargeOverflow > 0) {
-                const maxRadius = Math.max(this.player.height, this.player.width) / 2
+                const maxRadius = Math.max(playerRealDimension.height, playerRealDimension.width) / 2
                 const radius = chargeOverflow * maxRadius / CHARGE_TIME_OVERFLOW;
-                new Arc(this.player.x, this.player.y, radius, "#ffffff50")
+                new Arc(playerRealDimension.x, playerRealDimension.y, radius, "#ffffff50")
                     .draw(this.context, {
-                        x: this.player.width / 2,
-                        y: this.player.height / 2
+                        x: playerRealDimension.width / 2,
+                        y: playerRealDimension.height / 2
                     })
                 if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
                     this.bulletCharging = null;
@@ -516,12 +522,13 @@ class Game {
         this.drawTexts();
     }
     drawBackground() {
+        const playerRealDimension = this.player.getRealDimension();
         const currentCard = {
-            x: parseInt(this.player.x / this.canvas.width),
-            y: parseInt(this.player.y / this.canvas.height)
+            x: parseInt(playerRealDimension.x / this.canvas.width),
+            y: parseInt(playerRealDimension.y / this.canvas.height)
         }
-        if (this.player.x < 0) currentCard.x -= 1;
-        if (this.player.y < 0) currentCard.y -= 1;
+        if (playerRealDimension.x < 0) currentCard.x -= 1;
+        if (playerRealDimension.y < 0) currentCard.y -= 1;
 
         const n = 2;
         const data = [];
@@ -566,11 +573,12 @@ class Game {
         /****************************** */
         const rotationAxis = {}
         const player = this.player;
+        const playerRealDimension = this.player.getRealDimension();
         if (localStorage.getItem("debug")) {
-            rotationAxis.x = player.x + player.width / 2;
-            rotationAxis.y = player.y + player.width / 2; // uses width to build a regular rect
+            rotationAxis.x = playerRealDimension.x + playerRealDimension.width / 2;
+            rotationAxis.y = playerRealDimension.y + playerRealDimension.width / 2; // uses width to build a regular rect
             new Arc(rotationAxis.x, rotationAxis.y, this.canvas.width * 0.01, '#00ff00').draw(this.context)
-            new Rect(this.player.x, player.y, player.width, player.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context)
+            new Rect(playerRealDimension.x, playerRealDimension.y, playerRealDimension.width, playerRealDimension.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
         }
 
         /****************************** */
@@ -581,16 +589,17 @@ class Game {
             if (target !== player && inScope && !target.isDead && !this.checkRectsCollision(target, this.viewRect)) {
                 if (localStorage.getItem("debug")) {
                     /****************************** */
+                    const targetRealDimension = target.getRealDimension();
                     const rotationAxis2 = {
-                        x: target.x + target.width / 2,
-                        y: target.y + target.width / 2 // uses width to build a regular rect
+                        x: targetRealDimension.x + targetRealDimension.width / 2,
+                        y: targetRealDimension.y + targetRealDimension.width / 2 // uses width to build a regular rect
                     }
                     new Line([
                         { x: rotationAxis.x, y: rotationAxis.y },
                         { x: rotationAxis2.x, y: rotationAxis2.y },
                     ], '#ff0000').draw(this.context)
                     new Arc(rotationAxis2.x, rotationAxis2.y, this.canvas.width * 0.01, '#ff0000').draw(this.context);
-                    new Rect(target.x, target.y, target.width, target.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
+                    new Rect(targetRealDimension.x, targetRealDimension.y, targetRealDimension.width, targetRealDimension.height, 'rgba(0,0,0,0)', '#ff0000', 2).draw(this.context);
                     /****************************** */
                 }
                 new RadarArrow(this.player, target, this.canvas).draw(this.context, distance);
@@ -636,11 +645,12 @@ class Game {
         }
     }
     drawRadar() {
-        this.radar.draw(this.context, { x: this.player.x, y: this.player.y });
+        const playerRealDimension = this.player.getRealDimension();
+        this.radar.draw(this.context, { x: playerRealDimension.x, y: playerRealDimension.y });
         const arcPoint = new Arc(0, 0, this.canvas.width / 300, 'rgba(255,0,0,0.7)');
         this.radarPoints.forEach(point => {
-            arcPoint.x = point.x + this.player.x;
-            arcPoint.y = point.y + this.player.y;
+            arcPoint.x = point.x + playerRealDimension.x;
+            arcPoint.y = point.y + playerRealDimension.y;
             arcPoint.draw(this.context);
         })
     }
@@ -666,11 +676,12 @@ class Game {
     drawTexts() {
 
         const texts = [
-            `X: ${parseInt(this.player.x * 100) / 100}`,
-            `Y: ${parseInt(this.player.y * 100) / 100}`,
-            `Speed: ${parseInt(this.player.speed * 100) / 100}`,
+            `X: ${parseInt(this.player.x / 100) * 100}`,
+            `Y: ${parseInt(this.player.y / 100) * 100}`,
+            `Speed: ${parseInt(this.player.speed / 100) * 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,
         ];
+
         const cornerX = this.player.x - this.canvas.width / 2 + this.player.width / 2;
         const cornerY = this.player.y - this.canvas.height / 2 + this.player.height / 2;
         const textX = cornerX + this.lineHeight;
@@ -894,8 +905,9 @@ class Game {
         let playerKilled;
         for (const id in this.players) {
             const player = this.players[id];
+            const playerRealDimension = player.getRealDimension();
             if (player.socketId !== bullet.socketId) {
-                collision = bullet.x > player.x && bullet.x < player.x + player.width && bullet.y > player.y && bullet.y < player.y + player.height;
+                collision = bullet.x > playerRealDimension.x && bullet.x < playerRealDimension.x + playerRealDimension.width && bullet.y > playerRealDimension.y && bullet.y < playerRealDimension.y + playerRealDimension.height;
                 if (collision) {
                     playerKilled = player;
                     break;
@@ -910,16 +922,16 @@ class Game {
      * @returns 
      */
     checkCollisionsWithPlayers() {
-        const rect1 = this.player;
+        const rect1 = this.player.getRealDimension();
         let collision = false;
 
         const cellSize = Math.max(rect1.width, rect1.height);
         const playerXB = Math.floor(rect1.x / cellSize)
         const playerYB = Math.floor(rect1.y / cellSize)
         for (let id in this.players) {
-            const rect2 = this.players[id];
+            const rect2 = this.players[id].getRealDimension();
 
-            if (rect2.isDead || rect2.socketId === rect1.socketId) {
+            if (this.players[id].isDead || this.players[id].socketId === this.player.socketId) {
                 continue;
             }
             const rect2XB = parseInt(rect2.x / cellSize)

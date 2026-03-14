@@ -21,8 +21,6 @@ class Player {
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
         this.width = this.ship.width;
         this.height = this.ship.height;
-        //this.width = this.ship.canvas ? this.ship.canvas.width : this.ship.width;
-        //this.height = this.ship.canvas ? this.ship.canvas.height : this.ship.height;
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
@@ -31,17 +29,52 @@ class Player {
         this.speed = 0;
         this.hide = false;
         this.isDead = false;
+        console.log(`Player ${this.name} created with ship ${this.ship.name}`);
+        console.log(this.ship);
+        this.scale=1;
+        this.calculateScale();
     }
 
     draw(context) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
-        this.layers.forEach(layer => {
-            layer.draw(context, { x: this.x, y: this.y, rotate: this.rotate, rotationCenter });
-        });
-        this.nameShape.x = this.x;
-        this.nameShape.y = this.y;
-        this.nameShape.draw(context, { x: 0, y: -(this.width / 4) });
+        const layerOptions = { 
+            x: this.x + this.xTranslation,
+            y: this.y + this.yTranslation,
+            rotate: this.rotate,
+            rotationCenter,
+            scale: this.scale
+        };
+
+        for (const layer of this.layers) {
+            layer.draw(context, layerOptions);
+        }
+        this.nameShape.x = layerOptions.x;
+        this.nameShape.y = layerOptions.y - 20;
+        this.nameShape.draw(context, { x: 0, y: 0 });
+    }
+    calculateScale(sizeStandard = 100) {
+        let scaleDec = 1;
+        if (sizeStandard){
+            const newSize = sizeStandard + (this.kills - this.deaths) * 10;
+            scaleDec = newSize / Math.max(this.width, this.height);
+        }
+
+        this.realWidth = this.width * scaleDec;
+        this.realHeight = this.height * scaleDec;
+
+        this.xTranslation = (this.width - this.realWidth) / 2;
+        this.yTranslation = (this.height - this.realHeight) / 2;
+        this.scale = scaleDec;
+        console.log(`Player ${this.name} scale calculated: ${this.scale} (kills: ${this.kills}, deaths: ${this.deaths}), realWidth: ${this.realWidth}, realHeight: ${this.realHeight})`);
+    }
+    getRealDimension() {
+        return {
+            x: this.x + this.xTranslation,
+            y: this.y + this.yTranslation,
+            width: this.realWidth,
+            height: this.realHeight
+        }
     }
     createBullet() {
         let bPosX = this.x + this.width / 2;
@@ -67,6 +100,9 @@ class Player {
             shipId: this.shipId,
             hide: this.hide,
             isDead: this.isDead,
+            scale: this.scale,
+            xTranslation: this.xTranslation,
+            yTranslation: this.yTranslation
             //bullets: this.bullets.map(bullet => bullet.getSortDetails())
         }
     }
