@@ -5,7 +5,7 @@ import session from 'express-session';
 import fs from 'fs';
 const app = express();
 const PORT_HTTPS = process.env.PORT || 3000;
-
+console.log(`🚀 Starting server on port ${PORT_HTTPS}...`);
 // SSL
 const options = {};
 try {

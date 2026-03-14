@@ -35,8 +35,9 @@ class Rect {
         this.rotation = rotation;
     }
 
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -74,6 +75,7 @@ class Rect {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
 
@@ -127,8 +129,9 @@ class Arc {
         this.mirror = mirror;
         this.rotation = 0;
     }
-    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -167,6 +170,7 @@ class Arc {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
@@ -200,8 +204,10 @@ class Ellipse {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -223,6 +229,7 @@ class Ellipse {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
 
@@ -256,8 +263,9 @@ class Line {
         this.borderColor = borderColor;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -277,6 +285,7 @@ class Line {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
@@ -305,8 +314,9 @@ class Polygon {
         this.borderWidth = parseInt(borderWidth);
         this.rotation = rotation;
     }
-    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -358,6 +368,7 @@ class Polygon {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
@@ -412,6 +423,20 @@ class Polygon {
             context.rotate(-this.rotation);
             context.translate(-moveX, -moveY);
         }
+        /* // Missing alternative
+        const minX = Math.min(...this.points.map(p => p.x));
+        const minY = Math.min(...this.points.map(p => p.y));
+        const maxX = Math.max(...this.points.map(p => p.x));
+        const maxY = Math.max(...this.points.map(p => p.y));
+        const range = Math.max(maxX - minX, maxY - minY);
+        const scale = resizeSize / range;
+
+        context.save();
+        context.scale(scale, scale);
+        context.translate(-minX, -minY); // mueve el polígono al origen (0,0)
+        this.draw(context, options);
+        context.restore();
+        */
     }
 }
 class Pencil {
@@ -422,8 +447,9 @@ class Pencil {
         this.color = color;
         this.borderWidth = parseInt(borderWidth);
     }
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -444,6 +470,7 @@ class Pencil {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
@@ -483,8 +510,9 @@ class Abstract {
         this.borderWidth = borderWidth ? parseInt(borderWidth) : 0;
         this.rotation = rotation;
     }
-    draw(context, options = { x: 0, y: 0, rotate: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -532,6 +560,7 @@ class Abstract {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100) {
@@ -641,8 +670,9 @@ class Rubber {
         }
         context.translate(-options.x, -options.y);
     }
-    drawResized(context, resizeSize = 100, options = { x: 0, y: 0, rotate: 0 }) {
+    drawResized(context, resizeSize = 100, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -674,6 +704,7 @@ class Rubber {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
 }
@@ -696,8 +727,9 @@ class Picture {
         this.rotation = rotation;
 
     }
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -727,6 +759,7 @@ class Picture {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
@@ -775,9 +808,18 @@ class Text {
         this.width = width;
         this.name = name || this.desc;
         this.rotation = rotation;
+
+        this.align ={
+            START: "start",
+            END: "end",
+            LEFT:"left",
+            RIGHT:"right",
+            CENTER: "center",
+        }
     }
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
+        context.scale(options.scale, options.scale);
         if (options.rotationCenter && options.rotate) {
             context.translate(options.rotationCenter.x, options.rotationCenter.y);
             context.rotate(options.rotate);
@@ -794,6 +836,7 @@ class Text {
         }
 
         context.font = `${this.fontSize}px ${this.fontFamily}`;
+        context.textAlign = this.textAlign || this.align.START;
         context.fillStyle = this.color;
         context.fillText(this.text, this.x + options.x, this.y + options.y, this.width);
 
@@ -808,6 +851,7 @@ class Text {
             context.rotate(-options.rotate);
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
+        context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
 }
@@ -868,7 +912,7 @@ class ProjectShape {
     remove(point) {
         this.points = this.points.filter(p => p.x !== point.x || p.y !== point.y);
     }
-    draw(context, options = { x: 0, y: 0 }) {
+    draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
 
         this.points.forEach(p => {
@@ -880,7 +924,8 @@ class ProjectShape {
                     rotationCenter: {
                         x: this.width / 2,
                         y: this.height / 2
-                    }
+                    },
+                    scale: options.scale
                 });
             });
         });
