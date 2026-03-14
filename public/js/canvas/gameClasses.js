@@ -29,16 +29,19 @@ class Player {
         this.speed = 0;
         this.hide = false;
         this.isDead = false;
-        console.log(`Player ${this.name} created with ship ${this.ship.name}`);
-        console.log(this.ship);
-        this.scale=1;
+        this.scale = 1;
         this.calculateScale();
+        const debugEnabled = (typeof localStorage !== 'undefined') && localStorage.getItem('debug');
+        if (debugEnabled) {
+            console.log(`Player ${this.name} created with ship ${this.ship.name}`);
+            console.log(this.ship);
+        }
     }
 
     draw(context) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
-        const layerOptions = { 
+        const layerOptions = {
             x: this.x + this.xTranslation,
             y: this.y + this.yTranslation,
             rotate: this.rotate,
@@ -55,9 +58,12 @@ class Player {
     }
     calculateScale(sizeStandard = 100) {
         let scaleDec = 1;
-        if (sizeStandard){
+        if (sizeStandard) {
+            const baseSize = Math.max(this.width, this.height) || 1;
+            const minSize = 10;
             const newSize = sizeStandard + (this.kills - this.deaths) * 10;
-            scaleDec = newSize / Math.max(this.width, this.height);
+            const clampedSize = Math.max(minSize, newSize);
+            scaleDec = clampedSize / baseSize;
         }
 
         this.realWidth = this.width * scaleDec;
@@ -66,7 +72,6 @@ class Player {
         this.xTranslation = (this.width - this.realWidth) / 2;
         this.yTranslation = (this.height - this.realHeight) / 2;
         this.scale = scaleDec;
-        console.log(`Player ${this.name} scale calculated: ${this.scale} (kills: ${this.kills}, deaths: ${this.deaths}), realWidth: ${this.realWidth}, realHeight: ${this.realHeight})`);
     }
     getRealDimension() {
         return {
@@ -156,7 +161,7 @@ class Bullet {
 
         const extraRadiusX = (this.bulletCharge - 1) * this.radiusX / 2;
         const extraRadiusY = (this.bulletCharge - 1) * this.radiusY / 2;
-        let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16,2)
+        let colorHex = Math.ceil((Math.min(this.bulletCharge, 10) - 1) * 255 / 9).toString(16, 2)
         colorHex = colorHex.length === 1 ? "0" + colorHex : colorHex;
         this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
@@ -204,7 +209,7 @@ class ChargingBar {
 
         const width = context.canvas.width / 20;
         const height = width / 5;
-        
+
         let x = -Math.abs(player.width - width) / 2;
         if (player.width > width) {
             x *= -1;
@@ -217,14 +222,14 @@ class ChargingBar {
 
     draw(context, chargeRate) {
         if (!chargeRate) return;
-        
+
         const player = this.player;
 
         const barWidth = this.border.width * chargeRate;
         this.bar.width = Math.min(barWidth, this.border.width);
-        
-        const options = {x: player.x, y: player.y};
-        
+
+        const options = { x: player.x, y: player.y };
+
         this.bar.draw(context, options);
         this.border.draw(context, options);
     }
@@ -261,7 +266,7 @@ class RadarArrow {
         this.getDistance();
         const canvas = context.canvas;
 
-        let multiplier = canvas.width*1.5 - distance;
+        let multiplier = canvas.width * 1.5 - distance;
         multiplier = multiplier < 0 ? 0 : multiplier;
 
         const points = [
@@ -286,10 +291,10 @@ class RadarArrow {
     }
 }
 class ShipsManager {
-    constructor (ships) {
+    constructor(ships) {
         this.ships = ships;
         this.shipsById = {}
-        ships.forEach(ship =>{
+        ships.forEach(ship => {
             this.shipsById[ship._id] = ship;
 
             if (ship.canvas) {
@@ -309,5 +314,5 @@ class ShipsManager {
     }
 }
 
-export { Bullet, RadarArrow, ChargingBar, Player, ShipsManager}
-export default { Bullet, RadarArrow, ChargingBar, Player , ShipsManager}
+export { Bullet, RadarArrow, ChargingBar, Player, ShipsManager }
+export default { Bullet, RadarArrow, ChargingBar, Player, ShipsManager }

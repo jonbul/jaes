@@ -179,11 +179,27 @@ class Game {
         });
     }
     beginInterval() {
-        let lastTime = 0;
+        const timestep = 1000 / 60; // 60 updates per second (fixed timestep)
+        let lastTime = null;
+        let accumulator = 0;
         const loop = (timestamp) => {
-            const delta = timestamp - lastTime;
+            if (lastTime === null) {
+                lastTime = timestamp;
+            }
+
+            let delta = timestamp - lastTime;
             lastTime = timestamp;
-            this.intervalMethod(delta); // puedes usar delta para movimiento frame-rate independent
+
+            // Clamp delta to avoid spiral-of-death after long pauses or tab switches
+            if (delta > 100) {
+                delta = 100;
+            }
+            accumulator += delta;
+            // Run the fixed-timestep game updates
+            while (accumulator >= timestep) {
+                this.intervalMethod();
+                accumulator -= timestep;
+            }
             requestAnimationFrame(loop);
         };
         requestAnimationFrame(loop);
@@ -474,7 +490,7 @@ class Game {
         }
         this.drawBackground();
         this.drawableBullets.draw(this.context);
-        this.drawablePlayers.draw(this.context, {sizeStandard: 100});
+        this.drawablePlayers.draw(this.context);
 
         this.animations.forEach(anim => {
             if (anim.playing) {
@@ -674,9 +690,9 @@ class Game {
     drawTexts() {
 
         const texts = [
-            `X: ${parseInt(this.player.x / 100) * 100}`,
-            `Y: ${parseInt(this.player.y / 100) * 100}`,
-            `Speed: ${parseInt(this.player.speed / 100) * 100}`,
+            `X: ${parseInt(this.player.x * 100) / 100}`,
+            `Y: ${parseInt(this.player.y * 100) / 100}`,
+            `Speed: ${parseInt(this.player.speed * 100) / 100}`,
             `Rotation: ${parseInt(this.player.rotate * 360 / (2 * Math.PI))}º`,
         ];
 
