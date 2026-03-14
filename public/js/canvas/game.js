@@ -476,8 +476,6 @@ class Game {
         this.drawableBullets.draw(this.context);
         this.drawablePlayers.draw(this.context, {sizeStandard: 100});
 
-        //this.player.draw(this.context, -1);
-        new Rect(playerRealDimension.x, playerRealDimension.y, playerRealDimension.width, playerRealDimension.height, 'rgba(0,0,0,0)', '#00ff00', 2).draw(this.context);
         this.animations.forEach(anim => {
             if (anim.playing) {
                 anim.drawFrame(this.context, this.checkRectsCollision(anim, this.viewRect));
