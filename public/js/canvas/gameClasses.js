@@ -73,7 +73,7 @@ class Player {
             rotationCenter,
             scale: 1
         };
-        
+
         this.drawPicture(context, layerOptions);
 
         this.nameShape.x = layerOptions.x;
@@ -120,7 +120,7 @@ class Player {
     render() {
         console.log(`Rendering picture for player ${this.name}...`);
         if (!this.pictureCanvas) {
-             this.pictureCanvas = document.createElement('canvas');
+            this.pictureCanvas = document.createElement('canvas');
         }
         const realDimension = this.getRealDimension();
         this.pictureCanvas.width = realDimension.width;
@@ -130,7 +130,7 @@ class Player {
         const offscreenContext = offscreenCanvas.getContext('2d');
         offscreenContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         this.drawVectorial(offscreenContext);
-        this.picture = new Picture(offscreenCanvas,null, 0, 0, realDimension.width, realDimension.height, 0, 0, realDimension.width, realDimension.height);
+        this.picture = new Picture(offscreenCanvas, null, 0, 0, realDimension.width, realDimension.height, 0, 0, realDimension.width, realDimension.height);
     }
     /**
      * Calculates the scale of the player's ship based on a standard size and the player's kills and deaths. It adjusts the real width and height of the ship accordingly, as well as the translation needed to keep the ship centered. Finally, it calls render to update the picture with the new scale.

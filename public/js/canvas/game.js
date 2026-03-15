@@ -67,7 +67,7 @@ class Game {
             this.players[this.player.socketId] = this.player;
 
             this.drawableBullets = new Layer('bullets');
-            this.drawablePlayers = [];new Layer('players');
+            this.drawablePlayers = [];
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
@@ -273,7 +273,7 @@ class Game {
             height: this.canvas.height
         }
 
-        this.drawablePlayers.shapes = [];
+        this.drawablePlayers = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
                 if (!this.players[id].hide) this.drawablePlayers.push(this.players[id]);

@@ -1,4 +1,4 @@
-import 'dotenv/config'; 
+import 'dotenv/config';
 import express from 'express';
 import { collectDefaultMetrics, register } from 'prom-client';
 import session from 'express-session';
@@ -125,4 +125,4 @@ app.get('/metrics', async (req, res) => {
 https.listen(PORT_HTTPS, () => {
     console.log('Hello from port ' + PORT_HTTPS)
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
- });
+});
