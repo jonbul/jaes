@@ -81,7 +81,7 @@ class Player {
         this.nameShape.draw(context, { x: 0, y: 0 });
     }
     /**
-     * Draws the player's ship using vector graphics. This method is less optimized than drawPicture, but allows for more dynamic rendering options such as scaling and rotation without needing to re-render a picture. It iterates through each layer of the ship and draws it according to the specified options.
+     * Draws the player's ship using vector graphics. This method is less optimized than drawPicture and is intended for drawing an unrotated ship at the origin using vector layers (e.g. for pre-rendering). It supports scaling via this.scale but always uses a rotation value of 0. It iterates through each layer of the ship and draws it according to these options.
      * @param {CanvasRenderingContext2D} context 
      */
     drawVectorial(context) {
@@ -118,19 +118,20 @@ class Player {
      * Renders the player's ship into a picture for optimized drawing. This is called whenever the player's scale changes, to ensure the picture is up to date with the current size.
      */
     render() {
-        console.log(`Rendering picture for player ${this.name}...`);
         if (!this.pictureCanvas) {
             this.pictureCanvas = document.createElement('canvas');
         }
         const realDimension = this.getRealDimension();
-        this.pictureCanvas.width = realDimension.width;
-        this.pictureCanvas.height = realDimension.height;
+         const roundedWidth = Math.ceil(realDimension.width);
+         const roundedHeight = Math.ceil(realDimension.height);
+        this.pictureCanvas.width = roundedWidth;
+        this.pictureCanvas.height = roundedHeight;
         // reset canvas
         const offscreenCanvas = this.pictureCanvas;
         const offscreenContext = offscreenCanvas.getContext('2d');
         offscreenContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         this.drawVectorial(offscreenContext);
-        this.picture = new Picture(offscreenCanvas, null, 0, 0, realDimension.width, realDimension.height, 0, 0, realDimension.width, realDimension.height);
+        this.picture = new Picture(offscreenCanvas, null, 0, 0, roundedWidth, roundedHeight, 0, 0, roundedWidth, roundedHeight);
     }
     /**
      * Calculates the scale of the player's ship based on a standard size and the player's kills and deaths. It adjusts the real width and height of the ship accordingly, as well as the translation needed to keep the ship centered. Finally, it calls render to update the picture with the new scale.
