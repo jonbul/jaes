@@ -67,7 +67,7 @@ class Game {
             this.players[this.player.socketId] = this.player;
 
             this.drawableBullets = new Layer('bullets');
-            this.drawablePlayers = new Layer('players');
+            this.drawablePlayers = [];
             do {
                 this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
                 this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
@@ -273,10 +273,10 @@ class Game {
             height: this.canvas.height
         }
 
-        this.drawablePlayers.shapes = [];
+        this.drawablePlayers = [];
         for (const id in this.players) {
             if (this.checkRectsCollision(this.players[id], this.viewRect)) {
-                if (!this.players[id].hide) this.drawablePlayers.shapes.push(this.players[id]);
+                if (!this.players[id].hide) this.drawablePlayers.push(this.players[id]);
             }
         }
         this.drawableBullets.shapes = [];
@@ -490,7 +490,9 @@ class Game {
         }
         this.drawBackground();
         this.drawableBullets.draw(this.context);
-        this.drawablePlayers.draw(this.context);
+        for (let p of this.drawablePlayers) {
+            p.draw(this.context);
+        }
 
         this.animations.forEach(anim => {
             if (anim.playing) {
@@ -575,9 +577,7 @@ class Game {
             for (let j of cords) {
                 const x = currentCard.x + i;
                 const y = currentCard.y + j;
-                if (this.backgroundCards[x] &&
-                    this.backgroundCards[x][y] &&
-                    this.backgroundCards[x][y].draw) {
+                if (this.backgroundCards[x]?.[y]?.draw) {
                     this.backgroundCards[x][y].draw(this.context)
                 }
             }
