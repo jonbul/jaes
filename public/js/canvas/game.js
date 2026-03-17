@@ -539,46 +539,55 @@ class Game {
     }
     drawBackground() {
         const playerRealDimension = this.player.getRealDimension();
+        // Math.floor maneja correctamente coordenadas negativas
         const currentCard = {
-            x: parseInt(playerRealDimension.x / this.canvas.width),
-            y: parseInt(playerRealDimension.y / this.canvas.height)
+            x: Math.floor(playerRealDimension.x / this.canvas.width),
+            y: Math.floor(playerRealDimension.y / this.canvas.height)
         }
-        if (playerRealDimension.x < 0) currentCard.x -= 1;
-        if (playerRealDimension.y < 0) currentCard.y -= 1;
 
         const n = 2;
         const data = [];
-        for (var x = -n; x <= n; x++) {
-            for (var y = -n; y <= n; y++) {
-                const card = [currentCard.x + x, currentCard.y + y];
-
-                if (!this.backgroundCards[card[0]] || !this.backgroundCards[card[0]][card[1]]) {
-                    data.push(card);
-                    this.backgroundCards[card[0]] = this.backgroundCards[card[0]] || [];
-                    this.backgroundCards[card[0]][card[1]] = false;
+        for (let dx = -n; dx <= n; dx++) {
+            for (let dy = -n; dy <= n; dy++) {
+                // Módulo siempre positivo: genera claves 0-4 para la caché 5x5
+                const cacheX = ((currentCard.x + dx) % 5 + 5) % 5;
+                const cacheY = ((currentCard.y + dy) % 5 + 5) % 5;
+                if (!this.backgroundCards[cacheX] || !this.backgroundCards[cacheX][cacheY]) {
+                    data.push([cacheX, cacheY]);
+                    this.backgroundCards[cacheX] = this.backgroundCards[cacheX] || [];
+                    this.backgroundCards[cacheX][cacheY] = false;
                 }
             }
         }
 
-        if (data.length) { // TODO update to WebSocket
-            this.io.emit('getBackgroundCards', { socketId: this.io.id, data })
+        if (data.length && !this.requestingBackgroundCards) {
+            this.requestingBackgroundCards = true;
+            this.io.emit('getBackgroundCards', { socketId: this.io.id, data });
         }
 
-        new Rect(
-            this.canvas.width * (currentCard.x - n),
-            this.canvas.height * (currentCard.y - n),
-            this.canvas.width * (n * 2 + 1),
-            this.canvas.height * (n * 2 + 1),
-            '#1c2773'
-        ).draw(this.context);
+        if (!this.background) {
+            this.background = new Rect(
+                this.canvas.width * (currentCard.x - n),
+                this.canvas.height * (currentCard.y - n),
+                this.canvas.width * (n * 2 + 1),
+                this.canvas.height * (n * 2 + 1),
+                '#1c2773'
+            )
+        }
+        this.background.x = this.canvas.width * (currentCard.x - n)
+        this.background.y = this.canvas.height * (currentCard.y - n)
+        this.background.draw(this.context);
 
-        const cords = [-1, 0, 1];
-        for (let i of cords) {
-            for (let j of cords) {
-                const x = currentCard.x + i;
-                const y = currentCard.y + j;
-                if (this.backgroundCards[x]?.[y]?.draw) {
-                    this.backgroundCards[x][y].draw(this.context)
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const cacheX = ((currentCard.x + dx) % 5 + 5) % 5;
+                const cacheY = ((currentCard.y + dy) % 5 + 5) % 5;
+                if (this.backgroundCards[cacheX]?.[cacheY]?.draw) {
+                    this.backgroundCards[cacheX][cacheY].draw(this.context, {
+                        // offset = posición mundo - posición almacenada en los Arc
+                        x: this.canvas.width * (currentCard.x + dx - cacheX),
+                        y: this.canvas.height * (currentCard.y + dy - cacheY)
+                    });
                 }
             }
         }
