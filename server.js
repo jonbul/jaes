@@ -3,7 +3,14 @@ import express from 'express';
 import { collectDefaultMetrics, register } from 'prom-client';
 import session from 'express-session';
 import fs from 'fs';
+import cors from 'cors';
+
 const app = express();
+app.use(cors({
+    origin: /^https?:\/\/(jonbul\.ddns\.com|localhost)(:\d+)?$/,
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 const PORT_HTTPS = process.env.PORT || 3000;
 console.log(`🚀 Starting server on port ${PORT_HTTPS}...`);
 // SSL
@@ -22,24 +29,21 @@ import http from 'http';
 
 const https = httpsModule.createServer(options, app);
 
-import io from 'socket.io';
-const ioServer = io.listen(https);
-// import { Server } from 'socket.io';
-// const ioServer = new Server(https, {
-//     pingTimeout: 30000,
-//     pingInterval: 25000,
-//     upgradeTimeout: 10000,
-//     maxHttpBufferSize: 1e6, // 1MB
-//     transports: ['websocket', 'polling'],
-//     cors: {
-//         origin: "*",
-//         methods: ["GET", "POST"]
-//         methods: ["GET", "POST"]
-//     },
-//     // ✅ Limitar conexiones por IP
-//     //perMessageDeflate: false,
-//     //httpCompression: false
-// });
+import { Server } from 'socket.io';
+const gameWS = new Server(https, {
+    pingTimeout: 30000,
+    pingInterval: 25000,
+    upgradeTimeout: 10000,
+    maxHttpBufferSize: 1e6, // 1MB
+    transports: ['websocket', 'polling'],
+    cors: {
+        origin: /^https?:\/\/(jonbul\.ddns\.com|localhost)(:\d+)?$/,
+        methods: ["GET", "POST"]
+    },
+    // ✅ Limitar conexiones por IP
+    //perMessageDeflate: false,
+    //httpCompression: false
+});
 
 http.createServer((req, res) => {
     let host;
@@ -70,7 +74,7 @@ mongoose.connect(process.env.MONGODB_URI);
 app.use(flash());
 
 
-global.io = ioServer;
+global.io = gameWS;
 app.use(passport.initialize());
 app.use(express.static('public'));
 app.use(express.static('shared'));
@@ -105,7 +109,7 @@ import paintingBoard2Routes from './routes/paintingBoard2.js';
 
 grafanaRoutes(app);
 userRoutes(app);
-gameRoutes(app, ioServer, mongoose);
+gameRoutes(app, gameWS, mongoose);
 paintingBoard2Routes(app);
 
 //Server /status - Reuse existing Socket.IO instance
@@ -113,7 +117,7 @@ import expressStatusMonitor from 'express-status-monitor';
 app.use(expressStatusMonitor({
     title: 'JAES Server Status',
     path: '/status',
-    websocket: ioServer,
+    websocket: null,
     port: PORT_HTTPS
 }));
 

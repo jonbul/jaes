@@ -179,7 +179,7 @@ class Game {
         });
     }
     beginInterval() {
-        const timestep = 1000 / 60; // 60 updates per second (fixed timestep)
+        const timestep = 1000 / 30; // 30 updates per second (fixed timestep)
         let lastTime = null;
         let accumulator = 0;
         const loop = (timestamp) => {
