@@ -85,7 +85,7 @@ const gameRoutes = (app, io, mongoose) => {
     app.post('/gameData', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !req.session.passport.user.admin) res.redirect('/');
+            !req.session.passport.user.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -106,7 +106,7 @@ const gameRoutes = (app, io, mongoose) => {
     app.post('/playerTypes', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !req.session.passport.user.admin) res.redirect('/');
+            !req.session.passport.user.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {

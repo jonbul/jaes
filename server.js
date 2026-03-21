@@ -7,8 +7,9 @@ import cors from 'cors';
 
 const app = express();
 app.use(cors({
-    origin: /^https?:\/\/(jonbul\.ddns\.com|localhost)(:\d+)?$/,
-    methods: ["GET", "POST"],
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 const PORT_HTTPS = process.env.PORT || 3000;
@@ -37,7 +38,7 @@ const gameWS = new Server(https, {
     maxHttpBufferSize: 1e6, // 1MB
     transports: ['websocket', 'polling'],
     cors: {
-        origin: /^https?:\/\/(jonbul\.ddns\.com|localhost)(:\d+)?$/,
+        origin: '*',
         methods: ["GET", "POST"]
     },
     // ✅ Limitar conexiones por IP
@@ -93,7 +94,8 @@ app.use(session({
     saveUninitialized: false,
     store: MongoStore.create({
         client: mongoose.connection.getClient()
-    })
+    }),
+    cookie: { sameSite: 'none', secure: true }
 }));
 
 app.set('view engine', 'ejs');
