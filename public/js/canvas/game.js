@@ -36,14 +36,14 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = window.io(({
+        this.io = window.io({
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
             reconnectionAttempts: 5,
             timeout: 20000,
             transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
-        }));
+        });
         this.loadEvents();
 
         this.createStaticCanvas();
