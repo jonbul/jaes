@@ -17,6 +17,7 @@ import { asyncRequest, showAlert } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
+import { io } from '/socket.io/socket.io.esm.min.js';
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -36,7 +37,7 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = window.io({
+        this.io = io({
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
