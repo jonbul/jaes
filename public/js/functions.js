@@ -2,7 +2,7 @@
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
-function asyncRequest({ path, method, data, withPopup }) {
+function asyncRequest({ path, method, data }) {
     return fetch(path, {
         method: method || 'GET',
         headers: {
@@ -25,7 +25,7 @@ function asyncRequest({ path, method, data, withPopup }) {
                     err = 'Internal Server Error';
                 }
                 err += `(${response.status})`;
-                if (withPopup)showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
                 try {
                     err += ": " + JSON.parse(text);
                 } catch { if (text) err += `: ${text}`; }
