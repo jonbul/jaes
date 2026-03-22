@@ -2,8 +2,8 @@
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
-function asyncRequest({ url, method, data, withPopup }) {
-    return fetch(url, {
+function asyncRequest({ path, method, data, withPopup }) {
+    return fetch(path, {
         method: method || 'GET',
         headers: {
             'Content-Type': 'application/json;charset=UTF-8'

@@ -26,7 +26,7 @@ class GameStatus {
     }
     drawMapInterval() {
         const func = async () => {
-            const data = (await asyncRequest({ url: '/gameData', method: 'POST', data: this.backgroundCardsSorted }));
+            const data = (await asyncRequest({ path: '/gameData', method: 'POST', data: this.backgroundCardsSorted }));
             if (!data) return;
             this.players = data.players;
             this.writePlayersTable(data.players);
@@ -56,7 +56,7 @@ class GameStatus {
     }
     async drawMap(resultCards) {
         if (!this.ships || Object.keys(this.ships).length === 0) {
-            const shipList = await asyncRequest({ url: '/game/getShips', method: 'GET' });
+            const shipList = await asyncRequest({ path: '/game/getShips', method: 'GET' });
             this.ships = {};
             for (const ship of shipList) {
                 this.ships[ship._id] = ship;
