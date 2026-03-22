@@ -687,7 +687,7 @@ class PaintingBoard {
             height: this.menus.resolution.height.value
         };
         const response = await asyncRequest({
-            url: '/paintingBoard/save',
+            path: '/paintingBoard/save',
             method: 'POST',
             data: {
                 id: this.projectId,

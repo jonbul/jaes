@@ -25,7 +25,7 @@ async function onRegisterSubmit(event) {
         return showAlert({ msg: messages, title: 'Some errors found:' });
     }
     const result = await asyncRequest({
-        url: '/register',
+        path: '/register',
         method: 'POST',
         data: form
     });

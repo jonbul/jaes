@@ -17,6 +17,7 @@ import { asyncRequest, showAlert } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
+import { io } from '/socket.io/socket.io.esm.min.js';
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -36,21 +37,21 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = window.io(({
+        this.io = io({
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
             reconnectionAttempts: 5,
             timeout: 20000,
             transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
-        }));
+        });
         this.loadEvents();
 
         this.createStaticCanvas();
 
         // Wait for connection
         this.io.once('connect', async () => {
-            const tempPlayers = (await asyncRequest({ url: '/game/getPlayers', method: 'GET' })).response;
+            const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
             }
@@ -61,7 +62,7 @@ class Game {
                 ship = baseShips[index]
             }
 
-            this.player = new Player(shipsManager, this.username, ship._id, 0, 0, credits);
+            this.player = new Player(shipsManager.getShipById(ship._id), this.username, ship._id, 0, 0, credits);
             this.chargingBar = new ChargingBar(this.player, this.context);
             this.player.socketId = this.io.id;
             this.players[this.player.socketId] = this.player;
@@ -179,7 +180,7 @@ class Game {
         });
     }
     beginInterval() {
-        const timestep = 1000 / 60; // 60 updates per second (fixed timestep)
+        const timestep = 1000 / 30; // 30 updates per second (fixed timestep)
         let lastTime = null;
         let accumulator = 0;
         const loop = (timestamp) => {
@@ -464,7 +465,7 @@ class Game {
         const players = this.players;
         if (plDetails) {
             if (!players[plDetails.socketId]) {
-                players[plDetails.socketId] = new Player(this.shipsManager, plDetails.name, plDetails.shipId);
+                players[plDetails.socketId] = new Player(this.shipsManager.getShipById(plDetails.shipId), plDetails.name, plDetails.shipId);
                 players[plDetails.socketId].socketId = plDetails.socketId;
             }
             players[plDetails.socketId].x = plDetails.x;

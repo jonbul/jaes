@@ -85,7 +85,7 @@ const gameRoutes = (app, io, mongoose) => {
     app.post('/gameData', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !req.session.passport.user.admin) res.redirect('/');
+            !req.session.passport.user.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -106,7 +106,7 @@ const gameRoutes = (app, io, mongoose) => {
     app.post('/playerTypes', (req, res) => {
         if (!req.session.passport ||
             !req.session.passport.user ||
-            !req.session.passport.user.admin) res.redirect('/');
+            !req.session.passport.user.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -163,23 +163,11 @@ const gameRoutes = (app, io, mongoose) => {
 
     //IO
     io.on('connection', (socket) => {
-        let count = 0;
-        for(var prop in io.sockets.sockets) {
-            if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
-                ++count;
-            }
-        }
-        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${count}`);
+        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${io.sockets.sockets.size}`);
 
         ///console.log("Connected from IP: ", socket.handshake.address);
         socket.on('disconnect', async () => {
-            let count = 0;
-            for(var prop in io.sockets.sockets) {
-                if (Object.prototype.hasOwnProperty.call(io.sockets.sockets, prop)) {
-                    ++count;
-                }
-            }
-            console.log(`❌ Desconexión: ${socket.id} | Total: ${count}`);
+            console.log(`❌ Desconexión: ${socket.id} | Total: ${io.sockets.sockets.size}`);
 
             if (!players[socket.id]) return;
             const user = await User.findOne({ username: players[socket.id].name });
@@ -255,18 +243,19 @@ const gameRoutes = (app, io, mongoose) => {
             hasPlayersToSend = true;
         });
 
-        setInterval(cleanPlayers, 10000)
-        function cleanPlayers() {
-            for (const sId in players) {
-                if (Date.now() - players[sId].lastUpdate > 600000) {
-                    delete players[sId];
-                    io.to(sId).emit('sendHome');
-                }
-            }
-        }
+
 
     });
-    setInterval(gameStatusBroadcast)
+    setInterval(cleanPlayers, 10000)
+    function cleanPlayers() {
+        for (const sId in players) {
+            if (Date.now() - players[sId].lastUpdate > 600000) {
+                delete players[sId];
+                io.to(sId).emit('sendHome');
+            }
+        }
+    }
+    setInterval(gameStatusBroadcast, 1000 / 30);
     function gameStatusBroadcast() {
         if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
             io.emit('gameBroadcast', {
