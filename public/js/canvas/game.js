@@ -51,7 +51,7 @@ class Game {
 
         // Wait for connection
         this.io.once('connect', async () => {
-            const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' })).response;
+            const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
             for (const id in tempPlayers) {
                 this.updatePlayers(tempPlayers[id]);
             }

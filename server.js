@@ -38,7 +38,7 @@ const gameWS = new Server(https, {
     maxHttpBufferSize: 1e6, // 1MB
     transports: ['websocket', 'polling'],
     cors: {
-        origin: '*',
+        origin: true,
         methods: ["GET", "POST"]
     },
     // ✅ Limitar conexiones por IP
