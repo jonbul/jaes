@@ -19,8 +19,8 @@ class Player {
         this.x = x;
         this.y = y;
         this.nameShape = new Text(this.name, this.x, this.y - 10, 30, 'Helvetica', '#ffffff');
-        this.width = this.ship.canvas.width;
-        this.height = this.ship.canvas.height;
+        this.width = this.ship.width || this.ship.canvas.width;
+        this.height = this.ship.height || this.ship.canvas.height;
         this.rotate = 0;
         this.bullets = [];
         this.life = 10;
