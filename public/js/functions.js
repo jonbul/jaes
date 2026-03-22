@@ -2,7 +2,7 @@
 import CanvasClasses from './canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
-function asyncRequest({ url, method, data }) {
+function asyncRequest({ url, method, data, withPopup }) {
     return fetch(url, {
         method: method || 'GET',
         headers: {
@@ -25,7 +25,7 @@ function asyncRequest({ url, method, data }) {
                     err = 'Internal Server Error';
                 }
                 err += `(${response.status})`;
-                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                if (withPopup)showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
                 try {
                     err += ": " + JSON.parse(text);
                 } catch { if (text) err += `: ${text}`; }
@@ -33,7 +33,7 @@ function asyncRequest({ url, method, data }) {
             });
         }
         if (method && method.toUpperCase() !== 'GET') {
-            showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
+            //showAlert({ type: ALERT_TYPES.SUCCESS, msg: 'Operation successful', title: 'Success' });
         }
         return response.json().catch(() => response.text());
     });

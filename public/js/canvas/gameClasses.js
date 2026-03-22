@@ -10,11 +10,10 @@ import { parseLayers } from '../functions.js';
 
 window.forms = Forms;
 class Player {
-    constructor(shipsManager, username, shipId, x = 0, y = 0, credits) {
-        this.shipsManager = shipsManager;
+    constructor(ship, username, shipId, x = 0, y = 0, credits) {
         this.name = username;
         this.shipId = shipId;
-        this.ship = shipsManager.getShipById(shipId);
+        this.ship = ship;
         this.credits = credits || 0;
         this.layers = parseLayers(this.ship.layers);
         this.x = x;
@@ -161,8 +160,8 @@ class Player {
      */
     getRealDimension() {
         return {
-            x: this.x + this.xTranslation,
-            y: this.y + this.yTranslation,
+            x: this.x + (this.xTranslation || 0),
+            y: this.y + (this.yTranslation || 0),
             width: this.realWidth,
             height: this.realHeight
         }

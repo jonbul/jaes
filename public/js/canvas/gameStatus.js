@@ -2,7 +2,7 @@
 import {
     Rect,
 } from './canvasClasses.js';
-import Player from './gameClasses.js';
+import { Player } from './gameClasses.js';
 import { asyncRequest } from '../functions.js';
 class GameStatus {
     constructor(canvasWidth, canvasHeight) {
@@ -22,6 +22,7 @@ class GameStatus {
         window.drawMap = this.drawMap.bind(this);
         this.mouseEvent();
         this.playersDetails = document.getElementById('playersDetails');
+        this.ships = null;
     }
     drawMapInterval() {
         const func = async () => {
@@ -44,7 +45,7 @@ class GameStatus {
         for (const plId in players) {
             const player = players[plId];
             const tr = document.createElement('tr');
-            props.forEach( prop => {
+            props.forEach(prop => {
                 const td = document.createElement('td');
                 td.style.textAlign = 'center';
                 td.innerHTML = player[prop];
@@ -53,7 +54,14 @@ class GameStatus {
             this.playersDetails.appendChild(tr);
         }
     }
-    drawMap(resultCards) {
+    async drawMap(resultCards) {
+        if (!this.ships || Object.keys(this.ships).length === 0) {
+            const shipList = await asyncRequest({ url: '/game/getShips', method: 'GET' });
+            this.ships = {};
+            for (const ship of shipList) {
+                this.ships[ship._id] = ship;
+            }
+        }
         new Rect(0, 0, this.canvasWidth, this.canvasHeight, '#ffffff').draw(this.context)
         const absoluteValues = {
             x1: 0,
@@ -122,7 +130,7 @@ class GameStatus {
             if (!player.isDead) {
                 const x = (player.x - absoluteValues.x1 * this.canvasWidth) / biggerRelation;
                 const y = (player.y - absoluteValues.y1 * this.canvasHeight) / biggerRelation;
-                const pl = new Player(player.name, player.shipId, x, y);
+                const pl = new Player(this.ships[player.shipId], player.name, player.shipId, x, y);
                 pl.rotate = player.rotate;
                 pl.draw(this.context);
             }
