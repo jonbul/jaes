@@ -6,7 +6,8 @@ function asyncRequest({ path, method, data }) {
     return fetch(path, {
         method: method || 'GET',
         headers: {
-            'Content-Type': 'application/json;charset=UTF-8'
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: data && typeof data === "object" ? JSON.stringify(data) : data
     }).then(response => {

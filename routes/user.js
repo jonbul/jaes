@@ -1,4 +1,6 @@
 import passport from 'passport';
+import Session from '../model/session.js';
+import User from '../model/user.js';
 
 const userRoutes = (app) => {
     app.get('/', (req, res) => {
@@ -63,6 +65,51 @@ const userRoutes = (app) => {
         failureRedirect: '/login',
         failureFlash: true
     }));
+    
+    app.get('/login_v2', (req, res) => {
+        if (req.session.passport && req.session.passport.user) {
+            return res.redirect('/');
+        }
+        const success = req.flash('success');
+        const errors = req.flash('error');
+        console.error({errors})
+        console.log('success', success);
+        
+        res.render('user/login_v2', {
+            title: 'Home',
+            username: req.user ? req.user.username : '',
+            isAdmin: req.user ? req.user.admin : false,
+            success,
+            hasSuccess: !!success.length,
+            errors,
+            hasErrors: !!errors.length,
+        });
+    });
+    
+    app.post('/login_v2', async (req, res, next) => {
+        const email = req.body.email;
+        const password = req.body.password;
+        const user =await User.findOne({ email })
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        const isValid = await user.validPassword(password);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const token = getNewBearerToken();
+        
+        const newSession = new Session({
+            admin: user.admin,
+            user_id: user._id.toString(),
+            sessionTimestamp: Date.now(),
+            persistant: req.body.rememberMe || false,
+            token
+        });
+
+        res.json({ success: true, token });
+    });
 
     app.get('/logout', (req, res) => {
         req.logout(() => { 
@@ -86,3 +133,9 @@ const userRoutes = (app) => {
     });
 }
 export default userRoutes;
+
+function getNewBearerToken() {
+    const ts = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return `${ts}-${randomString}`;
+}
