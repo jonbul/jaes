@@ -60,8 +60,6 @@ http.createServer((req, res) => {
 
 import cookieParser from 'cookie-parser';
 
-import passport from 'passport';
-
 import flash from 'connect-flash';
 
 import ejsMate from 'ejs-mate';
@@ -76,7 +74,6 @@ app.use(flash());
 
 
 global.io = gameWS;
-app.use(passport.initialize());
 app.use(express.static('public'));
 app.use(express.static('shared'));
 app.use(express.json({ limit: '50mb' }));
@@ -84,7 +81,6 @@ app.use(express.urlencoded({ limit: '50mb' }));
 
 
 import './model/user.js';
-import './passport/passport.js';
 
 app.use(cookieParser());
 

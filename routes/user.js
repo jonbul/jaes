@@ -1,13 +1,9 @@
-import passport from 'passport';
 import Session from '../model/session.js';
 import User from '../model/user.js';
 
 const userRoutes = (app) => {
-    app.get('/', (req, res) => {
-        let user;
-        if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
-        }
+    app.get('/', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
         res.render('home', {
             title: 'Home',
             username: user ? user.username : '',
@@ -15,68 +11,13 @@ const userRoutes = (app) => {
         });
     });
     app.get('/userInfo', async (req, res) => {
-        const userSession = await getSessionIfStillValid(req.cookies.token);
-        let user = null;
-        if (userSession) {
-            user = await User.findById(userSession.userId).select('-password').select('-email');
-        }
+        const user = await getUserSessionIfStillValid(req.cookies.token);
 
         res.json(user);
     });
 
-    app.get('/register', (req, res) => {
-        if (req.session.passport && req.session.passport.user) {
-            return res.redirect('/');
-        }
-        const errors = req.flash('error');
-        res.render('user/register', {
-            title: 'Home',
-            username: req.user ? req.user.username : '',
-            isAdmin: req.user ? req.user.admin : false,
-            errors,
-            hasErrors: !!errors.length
-        });
-    });
-
-    app.post('/register', passport.authenticate('local.signup'), (req, res) => {
-        const errors = req.flash('error');
-        if (errors && errors.length) {
-            res.status(500).json({ errors });
-        } else {
-            req.flash('success', 'User correctly registered');
-            res.sendStatus(200);
-        }
-
-    });
-
-    app.get('/login', (req, res) => {
-        if (req.session.passport && req.session.passport.user) {
-            return res.redirect('/');
-        }
-        const success = req.flash('success');
-        const errors = req.flash('error');
-        console.error({ errors })
-        console.log('success', success);
-
-        res.render('user/login', {
-            title: 'Home',
-            username: req.user ? req.user.username : '',
-            isAdmin: req.user ? req.user.admin : false,
-            success,
-            hasSuccess: !!success.length,
-            errors,
-            hasErrors: !!errors.length,
-        });
-    });
-
-    app.post('/login', passport.authenticate('local.login', {
-        successRedirect: '/',
-        failureRedirect: '/login',
-        failureFlash: true
-    }));
-
-    app.get('/register_v2', (req, res) => {
-        if (getSessionIfStillValid(req.cookies.token)) {
+    app.get('/register_v2', async (req, res) => {
+        if (await getUserSessionIfStillValid(req.cookies.token)) {
             return res.redirect('/');
         }
 
@@ -90,7 +31,7 @@ const userRoutes = (app) => {
         });
     });
 
-    app.post('/register_v2', passport.authenticate('local.signup'), (req, res) => {
+    app.post('/register_v2', (req, res) => {
         const errors = req.flash('error');
         if (errors && errors.length) {
             res.status(500).json({ errors });
@@ -168,12 +109,8 @@ const userRoutes = (app) => {
     });
 
     app.get('/profile', async (req, res) => {
-        let user;
-        const userSession = await getSessionIfStillValid(req.cookies.token);
-        if (userSession) {
-            user = await User.findById(userSession.userId);
-        }
-
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        
         res.render('user/profile', {
             title: 'Profile',
             username: user.username,
@@ -197,3 +134,13 @@ async function getSessionIfStillValid(token) {
 
     return null;
 }
+
+async function getUserSessionIfStillValid(token) {
+    let userSession = await getSessionIfStillValid(token);
+    if (userSession) {
+        return await User.findById(userSession.userId);
+    }
+
+    return null;
+}
+

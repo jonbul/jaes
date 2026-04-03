@@ -2,6 +2,7 @@ import Ship from '../model/ship.js';
 import PaintingProject from '../model/paintingProject.js';
 import { resolutions, allowedPlayerTypes } from './constants.js';
 import User from '../model/user.js';
+import Session from '../model/session.js';
 
 const gameRoutes = (app, io, mongoose) => {
     if (io._jaesGameHandlerRegistered) return;
@@ -18,13 +19,14 @@ const gameRoutes = (app, io, mongoose) => {
 
     app.get('/game', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            const sUser = req.session.passport ? req.session.passport.user : {};
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
+            const sUser = user;
 
             res.render('canvas/game', {
                 title: 'Game',
-                username: sUser.username || '',
-                isAdmin: sUser.admin
+                username: sUser ? sUser.username : '',
+                isAdmin: sUser ? sUser.admin : false
             });
         } else {
             res.redirect('/');
@@ -34,13 +36,12 @@ const gameRoutes = (app, io, mongoose) => {
     app.get('/game/data', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
 
-        const sUser = req.session.passport ? req.session.passport.user : {};
+        const user = (await getUserSessionIfStillValid(req.cookies.token)) || {};
 
-        const user = sUser ? await User.findOne({ username: sUser.username }) : {};
         res.send({
             title: 'Game',
-            username: sUser.username || '',
-            credits: user?.credits || 0,
+            username: user.username || '',
+            credits: user.credits || 0,
             canvasWidth: resolutions[currentResolution].width,
             canvasHeight: resolutions[currentResolution].height,
             guestsAllowed: allowedPlayerType === allowedPlayerTypes.All
@@ -49,10 +50,11 @@ const gameRoutes = (app, io, mongoose) => {
 
     app.get('/game/userShips', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            if (req.session.passport && req.session.passport.user) {
+        const sUser = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || sUser) {
+            if (sUser) {
                 res.send({
-                    userShips: await PaintingProject.find({ userId: req.session.passport.user })
+                    userShips: await PaintingProject.find({ userId: sUser._id })
                 });
             } else {
                 res.send({
@@ -64,15 +66,12 @@ const gameRoutes = (app, io, mongoose) => {
         }
     });
 
-    app.get('/game/status', (req, res) => {
-        let user;
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) {
+    app.get('/game/status', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) {
             res.redirect('/');
         } else {
             currentResolution = currentResolution || 1;
-            user = req.session.passport.user;
             res.render('canvas/gameStatus', {
                 title: 'Game Preview',
                 username: user.username,
@@ -82,10 +81,9 @@ const gameRoutes = (app, io, mongoose) => {
             });
         }
     });
-    app.post('/gameData', (req, res) => {
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) return res.redirect('/');
+    app.post('/gameData', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -103,10 +101,9 @@ const gameRoutes = (app, io, mongoose) => {
             resultCards
         });
     });
-    app.post('/playerTypes', (req, res) => {
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) return res.redirect('/');
+    app.post('/playerTypes', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -122,7 +119,8 @@ const gameRoutes = (app, io, mongoose) => {
         });
     });
     app.get('/game/getShips', async (req, res) => {
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
             const s1 = await Ship.find();
             const s2 = await PaintingProject.find();
             res.send(s2.concat(s1));
@@ -130,16 +128,16 @@ const gameRoutes = (app, io, mongoose) => {
     });
 
     app.get('/game/getPlayers', async (req, res) => {
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
             res.send(players);
         }
     });
 
-    app.get('/game/admin', (req, res) => {
+    app.get('/game/admin', async (req, res) => {
         currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
-
-        if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
-            const user = req.session.passport.user;
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (user?.admin) {
 
             res.render('canvas/admin', {
                 title: 'Administration',
@@ -151,11 +149,13 @@ const gameRoutes = (app, io, mongoose) => {
                 allowedPlayerType
             });
         } else {
-            req.redirect('/');
+            res.redirect('/');
         }
     });
 
-    app.post('/game/admin', (req, res) => {
+    app.post('/game/admin', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) return res.redirect('/');
         currentResolution = parseInt(req.body.resolution);
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
         res.redirect('/game/admin');
@@ -272,6 +272,23 @@ const gameRoutes = (app, io, mongoose) => {
         }
     }
     io._jaesGameHandlerRegistered = true;
+}
+
+async function getSessionIfStillValid(token) {
+    let userSession = await Session.findOne({ token, loggedOut: false });
+    if (!userSession) return null;
+    if (userSession.persistant || userSession.sessionTimestamp + 24 * 60 * 60 * 1000 > Date.now()) return userSession;
+
+    return null;
+}
+
+async function getUserSessionIfStillValid(token) {
+    let userSession = await getSessionIfStillValid(token);
+    if (userSession) {
+        return await User.findById(userSession.userId);
+    }
+
+    return null;
 }
 
 export default gameRoutes;

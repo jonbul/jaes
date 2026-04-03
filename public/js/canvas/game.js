@@ -17,7 +17,7 @@ import { asyncRequest, showAlert } from '../functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-import { io } from '/socket.io/socket.io.esm.min.js';
+import { io } from 'https://cdn.socket.io/4.8.3/socket.io.esm.min.js';
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {

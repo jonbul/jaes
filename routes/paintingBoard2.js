@@ -1,5 +1,7 @@
 import PaintingProject from '../model/paintingProject.js';
 import CONST from '../shared/constants.js';
+import Session from '../model/session.js';
+import User from '../model/user.js';
 
 const CONTROLLER = '/paintingBoard2'
 const paintingBoard2Routes = (app) => {
@@ -9,9 +11,8 @@ const paintingBoard2Routes = (app) => {
      * Response: HTML page
      */
     app.get(CONTROLLER, async (req, res) => {
-        let user;
-        if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (user) {
             res.render('paintingBoard2/paintingBoard2', {
                 title: 'PaintingBoard',
                 username: user.username,
@@ -29,9 +30,8 @@ const paintingBoard2Routes = (app) => {
      * Each project entry includes a thumbnail preview, project name (as a link to open the project), creation date, modification date, and a delete button.
      */
     app.get(CONTROLLER + '/projects', async (req, res) => {
-        let user;
-        if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (user) {
             res.render('paintingBoard/projects', {
                 title: 'Projects',
                 username: user.username,
@@ -48,14 +48,14 @@ const paintingBoard2Routes = (app) => {
      * Response: { success: true }
      */
     app.delete(CONTROLLER + '/projects', async (req, res) => {
-        if (req.session.passport && req.session.passport.user) {
-            const userId = req.session.passport.user._id;
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        if (userSession) {
             const id = req.query.id;
             if (!id  || id.trim() === '') {
                 return res.status(400).send('Project id is required');
             }
             if (id) {
-                await PaintingProject.deleteOne({ _id: id, userId }).exec();
+                await PaintingProject.deleteOne({ _id: id, userId: userSession.userId }).exec();
             }
             res.send({ success: true });
         } else {
@@ -68,9 +68,9 @@ const paintingBoard2Routes = (app) => {
      * Response: Array of project objects
      */
     app.get(CONTROLLER + '/projects/all', async (req, res) => {
-        if (req.session.passport && req.session.passport.user) {
-            const userId = req.session.passport.user._id;
-            const projects = await getPaintingProjectsByUserId(userId);
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        if (userSession) {
+            const projects = await getPaintingProjectsByUserId(userSession.userId);
             res.send(projects || []);
         } else {
             res.redirect('/');
@@ -87,9 +87,9 @@ const paintingBoard2Routes = (app) => {
             return res.status(400).send('Project id is required');
         }
 
-        if (req.session.passport && req.session.passport.user) {
-            const userId = req.session.passport.user._id;
-            const project = await getPaintingProjectByIdAndUser(id, userId);
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        if (userSession) {
+            const project = await getPaintingProjectByIdAndUser(id, userSession.userId);
             if (!project) {
                 return res.status(404).send('Project not found');
             }
@@ -113,8 +113,9 @@ const paintingBoard2Routes = (app) => {
      */
     app.post(CONTROLLER + '/save', async (req, res) => {
 
-        if (req.session.passport && req.session.passport.user) {
-            const userId = req.session.passport.user._id;
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        if (userSession) {
+            const userId = userSession.userId;
             const projectData = req.body.project;
             const id = req.query.id || projectData._id;
             let project;
@@ -180,6 +181,23 @@ const paintingBoard2Routes = (app) => {
         });
         return Promise.all(projectsList.map(project => addProjectShapes(project, projectsMap)));
     }
+}
+
+async function getSessionIfStillValid(token) {
+    let userSession = await Session.findOne({ token, loggedOut: false });
+    if (!userSession) return null;
+    if (userSession.persistant || userSession.sessionTimestamp + 24 * 60 * 60 * 1000 > Date.now()) return userSession;
+
+    return null;
+}
+
+async function getUserSessionIfStillValid(token) {
+    let userSession = await getSessionIfStillValid(token);
+    if (userSession) {
+        return await User.findById(userSession.userId);
+    }
+
+    return null;
 }
 
 export default paintingBoard2Routes;
