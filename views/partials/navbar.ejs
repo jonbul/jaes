@@ -4,13 +4,62 @@
     aria-expanded="false" aria-label="Toggle navigation">
     &#9776;
   </button>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
+  <script type="module">
+    import { asyncRequest } from '/js/functions.js';
+    document.addEventListener('DOMContentLoaded', async function () {
+      // Menu events
       const button = document.querySelector('.navbar-button');
       const menu = document.getElementById('navbarMenu');
-      button.addEventListener('click', function() {
+      button.addEventListener('click', function () {
         menu.toggleAttribute('collapsed-expanded', menu.hasAttribute('collapsed-expanded') ? '' : 'true');
       });
+
+      // User session handling
+      const lsToken = localStorage.getItem('token');
+      if (lsToken) {
+        const ckTokenObj = await cookieStore.get('token');
+        const ckToken = ckTokenObj ? ckTokenObj.value : null;
+        if (lsToken !== ckToken) {
+          cookieStore.delete('token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+
+        let user = localStorage.getItem('user');
+        if (!user) {
+          user = await asyncRequest({ path: '/userInfo', method: 'GET' });
+          if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+        }
+      } else {
+        cookieStore.delete('token');
+        localStorage.removeItem('user');
+      }
+
+
+      const user = JSON.parse(localStorage.getItem('user'));
+      const username = user ? user.username : null;
+      const usernameElement = document.getElementById('username');
+      if (username && usernameElement) {
+        usernameElement.textContent = ` ${username}`;
+      }
+      
+      document.getElementById('navbarMenuRight').querySelectorAll('.nav-item').forEach(item => {
+        if (username) {
+          if (item.classList.contains('nologged')) {
+            item.style.display = 'none';
+          }
+          if (item.classList.contains('profile')) {
+            item.querySelector('span[name="username"]').textContent = username;
+          }
+        } else {
+          if (item.classList.contains('logged')) {
+            item.style.display = 'none';
+          }
+        }
+      });
+
     });
   </script>
   <ul class="navbarMenu collapsable" id="navbarMenu">
@@ -32,28 +81,25 @@
           <a class="nav-link" href="/game/admin">Admin</a>
         </li>
 
-        <% }
-       } %>
+        <% } } %>
   </ul>
   </div>
   <ul class="navbarMenu" id="navbarMenuRight">
-    <% if (!username) { %>
-      <li class="nav-item">
-        <a href="/login_v2" class="nav-link">Login</a>
-      </li>
-      <li class="nav-item">
-        <a href="/register_v2" class="nav-link">Register</a>
-      </li>
-      <% } else { %>
-        <li class="nav-item">
-          <a href="/profile" class="nav-link" alt="<%= username %>">
-            <i class="fa fa-user"></i>
-            <%= username %>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link">Logout</a>
-        </li>
-        <% } %>
+    <li class="nav-item nologged">
+      <a href="/login_v2" class="nav-link">Login</a>
+    </li>
+    <li class="nav-item nologged">
+      <a href="/register_v2" class="nav-link">Register</a>
+    </li>
+
+    <li class="nav-item logged profile">
+      <a href="/profile" class="nav-link" alt="<%= username %>">
+        👤
+        <span name="username"></span>
+      </a>
+    </li>
+    <li class="nav-item logged">
+      <a href="/logout_v2" class="nav-link">Logout</a>
+    </li>
   </ul>
 </nav>

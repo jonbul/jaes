@@ -14,7 +14,16 @@ const userRoutes = (app) => {
             isAdmin: user ? user.admin : false
         });
     });
-    
+    app.get('/userInfo', async (req, res) => {
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        let user = null;
+        if (userSession) {
+            user = await User.findById(userSession.userId).select('-password').select('-email');
+        }
+
+        res.json(user);
+    });
+
     app.get('/register', (req, res) => {
         if (req.session.passport && req.session.passport.user) {
             return res.redirect('/');
@@ -28,27 +37,27 @@ const userRoutes = (app) => {
             hasErrors: !!errors.length
         });
     });
-    
+
     app.post('/register', passport.authenticate('local.signup'), (req, res) => {
         const errors = req.flash('error');
         if (errors && errors.length) {
-            res.status(500).json({errors});
+            res.status(500).json({ errors });
         } else {
             req.flash('success', 'User correctly registered');
             res.sendStatus(200);
         }
-        
+
     });
-    
+
     app.get('/login', (req, res) => {
         if (req.session.passport && req.session.passport.user) {
             return res.redirect('/');
         }
         const success = req.flash('success');
         const errors = req.flash('error');
-        console.error({errors})
+        console.error({ errors })
         console.log('success', success);
-        
+
         res.render('user/login', {
             title: 'Home',
             username: req.user ? req.user.username : '',
@@ -59,7 +68,7 @@ const userRoutes = (app) => {
             hasErrors: !!errors.length,
         });
     });
-    
+
     app.post('/login', passport.authenticate('local.login', {
         successRedirect: '/',
         failureRedirect: '/login',
@@ -70,7 +79,7 @@ const userRoutes = (app) => {
         if (getSessionIfStillValid(req.cookies.token)) {
             return res.redirect('/');
         }
-        
+
         const errors = req.flash('error');
         res.render('user/register_v2', {
             title: 'Home',
@@ -80,27 +89,27 @@ const userRoutes = (app) => {
             hasErrors: !!errors.length
         });
     });
-    
+
     app.post('/register_v2', passport.authenticate('local.signup'), (req, res) => {
         const errors = req.flash('error');
         if (errors && errors.length) {
-            res.status(500).json({errors});
+            res.status(500).json({ errors });
         } else {
             req.flash('success', 'User correctly registered');
             res.redirect('/login_v2');
         }
-        
+
     });
-    
+
     app.get('/login_v2', async (req, res) => {
         if (!!(await getSessionIfStillValid(req.cookies.token))) {
             return res.redirect('/');
         }
         const success = req.flash('success');
         const errors = req.flash('error');
-        console.error({errors})
+        console.error({ errors })
         console.log('success', success);
-        
+
         res.render('user/login_v2', {
             title: 'Home',
             username: req.user ? req.user.username : '',
@@ -111,11 +120,11 @@ const userRoutes = (app) => {
             hasErrors: !!errors.length,
         });
     });
-    
+
     app.post('/login_v2', async (req, res, next) => {
         const email = req.body.email;
         const password = req.body.password;
-        const user =await User.findOne({ email })
+        const user = await User.findOne({ email })
         if (!user) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
@@ -125,7 +134,7 @@ const userRoutes = (app) => {
         }
 
         const token = getNewBearerToken();
-        
+
         const newSession = new Session({
             admin: user.admin,
             userId: user._id.toString(),
@@ -140,27 +149,31 @@ const userRoutes = (app) => {
     });
 
     app.get('/logout', (req, res) => {
-        req.logout(() => { 
+        req.logout(() => {
             req.session.destroy(() => {
                 res.redirect('/');
             });
         });
     });
 
-    app.get('/logout_v2', (req, res) => {
+    app.get('/logout_v2', async (req, res) => {
         const token = req.cookies.token;
-        const session =getSessionIfStillValid(token);
+        const session = await getSessionIfStillValid(token);
         if (session) {
             session.loggedOut = true;
             session.save();
         }
+        res.clearCookie('token');
+        res.redirect('/');
     });
 
-    app.get('/profile', (req, res) => {
+    app.get('/profile', async (req, res) => {
         let user;
-        if (req.session.passport && req.session.passport.user) {
-            user = req.session.passport.user;
+        const userSession = await getSessionIfStillValid(req.cookies.token);
+        if (userSession) {
+            user = await User.findById(userSession.userId);
         }
+
         res.render('user/profile', {
             title: 'Profile',
             username: user.username,
@@ -181,8 +194,6 @@ async function getSessionIfStillValid(token) {
     let userSession = await Session.findOne({ token, loggedOut: false });
     if (!userSession) return null;
     if (userSession.persistant || userSession.sessionTimestamp + 24 * 60 * 60 * 1000 > Date.now()) return userSession;
-    
-    userSession.loggedOut = true;
-    await userSession.save();
+
     return null;
 }
