@@ -2,16 +2,19 @@
 import { asyncRequest, showAlert } from "/js/functions.js"
 
 const initRegister = () => {
-    document.getElementById('form-register').addEventListener('submit', onRegisterSubmit);
+    document.getElementById('register').addEventListener('click', onRegisterSubmit);
 }
 
 async function onRegisterSubmit(event) {
     event.preventDefault();
-    const fd = new FormData(document.getElementById('form-register'));
-    const form = {};
-    fd.forEach(function (value, key) {
-        form[key] = value;
-    });
+    const fd = document.getElementById('form-register');
+    const form = {
+        username: fd.querySelector('input#username').value,
+        email: fd.querySelector('input#inputEmail').value,
+        password: fd.querySelector('input#inputPassword').value,
+        cpassword: fd.querySelector('input#inputRepeatPassword').value
+    };
+
     const messages = [];
 
     if (form.password !== form.cpassword) {
@@ -24,18 +27,23 @@ async function onRegisterSubmit(event) {
     if (messages.length) {
         return showAlert({ msg: messages, title: 'Some errors found:' });
     }
-    const result = await asyncRequest({
-        path: '/register',
-        method: 'POST',
-        data: form
-    });
-    if (result.success) {
-        return location.href = '/login';
-    }
     try {
-        showAlert({ msg: JSON.parse(result.response).errors, title: 'Some errors happened:' });
-    } catch {
-        showAlert({ msg: result.response || result, title: 'Some errors happened:' });
+        const result = await asyncRequest({
+            path: '/register',
+            method: 'POST',
+            data: form
+        });
+        if (result.success) {
+            return location.href = '/login';
+        }
+        
+    } catch (err) {
+
+        try {
+            showAlert({ msg: err.errors || err.response || err, title: 'Some errors happened:' });
+        } catch {
+            showAlert({ msg:  err.response || err, title: 'Some errors happened:' });
+        }
     }
 }
 

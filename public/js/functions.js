@@ -29,10 +29,15 @@ function asyncRequest({ path, method, data }) {
                 }
                 err += `(${response.status})`;
                 showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                let errors = null;
                 try {
-                    err += ": " + JSON.parse(text);
+                    const parsedText = JSON.parse(text);
+                    err += ": " + parsedText.errors;
+                    if (parsedText) {
+                        errors = parsedText.errors;
+                    }
                 } catch { if (text) err += `: ${text}`; }
-                return Promise.reject(err);
+                return Promise.reject({status: response.status, response: err, text, errors });
             });
         }
         if (method && method.toUpperCase() !== 'GET') {

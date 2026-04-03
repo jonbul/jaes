@@ -16,13 +16,13 @@ const userRoutes = (app) => {
         res.json(user);
     });
 
-    app.get('/register_v2', async (req, res) => {
+    app.get('/register', async (req, res) => {
         if (await getUserSessionIfStillValid(req.cookies.token)) {
             return res.redirect('/');
         }
 
         const errors = req.flash('error');
-        res.render('user/register_v2', {
+        res.render('user/register', {
             title: 'Home',
             username: req.user ? req.user.username : '',
             isAdmin: req.user ? req.user.admin : false,
@@ -31,18 +31,38 @@ const userRoutes = (app) => {
         });
     });
 
-    app.post('/register_v2', (req, res) => {
-        const errors = req.flash('error');
+    app.post('/register', async (req, res) => {
+        const user = await User.findOne({ email: req.body.email })
+        
+        const errors = [];
+        if (user) {
+            errors.push('Email already in use');
+        }
+        const body = req.body || {};
+        if (!body.password || body.password.length < 6) {
+            errors.push('Password must be at least 6 characters');
+        }
+        if (body.password !== body.cpassword) {
+            errors.push('Passwords do not match');
+        }
+
         if (errors && errors.length) {
-            res.status(500).json({ errors });
+            res.status(500).json({errors});
         } else {
-            req.flash('success', 'User correctly registered');
-            res.redirect('/login_v2');
+            
+            const newUser = new User({
+                username: req.body.username,
+                email: req.body.email
+            });
+            newUser.password = await newUser.encryptPassword(body.password);
+            await newUser.save();
+            req.flash('success', 'Registration successful, you can now login');
+            res.json({ success: true });
         }
 
     });
 
-    app.get('/login_v2', async (req, res) => {
+    app.get('/login', async (req, res) => {
         if (!!(await getSessionIfStillValid(req.cookies.token))) {
             return res.redirect('/');
         }
@@ -51,7 +71,7 @@ const userRoutes = (app) => {
         console.error({ errors })
         console.log('success', success);
 
-        res.render('user/login_v2', {
+        res.render('user/login', {
             title: 'Home',
             username: req.user ? req.user.username : '',
             isAdmin: req.user ? req.user.admin : false,
@@ -62,7 +82,7 @@ const userRoutes = (app) => {
         });
     });
 
-    app.post('/login_v2', async (req, res, next) => {
+    app.post('/login', async (req, res, next) => {
         const email = req.body.email;
         const password = req.body.password;
         const user = await User.findOne({ email })
@@ -89,21 +109,14 @@ const userRoutes = (app) => {
         res.json({ success: true, token });
     });
 
-    app.get('/logout', (req, res) => {
-        req.logout(() => {
-            req.session.destroy(() => {
-                res.redirect('/');
-            });
-        });
-    });
-
-    app.get('/logout_v2', async (req, res) => {
+    app.get('/logout', async (req, res) => {
         const token = req.cookies.token;
         const session = await getSessionIfStillValid(token);
         if (session) {
             session.loggedOut = true;
             session.save();
         }
+        req.session.destroy();
         res.clearCookie('token');
         res.redirect('/');
     });
