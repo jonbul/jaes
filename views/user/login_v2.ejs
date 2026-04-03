@@ -66,8 +66,8 @@
                                 // Handle successful login (e.g., redirect to dashboard)
                                 debugger;
                                 localStorage.setItem('token', data.token); // Store the token in localStorage
-                                //window.location.href = '/'; // Redirect to home
-                                alert("Login successful! Token: " + data.token);
+                                cookieStore.set("token", localStorage.getItem("token")); // Set the token as a cookie
+                                window.location.href = '/'; // Redirect to home
                             } else {
                                 // Handle login failure (e.g., display error message)
                                 alert(data.message || 'Login failed');

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 
 const Session = new mongoose.Schema(
     {
         admin: Boolean,
-        user_id: String,
+        userId: String,
         sessionTimestamp: Number,
         persistant: Boolean,
-        token: String
+        token: String,
+        loggedOut: { type: Boolean, default: false }
     }
 )
 
