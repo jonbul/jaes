@@ -44,14 +44,17 @@
       if (username && usernameElement) {
         usernameElement.textContent = ` ${username}`;
       }
-      
-      document.getElementById('navbarMenuRight').querySelectorAll('.nav-item').forEach(item => {
+
+      document.getElementById('mainNavbar').querySelectorAll(".navbarMenu>.nav-item").forEach(item => {
         if (username) {
           if (item.classList.contains('nologged')) {
             item.style.display = 'none';
           }
           if (item.classList.contains('profile')) {
             item.querySelector('span[name="username"]').textContent = username;
+          }
+          if (item.classList.contains('admin') && !user.isAdmin) {
+            item.style.display = 'none';
           }
         } else {
           if (item.classList.contains('logged')) {
@@ -69,19 +72,15 @@
     <li class="nav-item">
       <a class="nav-link" href="/game">Game</a>
     </li>
-    <% if (username) { %>
-      <li class="nav-item">
-        <a class="nav-link" href="/paintingBoard2/projects">Painting Projects</a>
-      </li>
-      <% if (isAdmin) { %>
-        <li class="nav-item">
-          <a class="nav-link" href="/game/status">GameStatus</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/game/admin">Admin</a>
-        </li>
-
-        <% } } %>
+    <li class="nav-item logged">
+      <a class="nav-link" href="/paintingBoard/projects">Painting Projects</a>
+    </li>
+    <li class="nav-item logged admin">
+      <a class="nav-link" href="/game/status">GameStatus</a>
+    </li>
+    <li class="nav-item logged admin">
+      <a class="nav-link" href="/game/admin">Admin</a>
+    </li>
   </ul>
   </div>
   <ul class="navbarMenu" id="navbarMenuRight">

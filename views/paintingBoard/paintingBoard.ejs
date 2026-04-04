@@ -1,37 +1,24 @@
-<% layout('layout') %>
+<% layout('layoutFullScreen') %>
+<div id="paintingBoard" class="paintingBoardWindowed">
+    <span id="alerts"></span>
+    <div id="projectTitleBar">
+            <input id="projectName" class="" placeholder="Name">
+            <button class="btn btn-primary" value="save" id="save">Save</button>
 
-<span id="alerts"></span>
-<div class="row mt-2">
-    <div class="col-11">
-        <input id="projectName" class="form-control" placeholder="Name">
+        Resolution
+        <input type="number" id="boardW" min="0" />
+        x
+        <input type="number" id="boardH" min="0" />
+        Zoom
+        <input type="number" id="boardZoom" value="100" title="Ctrl + Scroll" step="5"/>%
     </div>
-    <div class="col-1">
-        <button class="btn btn-primary" value="save" id="save">Save</button>
+
+    <div id="canvasBorder">
+        <canvas id="canvas" width="800" height="600" tool="pencil"></canvas>
     </div>
+
+    <%- include('windows') %>
+    <link rel="stylesheet" href="/css/paintingBoard/paintingBoard.css" type="text/css">
+    <link rel="stylesheet" href="/css/paintingBoard/windows.css" type="text/css">
+    <script type="module" src="/js/paintingBoard/paintingBoard.js"></script>
 </div>
-<div class="row mt-2">
-    <div class="col-2">
-        <%- include('left/leftMenu') %>
-    </div>
-    <div class="col-8">
-        <div id="canvasBorder" style="border: solid 1px;"><canvas id="canvas" width="800" height="600" tool="pencil"></canvas></div>
-        <label id="currentPosition"></label>
-    </div>
-    <div class="col-2 ">
-
-        <%- include('right/rightMenu') %>
-    </div>
-</div>
-
-<link rel="stylesheet" href="/css/paintingBoard.css" type="text/css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
-    integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
-    crossorigin="anonymous"></script>
-<script type="module">
-    import PaintingBoard from '/js/paintingBoard/paintingBoard.js';
-    window.PaintingBoard = PaintingBoard;
-    const json = `<%-JSON.stringify(project)%>`;
-    let project;
-    if(json) project = JSON.parse(json);
-    new PaintingBoard(document.getElementById('canvas'), project);
-</script>

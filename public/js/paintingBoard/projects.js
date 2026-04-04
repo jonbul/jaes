@@ -2,7 +2,7 @@ import { asyncRequest, parseLayers } from '/js/functions.js';
 
 const projectBoard = document.getElementById('projectBoard');
 
-const projects = await asyncRequest({ path: '../paintingBoard2/projects/all', method: 'GET' });
+const projects = await asyncRequest({ path: '../paintingBoard/projects/all', method: 'GET' });
 
 if (projects) {
 
@@ -34,7 +34,7 @@ if (projects) {
         
         const title = document.createElement('h5');
         const link = document.createElement('a');
-        link.href = `/paintingBoard2?id=${project._id}`;
+        link.href = `/paintingBoard?id=${project._id}`;
         link.textContent = project.name;
         title.appendChild(link);
         card.appendChild(title);
@@ -50,7 +50,7 @@ if (projects) {
         projectBoard.appendChild(card);
     }
     function deleteProject(id, card) {
-        fetch(`../paintingBoard2/projects?id=${id}`, {
+        fetch(`../paintingBoard/projects?id=${id}`, {
             method: 'DELETE'
         }).then(response => response.json())
             .then(data => {

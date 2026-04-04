@@ -100,15 +100,15 @@ app.engine('ejs', ejsMate);
 //Grafana
 collectDefaultMetrics();
 
-import grafanaRoutes from './routes/grafana.js';
-import userRoutes from './routes/user.js';
-import gameRoutes from './routes/game.js';
-import paintingBoard2Routes from './routes/paintingBoard2.js';
+import grafanaRoutes from './routes/grafanaRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import gameRoutes from './routes/gameRoutes.js';
+import paintingBoardRoutes from './routes/paintingBoardRoutes.js';
 
 grafanaRoutes(app);
 userRoutes(app);
 gameRoutes(app, gameWS, mongoose);
-paintingBoard2Routes(app);
+paintingBoardRoutes(app);
 
 //Server /status - Reuse existing Socket.IO instance
 import expressStatusMonitor from 'express-status-monitor';

@@ -107,7 +107,7 @@ async function btnStart(e) {
                 }
                 launch();
             } else {
-                alert('Se necesita permiso para los sensores de movimiento');
+                alert('Permission not granted to access device orientation');
             }
 
         } else {

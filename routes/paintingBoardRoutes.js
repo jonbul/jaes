@@ -3,8 +3,8 @@ import CONST from '../shared/constants.js';
 import Session from '../model/session.js';
 import User from '../model/user.js';
 
-const CONTROLLER = '/paintingBoard2'
-const paintingBoard2Routes = (app) => {
+const CONTROLLER = '/paintingBoard'
+const paintingBoardRoutes = (app) => {
     /**
      * Get painting board page
      * Query parameters: id (optional)
@@ -13,7 +13,7 @@ const paintingBoard2Routes = (app) => {
     app.get(CONTROLLER, async (req, res) => {
         const user = await getUserSessionIfStillValid(req.cookies.token);
         if (user) {
-            res.render('paintingBoard2/paintingBoard2', {
+            res.render('paintingBoard/paintingBoard', {
                 title: 'PaintingBoard',
                 username: user.username,
                 isAdmin: user.admin,
@@ -200,4 +200,4 @@ async function getUserSessionIfStillValid(token) {
     return null;
 }
 
-export default paintingBoard2Routes;
+export default paintingBoardRoutes;

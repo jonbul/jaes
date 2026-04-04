@@ -2,21 +2,13 @@
 
     <span id="alerts">
         <% if (success && success.length) { %>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert success alert-dismissible fade show" role="alert">
                 <%= success %>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
             </div>
-            <% } %>
-                <% if (errors && success.length) { %>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <%= errors %>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                    </div>
-                    <% } %>
+        <% } %>
     </span>
 
     <div id="form-login" class="form-signin">
@@ -45,7 +37,8 @@
 
             <button class="btn btn-lg btn-primary btn-block" type="submit" id="btnLogin">Login</button>
             <span>Don't have an account? <a href="/register">Register here</a></span>
-            <script>
+            <script type="module">
+                import { showAlert } from '/js/functions.js';
                 document.getElementById('btnLogin').addEventListener('click', function (event) {
                     event.preventDefault(); // Prevent the default form submission
 
@@ -69,12 +62,12 @@
                                 window.location.href = '/'; // Redirect to home
                             } else {
                                 // Handle login failure (e.g., display error message)
-                                alert(data.message || 'Login failed');
+                                showAlert({type: 'danger', title: 'Error', msg: data.error || 'Login failed'});
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            alert('An error occurred during login');
+                            showAlert({type: 'danger', title: 'Error', msg: 'An error occurred during login'});
                         });
                 });
             </script>
