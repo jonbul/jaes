@@ -1,10 +1,6 @@
 "use strict";
 import { asyncRequest, showAlert } from "/js/functions.js"
 
-const initRegister = () => {
-    document.getElementById('register').addEventListener('click', onRegisterSubmit);
-}
-
 async function onRegisterSubmit(event) {
     event.preventDefault();
     const fd = document.getElementById('form-register');
@@ -47,4 +43,4 @@ async function onRegisterSubmit(event) {
     }
 }
 
-export { initRegister };
+document.getElementById('register').addEventListener('click', onRegisterSubmit);
