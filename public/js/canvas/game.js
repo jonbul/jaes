@@ -979,8 +979,8 @@ class Game {
         return this.checkRectsCollision(rect, {
             x: arc.x - (arc.radiusX || arc.radius),
             y: arc.y - (arc.radiusY || arc.radius),
-            width: arc.radiusX * 2,
-            height: arc.radiusY * 2
+            width: (arc.radiusX || arc.radius) * 2,
+            height: (arc.radiusY || arc.radius) * 2
         });
     }
 }
