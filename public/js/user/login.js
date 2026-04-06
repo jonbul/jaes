@@ -6,12 +6,10 @@ document.getElementById('btnLogin').addEventListener('click', function (event) {
     const password = document.getElementById('inputPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
 
-    fetch('/login', {
+    asyncRequest({
+        path: '/login',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password, rememberMe })
+        data: { email, password, rememberMe }
     })
         .then(response => response.json())
         .then(data => {
