@@ -10,6 +10,14 @@ async function onRegisterSubmit(event) {
         password: fd.querySelector('input#inputPassword').value,
         cpassword: fd.querySelector('input#inputRepeatPassword').value
     };
+    if (!form.email || !form.password || !form.username || !form.cpassword) {
+        showAlert({ type: 'warning', title: 'Warning', msg: 'Please enter all required fields' });
+        return;
+    }
+    if (form.password !== form.cpassword) {
+        showAlert({ type: 'warning', title: 'Warning', msg: 'Passwords must be equals' });
+        return;
+    }
 
     const messages = [];
 
@@ -32,13 +40,13 @@ async function onRegisterSubmit(event) {
         if (result.success) {
             return location.href = '/login';
         }
-        
+
     } catch (err) {
 
         try {
             showAlert({ msg: err.errors || err.response || err, title: 'Some errors happened:' });
         } catch {
-            showAlert({ msg:  err.response || err, title: 'Some errors happened:' });
+            showAlert({ msg: err.response || err, title: 'Some errors happened:' });
         }
     }
 }

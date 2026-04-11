@@ -5,6 +5,10 @@ document.getElementById('btnLogin').addEventListener('click', function (event) {
     const email = document.getElementById('inputEmail').value;
     const password = document.getElementById('inputPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
+    if (!email || !password) {
+        showAlert({ type: 'warning', title: 'Warning', msg: 'Please enter both email and password' });
+        return;
+    }
 
     asyncRequest({
         path: '/login',
