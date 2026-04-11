@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (item.classList.contains('profile')) {
                 item.querySelector('span[name="username"]').textContent = username;
             }
-            if (item.classList.contains('admin') && !user.isAdmin) {
+            if (item.classList.contains('admin') && !user.admin) {
                 item.style.display = 'none';
             }
         } else {
