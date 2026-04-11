@@ -2,7 +2,7 @@
 import CanvasClasses from '/js/canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
-async function asyncRequest({ path, method, data }) {
+async function asyncRequest({ path, method, data, silent = false }) {
     const token = await cookieStore.get('token');
     return fetch(path, {
         method: method || 'GET',
@@ -20,6 +20,7 @@ async function asyncRequest({ path, method, data }) {
                 } else if (response.status === 401) {
                     err = 'Unauthorized';
                     cookieStore.delete('token');
+                    localStorage.removeItem('user');
                 } else if (response.status === 403) {
                     err = 'Forbidden';
                 } else if (response.status === 404) {
@@ -28,7 +29,7 @@ async function asyncRequest({ path, method, data }) {
                     err = 'Internal Server Error';
                 }
                 err += `(${response.status})`;
-                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                if (!silent) showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
                 let errors = null;
                 try {
                     const parsedText = JSON.parse(text);
@@ -37,7 +38,8 @@ async function asyncRequest({ path, method, data }) {
                         errors = parsedText.errors;
                     }
                 } catch { if (text) err += `: ${text}`; }
-                return Promise.reject({status: response.status, response: err, text, errors });
+                console.error({ status: response.status, response: err, text, errors });
+                return null;
             });
         }
         if (method && method.toUpperCase() !== 'GET') {
