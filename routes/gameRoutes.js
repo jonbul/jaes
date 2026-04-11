@@ -283,6 +283,7 @@ async function getSessionIfStillValid(token) {
 }
 
 async function getUserSessionIfStillValid(token) {
+    if (!token) return null;
     let userSession = await getSessionIfStillValid(token);
     if (userSession) {
         return await User.findById(userSession.userId);

@@ -85,7 +85,7 @@ const userRoutes = (app) => {
     app.post('/login', async (req, res, next) => {
         const email = req.body.email;
         const password = req.body.password;
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
@@ -95,18 +95,22 @@ const userRoutes = (app) => {
         }
 
         const token = getNewBearerToken();
+        res.cookie('token', token)
 
         const newSession = new Session({
             admin: user.admin,
             userId: user._id.toString(),
             sessionTimestamp: Date.now(),
             persistant: req.body.rememberMe || false,
-            token,
+            //token,
             loggedOut: false
         });
         newSession.save();
 
-        res.json({ success: true, token });
+        res.json({ 
+            success: true,
+            user: await User.findOne({ email }).select('-password') 
+        });
     });
 
     app.get('/logout', async (req, res) => {
@@ -151,7 +155,7 @@ async function getSessionIfStillValid(token) {
 async function getUserSessionIfStillValid(token) {
     let userSession = await getSessionIfStillValid(token);
     if (userSession) {
-        return await User.findById(userSession.userId);
+        return await User.findById(userSession.userId).select('-password');
     }
 
     return null;

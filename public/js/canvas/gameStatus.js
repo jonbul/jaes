@@ -3,7 +3,7 @@ import {
     Rect,
 } from './canvasClasses.js';
 import { Player } from './gameClasses.js';
-import { asyncRequest } from '../functions.js';
+import { asyncRequest } from '../utils/functions.js';
 class GameStatus {
     constructor(canvasWidth, canvasHeight) {
         const _this = this;

@@ -18,8 +18,7 @@ document.getElementById('btnLogin').addEventListener('click', function (event) {
         .then(data => {
             if (data.success) {
                 // Handle successful login (e.g., redirect to dashboard)
-                localStorage.setItem('token', data.token); // Store the token in localStorage
-                cookieStore.set("token", localStorage.getItem("token")); // Set the token as a cookie
+                localStorage.setItem('user', JSON.stringify(data.user));
                 window.location.href = '/'; // Redirect to home
             } else {
                 // Handle login failure (e.g., display error message)

@@ -13,7 +13,7 @@ import {
     Player
 } from './gameClasses.js';
 import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '/constants.js';
-import { asyncRequest, showAlert } from '../functions.js';
+import { asyncRequest, showAlert } from '../utils/functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';

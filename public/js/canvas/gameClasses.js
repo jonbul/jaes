@@ -6,7 +6,7 @@ import {
     Text
 } from './canvasClasses.js';
 import Forms from './canvasClasses.js';
-import { parseLayers } from '../functions.js';
+import { parseLayers } from '../utils/functions.js';
 
 window.forms = Forms;
 class Player {

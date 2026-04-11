@@ -1,13 +1,14 @@
 "use strict";
-import CanvasClasses from '../canvas/canvasClasses.js';
+import CanvasClasses from '/js/canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
 async function asyncRequest({ path, method, data }) {
+    const token = await cookieStore.get('token');
     return fetch(path, {
         method: method || 'GET',
         headers: {
             'Content-Type': 'application/json;charset=UTF-8',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `${token ? 'Bearer ' + token.value : ''}`
         },
         body: data && typeof data === "object" ? JSON.stringify(data) : data
     }).then(response => {
@@ -19,7 +20,6 @@ async function asyncRequest({ path, method, data }) {
                 } else if (response.status === 401) {
                     err = 'Unauthorized';
                     cookieStore.delete('token');
-                    localStorage.removeItem('token');
                 } else if (response.status === 403) {
                     err = 'Forbidden';
                 } else if (response.status === 404) {
