@@ -1,4 +1,4 @@
-import { showAlert } from '/js/functions.js';
+import { showAlert, asyncRequest } from '/js/utils/functions.js';
 document.getElementById('btnLogin').addEventListener('click', function (event) {
     event.preventDefault(); // Prevent the default form submission
 
@@ -11,7 +11,6 @@ document.getElementById('btnLogin').addEventListener('click', function (event) {
         method: 'POST',
         data: { email, password, rememberMe }
     })
-        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Handle successful login (e.g., redirect to dashboard)

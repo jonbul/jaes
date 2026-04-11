@@ -1,5 +1,5 @@
 "use strict";
-import CanvasClasses from './canvas/canvasClasses.js';
+import CanvasClasses from '../canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
 async function asyncRequest({ path, method, data }) {

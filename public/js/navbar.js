@@ -1,4 +1,4 @@
-import { asyncRequest } from '/js/functions.js';
+import { asyncRequest } from '/js/utils/functions.js';
 document.addEventListener('DOMContentLoaded', async function () {
     // Menu events
     const button = document.querySelector('.navbar-button');

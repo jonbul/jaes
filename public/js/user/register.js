@@ -1,5 +1,5 @@
 "use strict";
-import { asyncRequest, showAlert } from "/js/functions.js"
+import { asyncRequest, showAlert } from "/js/utils/functions.js"
 
 async function onRegisterSubmit(event) {
     event.preventDefault();

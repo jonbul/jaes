@@ -1,7 +1,7 @@
 import Game from '/js/canvas/game.js';
 import CharacterSelector from '/js/canvas/characterSelector.js';
 import { ShipsManager } from '/js/canvas/gameClasses.js'
-import { asyncRequest } from '/js/functions.js';
+import { asyncRequest } from '/js/utils/functions.js';
 
 
 const gameData = await asyncRequest({ path: "/game/data" });
