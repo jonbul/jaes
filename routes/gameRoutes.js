@@ -2,7 +2,7 @@ import Ship from '../model/ship.js';
 import PaintingProject from '../model/paintingProject.js';
 import { resolutions, allowedPlayerTypes } from './constants.js';
 import User from '../model/user.js';
-import { getUserSessionIfStillValid } from './commonRoutes.js';
+import { authCall, SESSIONITEMTYPES, getUserSessionIfStillValid } from './commonRoutes.js';
 
 const gameRoutes = (app, io, mongoose) => {
     if (io._jaesGameHandlerRegistered) return;
@@ -160,8 +160,24 @@ const gameRoutes = (app, io, mongoose) => {
         if (!user?.admin) return res.redirect('/');
         currentResolution = parseInt(req.body.resolution);
         allowedPlayerType = parseInt(req.body.allowedPlayerType);
-        res.redirect('/game/admin');
-    })
+    });
+
+    app.get('/game/admin/data', async (req, res) => {
+        return authCall(async (user) => {
+            currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
+            if (user?.admin) {
+
+                res.json({
+                    resolutions,
+                    currentResolution,
+                    allowedPlayerTypes,
+                    allowedPlayerType
+                });
+            } else {
+                res.redirect('/');
+            }
+        }, req, res, SESSIONITEMTYPES.USER);
+    });
 
     //IO
     io.on('connection', (socket) => {

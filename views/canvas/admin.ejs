@@ -5,47 +5,20 @@
 
     <div class="form-group">
       <label for="resolution" class="">Resolution</label>
-      <select type="text" id="resolution" class="form-control" required="" autofocus="" name="resolution"
-        value="<%= currentResolution %>">
-        <% for(let i=0; i < resolutions.length; i++) { %>
-          <option name="<%= resolutions[i].name %>" value="<%= parseInt(i) %>" <%=i===currentResolution ? 'SELECTED'
-            : '' %>><%= resolutions[i].name %>
-          </option>
-          <% } %>
+      <select type="text" id="resolution" class="form-control" required="true" autofocus="true" name="resolution" value="">
+
       </select>
     </div>
 
     <div class="form-group">
       <label for="allowedPlayerType" class="">Players allowed</label>
-      <select type="text" id="allowedPlayerType" class="form-control" required="" autofocus="" name="allowedPlayerType">
-        <% for(const type in allowedPlayerTypes) { %>
-          <option name="<%= type %>" value="<%= allowedPlayerTypes[type] %>"
-            <%=allowedPlayerType===allowedPlayerTypes[type] ? 'SELECTED' : '' %>><%= type %>
-          </option>
-          <% } %>
+      <select type="text" id="allowedPlayerType" class="form-control" required="true" name="allowedPlayerType">
+
       </select>
     </div>
-
-    <!--div class="form-group">
-      <label for="inputEmail" class="">Email address</label>
-      <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" name="email">
-    </div>
-
-    <div class="form-group">
-        <label for="inputPassword" class="">Password</label>
-        <input type="password" id="inputPassword" class="form-control" placeholder="Password" required="" name="password">
-    </div>
-
-    <div class="form-group">
-        <label for="inputRepeatPassword" class="">Repeat Password</label>
-        <input type="password" id="inputRepeatPassword" class="form-control" placeholder="Repeat Password" required="" name="cpassword">
-    </div-->
 
     <button class="btn btn-lg btn-primary btn-block" type="submit" id="save">Save</button>
     <iframe src="/status" style="width:100%; height: 1030px; border: solid 1px #ccc; margin-top:20px;"></iframe>
   </form>
 
-  <script type="module">
-    //import { initRegister } from "/js/register.js";
-    //initRegister();
-  </script>
+  <script type="module" src="/js/user/admin.js"></script>

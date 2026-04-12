@@ -69,17 +69,19 @@
     <span class="windowBar">Color</span><br>
     <span class="windowContent">
         <table>
-            <tr>
-                <td>
-                    R<input type="range" id="colorRed" min="0" max="255" value="0" /><br>
-                    G<input type="range" id="colorGreen" min="0" max="255" value="0" /><br>
-                    B<input type="range" id="colorBlue" min="0" max="255" value="0" /><br>
-                    A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
-                </td>
-                <td id="colorResult" style="width: 20px; cursor: pointer">
-                    <input type="color" id="backgroundColor" alpha />
-                </td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td>
+                        R<input type="range" id="colorRed" min="0" max="255" value="0" /><br>
+                        G<input type="range" id="colorGreen" min="0" max="255" value="0" /><br>
+                        B<input type="range" id="colorBlue" min="0" max="255" value="0" /><br>
+                        A<input type="range" id="colorAlpha" min="0" max="1" value="1" step="0.01" /><br>
+                    </td>
+                    <td id="colorResult" style="width: 20px; cursor: pointer">
+                        <input type="color" id="backgroundColor" alpha />
+                    </td>
+                </tr>
+            </tbody>
         </table>
         <input type="color" id="borderColor" />
         <input type="Number" id="borderWidth" min="0" value="1" style="width: 50px;" />Border Width<br>
