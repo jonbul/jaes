@@ -128,7 +128,11 @@ const userRoutes = (app) => {
             secure: true,
             maxAge: maxAge
         });
-        await newSession.save();
+        try {
+            await newSession.save();
+        } catch (error) {
+            return res.status(400).json({ error: 'Failed to create session' });
+        }
 
         return res.json({
             success: true,
