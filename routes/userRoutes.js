@@ -64,11 +64,15 @@ const userRoutes = (app) => {
     });
 
     app.post('/register', async (req, res) => {
-        const user = await User.findOne({ email: req.body.email })
+        const userByEmail = await User.findOne({ email: req.body.email });
+        const userByUsername = await User.findOne({ username: req.body.username });
 
         const errors = [];
-        if (user) {
+        if (userByEmail) {
             errors.push('Email already in use');
+        }
+        if (userByUsername) {
+            errors.push('Username already in use');
         }
         const body = req.body || {};
         if (!body.password || body.password.length < 6) {
