@@ -17,7 +17,6 @@ async function asyncRequest({ path, method, data, silent = false }) {
                     err = 'Bad Request';
                 } else if (response.status === 401) {
                     err = 'Unauthorized';
-                    cookieStore.delete('token');
                     localStorage.removeItem('user');
                 } else if (response.status === 403) {
                     err = 'Forbidden';
