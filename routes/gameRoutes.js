@@ -156,10 +156,11 @@ const gameRoutes = (app, io, mongoose) => {
     });
 
     app.post('/game/admin', async (req, res) => {
-        const user = await getUserSessionIfStillValid(req.cookies.token);
-        if (!user?.admin) return res.redirect('/');
-        currentResolution = parseInt(req.body.resolution);
-        allowedPlayerType = parseInt(req.body.allowedPlayerType);
+        return authCall(async (user) => {
+            if (!user?.admin) return res.status(403).send('Forbidden');
+            currentResolution = parseInt(req.body.resolution);
+            allowedPlayerType = parseInt(req.body.allowedPlayerType);
+        }, req, res, SESSIONITEMTYPES.USER);
     });
 
     app.get('/game/admin/data', async (req, res) => {
