@@ -10,22 +10,15 @@ async function onRegisterSubmit(event) {
         password: fd.querySelector('input#inputPassword').value,
         cpassword: fd.querySelector('input#inputRepeatPassword').value
     };
-    if (!form.email || !form.password || !form.username || !form.cpassword) {
-        showAlert({ type: 'warning', title: 'Warning', msg: 'Please enter all required fields' });
-        return;
-    }
-    if (form.password !== form.cpassword) {
-        showAlert({ type: 'warning', title: 'Warning', msg: 'Passwords must be equals' });
-        return;
-    }
-
     const messages = [];
-
-    if (form.password !== form.cpassword) {
-        messages.push('Passwords must be equals')
+    if (!form.email || !form.password || !form.username || !form.cpassword) {
+        messages.push('Please enter all required fields');
     }
-    if (!form.password.match(/^(?!^ )(?!.* .*)(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{5,}$/)) {
-        messages.push('Password must contain at least a number an upercase letter and a lowercase letter;')
+    if (form.password !== form.cpassword) {
+        messages.push('Passwords must be equal')
+    }
+    if (!form.password.match(/^(?!^ )(?!.* .*)(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/)) {
+        messages.push('Password must contain at least a number an uppercase letter and a lowercase letter;')
     }
 
     if (messages.length) {

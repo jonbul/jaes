@@ -3,12 +3,10 @@ import CanvasClasses from '/js/canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
 async function asyncRequest({ path, method, data, silent = false }) {
-    const token = await cookieStore.get('token');
     return fetch(path, {
         method: method || 'GET',
         headers: {
-            'Content-Type': 'application/json;charset=UTF-8',
-            'Authorization': `${token ? 'Bearer ' + token.value : ''}`
+            'Content-Type': 'application/json;charset=UTF-8'
         },
         body: data && typeof data === "object" ? JSON.stringify(data) : data
     }).then(response => {
