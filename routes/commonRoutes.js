@@ -3,15 +3,14 @@ import User from '../model/user.js';
 
 const SESSIONITEMTYPES = {
     USER: 1,
-    SESSION: 2,
-    USER_SESSION: 3
+    SESSION: 2
 };
 
 async function getSessionIfStillValid(token) {
     if (!token) return null;
     let userSession = await Session.findOne({ token, loggedOut: false });
     if (!userSession) return null;
-    if (userSession.persistant || userSession.sessionTimestamp + 24 * 60 * 60 * 1000 > Date.now()) return userSession;
+    if (!userSession.isExpired()) return userSession;
 
     return null;
 }
@@ -26,12 +25,17 @@ async function getUserSessionIfStillValid(token) {
     return null;
 }
 
-async function authCall(fun, req, res, sessionItemType) {
-    let sessionItem = await getSessionItemByType(sessionItemType, req.cookies.token);
+async function authCall(_method, req, res, sessionItemType) {
+    const token = req.cookies.token;
+    let sessionItem = null;
+    if (token){
+        sessionItem = await getSessionItemByType(sessionItemType, token);
+    }
     if (!sessionItem) {
+        res.clearCookie('token');
         return res.status(401).json({ error: 'Unauthorized' });
     } else {
-        return fun(sessionItem);
+        return _method(sessionItem);
     }
 }
 

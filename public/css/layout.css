@@ -342,14 +342,6 @@ body {
                     }
                 }
             }
-
-            /* Big screen */
-            @media (min-width: 992px) {
-                * {
-                    /*color: red;*/
-                }
-            }
-        }
     }
 
     .alert {

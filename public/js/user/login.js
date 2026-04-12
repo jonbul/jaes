@@ -16,9 +16,13 @@ document.getElementById('btnLogin').addEventListener('click', function (event) {
         data: { email, password, rememberMe }
     })
         .then(data => {
-            if (data.success) {
+            if (data?.success) {
                 // Handle successful login (e.g., redirect to dashboard)
                 localStorage.setItem('user', JSON.stringify(data.user));
+                if (data.expirationTime) {
+                    const expirationTime = new Date(data.expirationTime).getTime();
+                    localStorage.setItem('sessionExpiration', expirationTime);
+                }
                 window.location.href = '/'; // Redirect to home
             } else {
                 // Handle login failure (e.g., display error message)

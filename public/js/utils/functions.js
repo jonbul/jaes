@@ -132,5 +132,40 @@ function parseShape(shape) {
     return newShape;
 }
 
-export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
-export { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
+async function refreshToken() {
+    asyncRequest({path: '/refreshToken', method: 'POST'}).then(data => {
+        if (data?.success) {
+            if (data.expirationTime) {
+                const expirationTime = new Date(data.expirationTime).getTime();
+                localStorage.setItem('sessionExpiration', expirationTime);
+                // Refresh token 5 minutes before expiration
+                setRefreshTokenTimeout();
+            }
+        } else {
+            console.error('Failed to refresh token:', data.error);
+        }
+    }).catch(err => {
+        console.error('Error refreshing token:', err);
+    });
+}
+
+async function setRefreshTokenTimeout () {
+    const sessionExpiration = localStorage.getItem('sessionExpiration');
+    if (sessionExpiration) {
+        const expirationTime = parseInt(sessionExpiration, 10);
+        if (expirationTime === -1) return; // Persistent session
+        if (expirationTime > 0 && Date.now() < expirationTime) {
+            // Refresh token 5 minutes before expiration
+            let timeoutMs = expirationTime - Date.now() - 300000;
+            if (timeoutMs > 10 * 24* 3600000) {
+                timeoutMs = 10 * 24* 3600000;//a safe value to prevent overflow in setTimeout
+            }
+            setTimeout(refreshToken, timeoutMs);
+        }
+    } else {
+        refreshToken();
+    }
+}
+
+export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape, refreshToken, setRefreshTokenTimeout };
+export { asyncRequest, showAlert, parseLayers, parseLayer, parseShape, refreshToken, setRefreshTokenTimeout };

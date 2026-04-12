@@ -29,10 +29,6 @@ const userRoutes = (app) => {
     });
 
     app.get('/login', async (req, res) => {
-        const session = await getSessionIfStillValid(req.cookies.token);
-        if (session?.token) {
-            return res.redirect('/');
-        }
         const success = req.flash('success');
         const errors = req.flash('error');
         console.error({ errors })
@@ -83,7 +79,7 @@ const userRoutes = (app) => {
         }
 
         if (errors && errors.length) {
-            res.status(500).json({ errors });
+            return res.status(500).json({ errors });
         } else {
 
             const newUser = new User({
@@ -98,7 +94,7 @@ const userRoutes = (app) => {
 
     });
 
-    app.post('/login', async (req, res, next) => {
+    app.post('/login', async (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
         const user = await User.findOne({ email });
@@ -111,22 +107,56 @@ const userRoutes = (app) => {
         }
 
         const token = getNewBearerToken();
-        res.cookie('token', token, { httpOnly: true, sameSite: 'strict' });
+        const maxAge = !req.body.rememberMe ? 30 * 24 * 3600000 : undefined;
+        const expirationTime = !req.body.rememberMe ? new Date(Date.now() + 30 * 24 * 3600000) : -1;
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: true,
+            maxAge: maxAge
+        });
 
         const newSession = new Session({
             admin: user.admin,
             userId: user._id.toString(),
             sessionTimestamp: Date.now(),
-            persistant: req.body.rememberMe || false,
+            persistent: req.body.rememberMe || false,
             token,
-            loggedOut: false
+            loggedOut: false,
+            expirationTime
         });
         await newSession.save();
 
-        res.json({
+        return res.json({
             success: true,
-            user: await User.findOne({ email }).select('-password')
+            user: await User.findOne({ email }).select('-password'),
+            expirationTime
         });
+    });
+
+    app.post('/refreshToken', async (req, res) => {
+        return authCall(async (session) => {
+
+            const token = getNewBearerToken();
+            const maxAge = !req.body.rememberMe ? 30 * 24 * 3600000 : undefined;
+            const expirationTime = !req.body.rememberMe ? new Date(Date.now() + 30 * 24 * 3600000) : -1;
+            res.cookie('token', token, {
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: true,
+                maxAge
+            });
+
+            session.token = token;
+            session.expirationTime = expirationTime;
+            await session.save();
+
+            return res.json({
+                success: true,
+                expirationTime
+            });
+        }, req, res, SESSIONITEMTYPES.USER);
+
     });
 
     app.post('/logout', async (req, res) => {
