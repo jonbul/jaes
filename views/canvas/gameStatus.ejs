@@ -1,7 +1,7 @@
 <% layout('layout') %>
 
 <div class="container">
-    <canvas class="mt-2" id="canvas" width="<%= canvasWidth %>" height="<%= canvasHeight %>"></canvas>
+    <canvas class="mt-2" id="canvas"></canvas>
     <table>
         <thead>
             <tr>
@@ -18,7 +18,4 @@
 </div>
 
 <link rel="stylesheet" href="/css/game.css" type="text/css">
-<script type="module">
-    import GameStatus from '/js/canvas/gameStatus.js';
-    new GameStatus(<%= canvasWidth %>, <%= canvasHeight %>);
-</script>
+<script type="module" src="/js/canvas/gameStatus.js"></script>
