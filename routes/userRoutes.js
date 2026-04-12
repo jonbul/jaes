@@ -105,25 +105,24 @@ const userRoutes = (app) => {
         if (!isValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-
-        const token = getNewBearerToken();
-        const maxAge = !req.body.rememberMe ? 30 * 24 * 3600000 : undefined;
         const expirationTime = !req.body.rememberMe ? new Date(Date.now() + 30 * 24 * 3600000) : -1;
-        res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: true,
-            maxAge: maxAge
-        });
 
         const newSession = new Session({
             admin: user.admin,
             userId: user._id.toString(),
             sessionTimestamp: Date.now(),
             persistent: req.body.rememberMe || false,
-            token,
             loggedOut: false,
             expirationTime
+        });
+
+        const token = newSession.token;
+        const maxAge = !req.body.rememberMe ? 30 * 24 * 3600000 : undefined;
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: true,
+            maxAge: maxAge
         });
         await newSession.save();
 
@@ -137,9 +136,12 @@ const userRoutes = (app) => {
     app.post('/refreshToken', async (req, res) => {
         return authCall(async (session) => {
 
-            const token = getNewBearerToken();
             const maxAge = !req.body.rememberMe ? 30 * 24 * 3600000 : undefined;
             const expirationTime = !req.body.rememberMe ? new Date(Date.now() + 30 * 24 * 3600000) : -1;
+
+            session.expirationTime = expirationTime;
+            const token = await session.refreshToken();
+
             res.cookie('token', token, {
                 httpOnly: true,
                 sameSite: 'strict',
@@ -147,15 +149,11 @@ const userRoutes = (app) => {
                 maxAge
             });
 
-            session.token = token;
-            session.expirationTime = expirationTime;
-            await session.save();
-
             return res.json({
                 success: true,
                 expirationTime
             });
-        }, req, res, SESSIONITEMTYPES.USER);
+        }, req, res, SESSIONITEMTYPES.SESSION);
 
     });
 
@@ -175,10 +173,3 @@ const userRoutes = (app) => {
     });
 }
 export default userRoutes;
-
-function getNewBearerToken() {
-    const ts = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    return `${ts}-${randomString}`;
-}
-
