@@ -323,15 +323,20 @@ class Polygon {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
+        let rotationXmove, rotationYmove;
         if (this.rotation > 0) {
             // min x and y in points
-            const minX = Math.min(...this.points.map(p => p.x));
-            const minY = Math.min(...this.points.map(p => p.y));
+            const xDots = this.points.map(p => p.x);
+            const yDots = this.points.map(p => p.y);
+            const minX = Math.min(...xDots);
+            const minY = Math.min(...yDots);
             // max x and y in points
-            const maxX = Math.max(...this.points.map(p => p.x));
-            const maxY = Math.max(...this.points.map(p => p.y));
+            const maxX = Math.max(...xDots);
+            const maxY = Math.max(...yDots);
             const moveX = minX + (maxX - minX) / 2;
             const moveY = minY + (maxY - minY) / 2;
+            rotationXmove = moveX;
+            rotationYmove = moveY;
             context.translate(moveX, moveY);
             context.rotate(this.rotation);
             context.translate(-moveX, -moveY);
@@ -356,8 +361,8 @@ class Polygon {
         }
 
         if (this.rotation > 0) {
-            const moveX = this.x;
-            const moveY = this.y;
+            const moveX = rotationXmove;
+            const moveY = rotationYmove;
             context.translate(moveX, moveY);
             context.rotate(-this.rotation);
             context.translate(-moveX, -moveY);
@@ -383,19 +388,21 @@ class Polygon {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
-        let moveX, moveY;
+        let rotationXmove, rotationYmove;
         if (this.rotation > 0) {
             // min x and y in points
-            const minX = Math.min(...this.points.map(p => p.x));
-            const minY = Math.min(...this.points.map(p => p.y));
+            const xDots = this.points.map(p => p.x);
+            const yDots = this.points.map(p => p.y);
+            const minX = Math.min(...xDots);
+            const minY = Math.min(...yDots);
             // max x and y in points
-            const maxX = Math.max(...this.points.map(p => p.x));
-            const maxY = Math.max(...this.points.map(p => p.y));
-            moveX = minX + (maxX - minX) / 2;
-            moveY = minY + (maxY - minY) / 2;
-            context.translate(moveX, moveY);
+            const maxX = Math.max(...xDots);
+            const maxY = Math.max(...yDots);
+            rotationXmove = minX + (maxX - minX) / 2;
+            rotationYmove = minY + (maxY - minY) / 2;
+            context.translate(rotationXmove, rotationYmove);
             context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(-rotationXmove, -rotationYmove);
         }
 
         context.fillStyle = this.backgroundColor;
@@ -419,9 +426,9 @@ class Polygon {
 
         context.fill();
         if (this.rotation > 0) {
-            context.translate(moveX, moveY);
+            context.translate(rotationXmove, rotationYmove);
             context.rotate(-this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(-rotationXmove, -rotationYmove);
         }
         /* // Missing alternative
         const minX = Math.min(...this.points.map(p => p.x));
@@ -519,19 +526,21 @@ class Abstract {
             context.translate(-options.rotationCenter.x, -options.rotationCenter.y);
         }
 
-        let moveX, moveY;
+        let rotationXmove, rotationYmove;
         if (this.rotation > 0) {
             // min x and y in points
-            const minX = Math.min(...this.points.map(p => p.x));
-            const minY = Math.min(...this.points.map(p => p.y));
+            const xDots = this.points.map(p => p.x);
+            const yDots = this.points.map(p => p.y);
+            const minX = Math.min(...xDots);
+            const minY = Math.min(...yDots);
             // max x and y in points
-            const maxX = Math.max(...this.points.map(p => p.x));
-            const maxY = Math.max(...this.points.map(p => p.y));
-            moveX = minX + (maxX - minX) / 2;
-            moveY = minY + (maxY - minY) / 2;
-            context.translate(moveX, moveY);
+            const maxX = Math.max(...xDots);
+            const maxY = Math.max(...yDots);
+            rotationXmove = minX + (maxX - minX) / 2;
+            rotationYmove = minY + (maxY - minY) / 2;
+            context.translate(rotationXmove, rotationYmove);
             context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(-rotationXmove, -rotationYmove);
         }
 
         context.beginPath();
@@ -550,9 +559,9 @@ class Abstract {
         }
 
         if (this.rotation > 0) {
-            context.translate(moveX, moveY);
-            context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(rotationXmove, rotationYmove);
+            context.rotate(-this.rotation);
+            context.translate(-rotationXmove, -rotationYmove);
         }
 
         if (options.rotationCenter && options.rotate) {
@@ -575,19 +584,21 @@ class Abstract {
         let x = (this.points[0].x - minValue) * resizeSize / maxValue;
         let y = (this.points[0].y - minValue) * resizeSize / maxValue;
 
-        let moveX, moveY;
+        let rotationXmove, rotationYmove;
         if (this.rotation > 0) {
             // min x and y in points
-            const minX = Math.min(...this.points.map(p => p.x));
-            const minY = Math.min(...this.points.map(p => p.y));
+            const xDots = this.points.map(p => p.x);
+            const yDots = this.points.map(p => p.y);
+            const minX = Math.min(...xDots);
+            const minY = Math.min(...yDots);
             // max x and y in points
-            const maxX = Math.max(...this.points.map(p => p.x));
-            const maxY = Math.max(...this.points.map(p => p.y));
-            moveX = minX + (maxX - minX) / 2;
-            moveY = minY + (maxY - minY) / 2;
-            context.translate(moveX, moveY);
+            const maxX = Math.max(...xDots);
+            const maxY = Math.max(...yDots);
+            rotationXmove = minX + (maxX - minX) / 2;
+            rotationYmove = minY + (maxY - minY) / 2;
+            context.translate(rotationXmove, rotationYmove);
             context.rotate(this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(-rotationXmove, -rotationYmove);
         }
 
         context.fillStyle = this.backgroundColor;
@@ -610,9 +621,9 @@ class Abstract {
         }
 
         if (this.rotation > 0) {
-            context.translate(moveX, moveY);
+            context.translate(rotationXmove, rotationYmove);
             context.rotate(-this.rotation);
-            context.translate(-moveX, -moveY);
+            context.translate(-rotationXmove, -rotationYmove);
         }
     }
 }

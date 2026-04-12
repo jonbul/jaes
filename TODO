@@ -1,6 +1,1 @@
-
-Rename routes path js files to *Routes.js
-
-Update socket.io
-
-CORS Limitation
+Remove Socket IO

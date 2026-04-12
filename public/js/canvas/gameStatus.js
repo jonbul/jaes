@@ -3,7 +3,7 @@ import {
     Rect,
 } from './canvasClasses.js';
 import { Player } from './gameClasses.js';
-import { asyncRequest } from '../functions.js';
+import { asyncRequest } from '../utils/functions.js';
 class GameStatus {
     constructor(canvasWidth, canvasHeight) {
         const _this = this;
@@ -11,7 +11,7 @@ class GameStatus {
             _this.drawMapInterval();
         })();
         this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight
+        this.canvasHeight = canvasHeight;
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('2d');
         this.backgroundCards = {};
@@ -158,4 +158,8 @@ class GameStatus {
         });
     }
 }
-export default GameStatus;
+const data = await asyncRequest({ path: '/game/data' });
+const canvas = document.getElementById('canvas')
+canvas.width = data.canvasWidth;
+canvas.height = data.canvasHeight;
+new GameStatus(data.canvasWidth, data.canvasHeight);

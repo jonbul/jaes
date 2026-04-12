@@ -1,4 +1,4 @@
-import {parseLayers} from '../functions.js';
+import {parseLayers} from '../utils/functions.js';
 
 
 class CharacterSelector {

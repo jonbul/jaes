@@ -2,6 +2,7 @@ import Ship from '../model/ship.js';
 import PaintingProject from '../model/paintingProject.js';
 import { resolutions, allowedPlayerTypes } from './constants.js';
 import User from '../model/user.js';
+import { authCall, SESSIONITEMTYPES, getUserSessionIfStillValid } from './commonRoutes.js';
 
 const gameRoutes = (app, io, mongoose) => {
     if (io._jaesGameHandlerRegistered) return;
@@ -16,31 +17,68 @@ const gameRoutes = (app, io, mongoose) => {
     let currentResolution = 2;
     let allowedPlayerType = allowedPlayerTypes.All;
 
+    // Render
     app.get('/game', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            const sUser = req.session.passport ? req.session.passport.user : {};
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
+            const sUser = user;
 
             res.render('canvas/game', {
                 title: 'Game',
-                username: sUser.username || '',
-                isAdmin: sUser.admin
+                username: sUser ? sUser.username : '',
+                isAdmin: sUser ? sUser.admin : false
             });
         } else {
             res.redirect('/');
         }
     });
 
+    app.get('/game/status', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) {
+            res.redirect('/');
+        } else {
+            currentResolution = currentResolution || 1;
+            res.render('canvas/gameStatus', {
+                title: 'Game Preview',
+                username: user.username,
+                isAdmin: user.admin,
+                canvasWidth: resolutions[currentResolution].width,
+                canvasHeight: resolutions[currentResolution].height
+            });
+        }
+    });
+
+    app.get('/game/admin', async (req, res) => {
+        currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (user?.admin) {
+
+            res.render('canvas/admin', {
+                title: 'Administration',
+                username: user.username,
+                isAdmin: user.admin,
+                resolutions,
+                currentResolution,
+                allowedPlayerTypes,
+                allowedPlayerType
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
+
+    // API
     app.get('/game/data', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
 
-        const sUser = req.session.passport ? req.session.passport.user : {};
+        const user = (await getUserSessionIfStillValid(req.cookies.token)) || {};
 
-        const user = sUser ? await User.findOne({ username: sUser.username }) : {};
         res.send({
             title: 'Game',
-            username: sUser.username || '',
-            credits: user?.credits || 0,
+            username: user.username || '',
+            credits: user.credits || 0,
             canvasWidth: resolutions[currentResolution].width,
             canvasHeight: resolutions[currentResolution].height,
             guestsAllowed: allowedPlayerType === allowedPlayerTypes.All
@@ -49,10 +87,11 @@ const gameRoutes = (app, io, mongoose) => {
 
     app.get('/game/userShips', async (req, res) => {
         req.session.resolution = Number.isNaN(req.session.resolution) ? 1 : req.session.resolution;
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
-            if (req.session.passport && req.session.passport.user) {
+        const sUser = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || sUser) {
+            if (sUser) {
                 res.send({
-                    userShips: await PaintingProject.find({ userId: req.session.passport.user })
+                    userShips: await PaintingProject.find({ userId: sUser._id })
                 });
             } else {
                 res.send({
@@ -63,29 +102,9 @@ const gameRoutes = (app, io, mongoose) => {
             res.redirect('/');
         }
     });
-
-    app.get('/game/status', (req, res) => {
-        let user;
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) {
-            res.redirect('/');
-        } else {
-            currentResolution = currentResolution || 1;
-            user = req.session.passport.user;
-            res.render('canvas/gameStatus', {
-                title: 'Game Preview',
-                username: user.username,
-                isAdmin: user.admin,
-                canvasWidth: resolutions[currentResolution].width,
-                canvasHeight: resolutions[currentResolution].height
-            });
-        }
-    });
-    app.post('/gameData', (req, res) => {
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) return res.redirect('/');
+    app.post('/gameData', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -103,10 +122,9 @@ const gameRoutes = (app, io, mongoose) => {
             resultCards
         });
     });
-    app.post('/playerTypes', (req, res) => {
-        if (!req.session.passport ||
-            !req.session.passport.user ||
-            !req.session.passport.user.admin) return res.redirect('/');
+    app.post('/playerTypes', async (req, res) => {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (!user?.admin) return res.redirect('/');
         const resultCards = {};
         for (const propX in backgroundCards) {
             for (const propY in backgroundCards[propX]) {
@@ -122,7 +140,8 @@ const gameRoutes = (app, io, mongoose) => {
         });
     });
     app.get('/game/getShips', async (req, res) => {
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
             const s1 = await Ship.find();
             const s2 = await PaintingProject.find();
             res.send(s2.concat(s1));
@@ -130,36 +149,36 @@ const gameRoutes = (app, io, mongoose) => {
     });
 
     app.get('/game/getPlayers', async (req, res) => {
-        if (allowedPlayerType === allowedPlayerTypes.All || req.session.passport && req.session.passport.user) {
+        const user = await getUserSessionIfStillValid(req.cookies.token);
+        if (allowedPlayerType === allowedPlayerTypes.All || user) {
             res.send(players);
         }
     });
 
-    app.get('/game/admin', (req, res) => {
-        currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
-
-        if (req.session.passport && req.session.passport.user && req.session.passport.user.admin) {
-            const user = req.session.passport.user;
-
-            res.render('canvas/admin', {
-                title: 'Administration',
-                username: user.username,
-                isAdmin: user.admin,
-                resolutions,
-                currentResolution,
-                allowedPlayerTypes,
-                allowedPlayerType
-            });
-        } else {
-            req.redirect('/');
-        }
+    app.post('/game/admin', async (req, res) => {
+        return authCall(async (user) => {
+            if (!user?.admin) return res.status(403).send('Forbidden');
+            currentResolution = parseInt(req.body.resolution);
+            allowedPlayerType = parseInt(req.body.allowedPlayerType);
+        }, req, res, SESSIONITEMTYPES.USER);
     });
 
-    app.post('/game/admin', (req, res) => {
-        currentResolution = parseInt(req.body.resolution);
-        allowedPlayerType = parseInt(req.body.allowedPlayerType);
-        res.redirect('/game/admin');
-    })
+    app.get('/game/admin/data', async (req, res) => {
+        return authCall(async (user) => {
+            currentResolution = Number.isNaN(currentResolution) ? 1 : currentResolution;
+            if (user?.admin) {
+
+                res.json({
+                    resolutions,
+                    currentResolution,
+                    allowedPlayerTypes,
+                    allowedPlayerType
+                });
+            } else {
+                res.redirect('/');
+            }
+        }, req, res, SESSIONITEMTYPES.USER);
+    });
 
     //IO
     io.on('connection', (socket) => {
@@ -175,7 +194,7 @@ const gameRoutes = (app, io, mongoose) => {
                 user.credits = players[socket.id] ? players[socket.id].credits : 0;
                 user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
                 user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
-                user.save();
+                await user.save();
                 delete mongoose.models.user;
             }
             delete players[socket.id];

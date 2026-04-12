@@ -1,59 +1,43 @@
+<script type="module" src="/js/navbar.js"></script>
 <nav id="mainNavbar">
   <a class="mainNavbar-brand" href="#">JAES</a>
   <button class="navbar-button" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
     aria-expanded="false" aria-label="Toggle navigation">
     &#9776;
   </button>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const button = document.querySelector('.navbar-button');
-      const menu = document.getElementById('navbarMenu');
-      button.addEventListener('click', function() {
-        menu.toggleAttribute('collapsed-expanded', menu.hasAttribute('collapsed-expanded') ? '' : 'true');
-      });
-    });
-  </script>
   <ul class="navbarMenu collapsable" id="navbarMenu">
     <li class="nav-item">
-      <a class="nav-link" href="/">Home<!--span class="sr-only"> (current)</span--></a>
+      <a class="nav-link" href="/">Home</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="/game">Game</a>
     </li>
-    <% if (username) { %>
-      <li class="nav-item">
-        <a class="nav-link" href="/paintingBoard2/projects">Painting Projects</a>
-      </li>
-      <% if (isAdmin) { %>
-        <li class="nav-item">
-          <a class="nav-link" href="/game/status">GameStatus</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/game/admin">Admin</a>
-        </li>
-
-        <% }
-       } %>
+    <li class="nav-item logged">
+      <a class="nav-link" href="/paintingBoard/projects">Painting Projects</a>
+    </li>
+    <li class="nav-item logged admin">
+      <a class="nav-link" href="/game/status">GameStatus</a>
+    </li>
+    <li class="nav-item logged admin">
+      <a class="nav-link" href="/game/admin">Admin</a>
+    </li>
   </ul>
-  </div>
   <ul class="navbarMenu" id="navbarMenuRight">
-    <% if (!username) { %>
-      <li class="nav-item">
-        <a href="/login" class="nav-link">Login</a>
-      </li>
-      <li class="nav-item">
-        <a href="/register" class="nav-link">Register</a>
-      </li>
-      <% } else { %>
-        <li class="nav-item">
-          <a href="/profile" class="nav-link" alt="<%= username %>">
-            <i class="fa fa-user"></i>
-            <%= username %>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link">Logout</a>
-        </li>
-        <% } %>
+    <li class="nav-item nologged">
+      <a href="/login" class="nav-link">Login</a>
+    </li>
+    <li class="nav-item nologged">
+      <a href="/register" class="nav-link">Register</a>
+    </li>
+
+    <li class="nav-item logged profile">
+      <a href="/profile" class="nav-link" alt="User Profile">
+        👤
+        <span name="username"></span>
+      </a>
+    </li>
+    <li class="nav-item logged">
+      <a class="nav-link" id="logoutLink">Logout</a>
+    </li>
   </ul>
 </nav>

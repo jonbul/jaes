@@ -1,9 +1,10 @@
 import Game from '/js/canvas/game.js';
 import CharacterSelector from '/js/canvas/characterSelector.js';
 import { ShipsManager } from '/js/canvas/gameClasses.js'
+import { asyncRequest } from '/js/utils/functions.js';
 
 
-const gameData = await (await fetch("/game/data")).json()
+const gameData = await asyncRequest({ path: "/game/data" });
 
 let guest = false;
 let credits = 0;
@@ -26,9 +27,9 @@ const canvas = document.getElementById('canvas');
 canvas.width = gameData.canvasWidth
 canvas.height = gameData.canvasHeight
 
-let userShips = (await (await fetch("./game/userShips")).json()).userShips;
+let userShips = (await asyncRequest({ path: "./game/userShips" })).userShips;
 
-const res = await (await fetch('/game/getShips')).json()
+const res = await asyncRequest({ path: '/game/getShips' });
 const shipsManager = new ShipsManager(res);
 
 if (!userShips.length) {
@@ -107,7 +108,7 @@ async function btnStart(e) {
                 }
                 launch();
             } else {
-                alert('Se necesita permiso para los sensores de movimiento');
+                alert('Permission not granted to access device orientation');
             }
 
         } else {

@@ -1,8 +1,8 @@
 "use strict";
-import CanvasClasses from './canvas/canvasClasses.js';
+import CanvasClasses from '/js/canvas/canvasClasses.js';
 import CONST from '/constants.js';
 import { ALERT_TYPES } from '/constants.js';
-function asyncRequest({ path, method, data }) {
+async function asyncRequest({ path, method, data, silent = false }) {
     return fetch(path, {
         method: method || 'GET',
         headers: {
@@ -17,6 +17,7 @@ function asyncRequest({ path, method, data }) {
                     err = 'Bad Request';
                 } else if (response.status === 401) {
                     err = 'Unauthorized';
+                    localStorage.removeItem('user');
                 } else if (response.status === 403) {
                     err = 'Forbidden';
                 } else if (response.status === 404) {
@@ -25,11 +26,17 @@ function asyncRequest({ path, method, data }) {
                     err = 'Internal Server Error';
                 }
                 err += `(${response.status})`;
-                showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                if (!silent) showAlert({ type: ALERT_TYPES.DANGER, msg: err, title: 'Error' });
+                let errors = null;
                 try {
-                    err += ": " + JSON.parse(text);
+                    const parsedText = JSON.parse(text);
+                    err += ": " + parsedText.errors;
+                    if (parsedText) {
+                        errors = parsedText.errors;
+                    }
                 } catch { if (text) err += `: ${text}`; }
-                return Promise.reject(err);
+                console.error({ status: response.status, response: err, text, errors });
+                return null;
             });
         }
         if (method && method.toUpperCase() !== 'GET') {
@@ -122,5 +129,40 @@ function parseShape(shape) {
     return newShape;
 }
 
-export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
-export { asyncRequest, showAlert, parseLayers, parseLayer, parseShape };
+async function refreshToken() {
+    asyncRequest({path: '/refreshToken', method: 'POST'}).then(data => {
+        if (data?.success) {
+            if (data.expirationTime) {
+                const expirationTime = new Date(data.expirationTime).getTime();
+                localStorage.setItem('sessionExpiration', expirationTime);
+                // Refresh token 5 minutes before expiration
+                setRefreshTokenTimeout();
+            }
+        } else {
+            console.error('Failed to refresh token:', data.error);
+        }
+    }).catch(err => {
+        console.error('Error refreshing token:', err);
+    });
+}
+
+async function setRefreshTokenTimeout () {
+    const sessionExpiration = localStorage.getItem('sessionExpiration');
+    if (sessionExpiration) {
+        const expirationTime = parseInt(sessionExpiration, 10);
+        if (expirationTime === -1) return; // Persistent session
+        if (expirationTime > 0 && Date.now() < expirationTime) {
+            // Refresh token 5 minutes before expiration
+            let timeoutMs = expirationTime - Date.now() - 300000;
+            if (timeoutMs > 10 * 24* 3600000) {
+                timeoutMs = 10 * 24* 3600000;//a safe value to prevent overflow in setTimeout
+            }
+            setTimeout(refreshToken, timeoutMs);
+        }
+    } else {
+        refreshToken();
+    }
+}
+
+export default { asyncRequest, showAlert, parseLayers, parseLayer, parseShape, refreshToken, setRefreshTokenTimeout };
+export { asyncRequest, showAlert, parseLayers, parseLayer, parseShape, refreshToken, setRefreshTokenTimeout };

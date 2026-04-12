@@ -12,12 +12,12 @@ import {
     ChargingBar,
     Player
 } from './gameClasses.js';
-import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW } from '/constants.js';
-import { asyncRequest, showAlert } from '../functions.js';
+import { KEYS, CHARGE_TIME, CHARGE_TIME_OVERFLOW, SPEED } from '/constants.js';
+import { asyncRequest, showAlert } from '../utils/functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-import { io } from '/socket.io/socket.io.esm.min.js';
+import { io } from 'https://cdn.socket.io/4.8.3/socket.io.esm.min.js';
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -253,12 +253,6 @@ class Game {
     }
     intervalMethod() {
 
-        /*this.fullScreen = this.isSmartphone || window.innerHeight === screen.height || (screen.height - window.innerHeight) < 10;
-        if (window.fullScreen) {
-            document.body.classList.add('fullscreen');
-        } else {
-            document.body.classList.remove('fullscreen');
-        }*/
         if (this.isSmartphone) {
             this.movementSmarphone();
             //this.movement();
@@ -310,21 +304,22 @@ class Game {
             x: player.x,
             y: player.y
         }
+
         this.player.moving = this.keys[KEYS.LEFT] || this.keys[KEYS.RIGHT];
         if (this.keys[KEYS.UP]) {
-            player.speed += 0.2;
+            player.speed += SPEED.STEP;
         }
-        if (this.keys[KEYS.DOWN] && player.speed) {
-            player.speed -= 0.2;
+        if (this.keys[KEYS.DOWN] && player.speed > SPEED.MIN) {
+            player.speed -= SPEED.STEP;
         }
-        if (player.speed >= 50) player.speed = 50;
-        if (player.speed < -20) player.speed = -20;
+        if (player.speed >= SPEED.MAX) player.speed = SPEED.MAX;
+        if (player.speed < SPEED.MIN) player.speed = SPEED.MIN;
 
         if (this.keys[KEYS.LEFT]) {
-            player.rotate -= 0.02;
+            player.rotate -= SPEED.ROTATION;
         }
         if (this.keys[KEYS.RIGHT]) {
-            player.rotate += 0.02;
+            player.rotate += SPEED.ROTATION;
         }
         if (player.rotate >= 2 * Math.PI) player.rotate -= 2 * Math.PI;
         if (player.rotate < 0) player.rotate = 2 * Math.PI + player.rotate;
@@ -979,8 +974,8 @@ class Game {
         return this.checkRectsCollision(rect, {
             x: arc.x - (arc.radiusX || arc.radius),
             y: arc.y - (arc.radiusY || arc.radius),
-            width: arc.radiusX * 2,
-            height: arc.radiusY * 2
+            width: (arc.radiusX || arc.radius) * 2,
+            height: (arc.radiusY || arc.radius) * 2
         });
     }
 }
