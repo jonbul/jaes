@@ -1,10 +1,9 @@
 import Ship from '../model/ship.js';
 import PaintingProject from '../model/paintingProject.js';
 import { resolutions, allowedPlayerTypes } from './constants.js';
-import User from '../model/user.js';
 import { authCall, SESSIONITEMTYPES, getUserSessionIfStillValid } from './commonRoutes.js';
 
-import WebSocket from 'ws';
+import WebSocketHandler from './webSocketHandler.js';
 
 let _jaesGameHandlerRegistered = false;
 
@@ -12,12 +11,7 @@ const gameRoutes = (app, mongoose, https) => {
     if (_jaesGameHandlerRegistered) return;
     _jaesGameHandlerRegistered = true;
     const players = {};
-    let playersToSend = {};
-    let hasPlayersToSend = false;
-    let killsList = [];
     const backgroundCards = {};
-    let newBullets = [];
-    let bulletsToRemove = [];
 
     let currentResolution = 2;
     let allowedPlayerType = allowedPlayerTypes.All;
@@ -185,161 +179,9 @@ const gameRoutes = (app, mongoose, https) => {
         }, req, res, SESSIONITEMTYPES.USER);
     });
 
-    // WebSocket routes
-
-
-    const wss = new WebSocket.Server({ server: https });
-
-    /*const players = {};
-    let playersToSend = {};
-    let hasPlayersToSend = false;
-    let killsList = [];
-    const backgroundCards = {};
-    let newBullets = [];
-    let bulletsToRemove = [];*/
-
-
-    const sockets = {};
-    wss.on('connection', (socket => {
-        socket.id = Date.now() + parseInt(Math.random() * 1000);
-        sockets[socket.id] = socket;
-        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${Object.keys(sockets).length}`);
-
-        ///console.log("Connected from IP: ", socket.handshake.address);
-        socket.events = {};
-
-        socket.onmessage = function (eventName, callback) {
-            socket.events[eventName] = callback;
-        };
-
-        socket.onmessage('connection_success', () => {
-            socket.send(JSON.stringify({ eventName: 'connection_success', socketId: socket.id }));
-        });
-
-        socket.onmessage('player hit', msg => {
-            sockets[msg.playerId]?.send(JSON.stringify({ eventName: 'player hit', ...msg }));
-        });
-        socket.onmessage('player died', msg => {
-            killsList.push(msg);
-            if (players[msg.from]) {
-                hasPlayersToSend = true;
-                players[msg.from].credits += 100;
-                if (playersToSend[msg.from]) {
-                    playersToSend[msg.from].credits = players[msg.from].credits;
-                } else {
-                    playersToSend[msg.from] = players[msg.from];
-                }
-            }
-        });
-        socket.onmessage('newBullet', msg => {
-            newBullets.push(msg.bullet);
-        });
-
-        socket.onmessage('getBackgroundCards', msg => {
-            const cards = []
-            msg.data.forEach(card => {
-                if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
-                    cards.push(backgroundCards[card[0]][card[1]]);
-                } else {
-                    const newCard = [
-                        card[0],//x
-                        card[1],//y
-                        []//start
-                    ]
-                    for (let i = 0; i < 500; i++) {
-                        newCard[2].push([
-                            parseInt(Math.random() * resolutions[currentResolution].width),
-                            parseInt(Math.random() * resolutions[currentResolution].height),
-                            parseInt(Math.random() * 4) + 1
-                        ]);
-                    }
-                    backgroundCards[card[0]] = backgroundCards[card[0]] || {};
-                    backgroundCards[card[0]][card[1]] = newCard;
-                    cards.push(newCard);
-                }
-            });
-            //console.log(socket)
-            sockets[msg.socketId].send(JSON.stringify({ eventName: 'getBackgroundCards', cards }));
-        });
-
-        socket.onmessage('removeBullet', msg => {
-            bulletsToRemove.push(msg.bulletId);
-        });
-
-        socket.onmessage('playerData', msg => {
-            if (playersToSend[socket.id]) {
-                msg.credits = playersToSend[socket.id].credits;
-            }
-            players[socket.id] = msg;
-            playersToSend[socket.id] = msg;
-            players[socket.id].lastUpdate = Date.now();
-            msg.socketId = socket.id;
-            hasPlayersToSend = true;
-        });
-
-        socket.addEventListener('message', async (event) => {
-            const data = JSON.parse(event.data);
-            socket.events[data.eventName](data);
-        });
-
-        socket.addEventListener('close', async () => {
-            console.log(`❌ Desconexión: ${socket.id} | Total: ${Object.keys(sockets).length}`);
-
-            if (!players[socket.id]) return;
-            const user = await User.findOne({ username: players[socket.id].name });
-            if (user) {
-                user.credits = players[socket.id] ? players[socket.id].credits : 0;
-                user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
-                user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
-                await user.save();
-                delete mongoose.models.user;
-            }
-            delete players[socket.id];
-            delete sockets[socket.id];
-            //console.log('bye', socket.id);
-            broadcastToAll('player leave', { socketId: socket.id });
-        });
-
-    }));
-
-    setInterval(cleanPlayers, 10000)
-    function cleanPlayers() {
-        for (const sId in players) {
-            if (Date.now() - players[sId].lastUpdate > 600000) {
-                sockets[sId]?.send(JSON.stringify({ eventName: 'sendHome' }));
-                sockets[sId]?.close();
-                delete players[sId];
-                delete sockets[sId];
-            }
-        }
-    }
-    setInterval(gameStatusBroadcast, 1000 / 30);
-    function gameStatusBroadcast() {
-        if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
-            broadcastToAll('gameBroadcast', {
-                bulletsToRemove,
-                newBullets,
-                players: playersToSend,
-                kills: killsList
-            });
-            hasPlayersToSend = false;
-            playersToSend = {};
-            killsList = [];
-            newBullets = [];
-            bulletsToRemove = [];
-        }
-    }
-
-    function broadcastToAll(eventName, data) {
-        wss.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ eventName, ...data }));
-            }
-        });
-    }
+    new WebSocketHandler(https, players, backgroundCards, resolutions[currentResolution]);
 
     console.log('WebSocket Server is running');
-    return wss;
 }
 
 export default gameRoutes;

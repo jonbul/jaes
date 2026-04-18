@@ -116,12 +116,12 @@ class Game {
             delete this.players[id];
             this.updatePlayers();
         });
-        this.ws.on('player hit', msg => {
+        this.ws.on('playerHit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0)
                 this.player.life = Math.max(0, this.player.life - msg.bulletCharge);
             if (!this.player.life) {
-                this.ws.sendData('player died', msg);
+                this.ws.sendData('playerDied', msg);
                 this.bulletCharging = null;
                 this.player.dead();
                 setTimeout(() => {
@@ -190,14 +190,14 @@ class Game {
             }
         });
 
-        this.ws.on('connection_success', data => {
+        this.ws.on('connectionSuccess', data => {
             console.log('✅ Connection established with socket ID:', data.socketId);
             this.socketId = data.socketId;
             this.player.socketId = data.socketId;
             this.players[this.player.socketId] = this.player;
         });
 
-        this.ws.sendData('connection_success');
+        this.ws.sendData('connectionSuccess');
 
         this.playerUpdated = true;
         this.beginInterval();
@@ -545,7 +545,7 @@ class Game {
                     })
                 if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
                     this.bulletCharging = null;
-                    this.ws.sendData('player hit', {
+                    this.ws.sendData('playerHit', {
                         bulletId: null,
                         playerId: this.player.socketId,
                         from: this.player.socketId,
@@ -928,7 +928,7 @@ class Game {
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
                 if (playerHit) {
-                    this.ws.sendData('player hit', {
+                    this.ws.sendData('playerHit', {
                         bulletId: bullet.id,
                         playerId: playerHit.socketId,
                         from: this.player.socketId,
