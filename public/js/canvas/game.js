@@ -27,6 +27,8 @@ class Game {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
+        this.credits = credits;
+        this.ship = ship;
         this.backgroundCards = [];
         this.players = {};
         this.bullets = {};
@@ -36,14 +38,6 @@ class Game {
         window.game = this;
         this.username = username
 
-        /*this.ws = io({
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5,
-            timeout: 20000,
-            transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
-        });*/
         this.loadEvents();
 
         this.createStaticCanvas();
@@ -204,9 +198,6 @@ class Game {
         });
 
         this.ws.sendData('connection_success');
-
-
-
 
         this.playerUpdated = true;
         this.beginInterval();
