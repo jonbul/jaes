@@ -121,7 +121,15 @@ function parseShape(shape) {
 
     if (CONST.PICTURE === newShape.desc) {
         const img = new Image()
-        img.src = newShape.src;
+        try {
+            img.src = newShape.src;
+        } catch (e) {
+            img.srcError = true;
+            console.warn('Error drawing image:', e);
+            if (location.pathname.indexOf('paintingBoard') > 0) {
+                showAlert({ type: 'warning', msg: 'Error drawing given Picture. Try to reload it from a different source.', title: 'Warning' });
+            }
+        }
         newShape.img = img;
     } else if (CONST.PROJECT_SHAPE === newShape.desc) {
         newShape.layers = parseLayers(newShape.layers);

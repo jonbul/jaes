@@ -4,8 +4,13 @@ import { resolutions, allowedPlayerTypes } from './constants.js';
 import User from '../model/user.js';
 import { authCall, SESSIONITEMTYPES, getUserSessionIfStillValid } from './commonRoutes.js';
 
-const gameRoutes = (app, io, mongoose) => {
-    if (io._jaesGameHandlerRegistered) return;
+import WebSocket from 'ws';
+
+let _jaesGameHandlerRegistered = false;
+
+const gameRoutes = (app, mongoose, https) => {
+    if (_jaesGameHandlerRegistered) return;
+    _jaesGameHandlerRegistered = true;
     const players = {};
     let playersToSend = {};
     let hasPlayersToSend = false;
@@ -180,31 +185,41 @@ const gameRoutes = (app, io, mongoose) => {
         }, req, res, SESSIONITEMTYPES.USER);
     });
 
-    //IO
-    io.on('connection', (socket) => {
-        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${io.sockets.sockets.size}`);
+    // WebSocket routes
+
+
+    const wss = new WebSocket.Server({ server: https });
+
+    /*const players = {};
+    let playersToSend = {};
+    let hasPlayersToSend = false;
+    let killsList = [];
+    const backgroundCards = {};
+    let newBullets = [];
+    let bulletsToRemove = [];*/
+
+
+    const sockets = {};
+    wss.on('connection', (socket => {
+        socket.id = Date.now() + parseInt(Math.random() * 1000);
+        sockets[socket.id] = socket;
+        console.log(`✅ Nueva conexión: ${socket.id} | Total: ${Object.keys(sockets).length}`);
 
         ///console.log("Connected from IP: ", socket.handshake.address);
-        socket.on('disconnect', async () => {
-            console.log(`❌ Desconexión: ${socket.id} | Total: ${io.sockets.sockets.size}`);
+        socket.events = {};
 
-            if (!players[socket.id]) return;
-            const user = await User.findOne({ username: players[socket.id].name });
-            if (user) {
-                user.credits = players[socket.id] ? players[socket.id].credits : 0;
-                user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
-                user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
-                await user.save();
-                delete mongoose.models.user;
-            }
-            delete players[socket.id];
-            //console.log('bye', socket.id);
-            io.emit('player leave', socket.id);
+        socket.onmessage = function (eventName, callback) {
+            socket.events[eventName] = callback;
+        };
+
+        socket.onmessage('connection_success', () => {
+            socket.send(JSON.stringify({ eventName: 'connection_success', socketId: socket.id }));
         });
-        socket.on('player hit', msg => {
-            io.to(msg.playerId).emit('player hit', msg);
+
+        socket.onmessage('player hit', msg => {
+            sockets[msg.playerId]?.send(JSON.stringify({ eventName: 'player hit', ...msg }));
         });
-        socket.on('player died', async msg => {
+        socket.onmessage('player died', msg => {
             killsList.push(msg);
             if (players[msg.from]) {
                 hasPlayersToSend = true;
@@ -216,11 +231,11 @@ const gameRoutes = (app, io, mongoose) => {
                 }
             }
         });
-        socket.on('newBullet', msg => {
+        socket.onmessage('newBullet', msg => {
             newBullets.push(msg.bullet);
         });
 
-        socket.on('getBackgroundCards', msg => {
+        socket.onmessage('getBackgroundCards', msg => {
             const cards = []
             msg.data.forEach(card => {
                 if (backgroundCards[card[0]] && backgroundCards[card[0]][card[1]]) {
@@ -244,14 +259,14 @@ const gameRoutes = (app, io, mongoose) => {
                 }
             });
             //console.log(socket)
-            io.to(msg.socketId).emit("getBackgroundCards", cards);
+            sockets[msg.socketId].send(JSON.stringify({ eventName: 'getBackgroundCards', cards }));
         });
 
-        socket.on('removeBullet', msg => {
-            bulletsToRemove.push(msg);
+        socket.onmessage('removeBullet', msg => {
+            bulletsToRemove.push(msg.bulletId);
         });
 
-        socket.on('playerData', msg => {
+        socket.onmessage('playerData', msg => {
             if (playersToSend[socket.id]) {
                 msg.credits = playersToSend[socket.id].credits;
             }
@@ -262,22 +277,46 @@ const gameRoutes = (app, io, mongoose) => {
             hasPlayersToSend = true;
         });
 
+        socket.addEventListener('message', async (event) => {
+            const data = JSON.parse(event.data);
+            socket.events[data.eventName](data);
+        });
 
+        socket.addEventListener('close', async () => {
+            console.log(`❌ Desconexión: ${socket.id} | Total: ${Object.keys(sockets).length}`);
 
-    });
+            if (!players[socket.id]) return;
+            const user = await User.findOne({ username: players[socket.id].name });
+            if (user) {
+                user.credits = players[socket.id] ? players[socket.id].credits : 0;
+                user.kills = user.kills ? user.kills + players[socket.id].kills : players[socket.id].kills;
+                user.deaths = user.deaths ? user.deaths + players[socket.id].deaths : players[socket.id].deaths;
+                await user.save();
+                delete mongoose.models.user;
+            }
+            delete players[socket.id];
+            delete sockets[socket.id];
+            //console.log('bye', socket.id);
+            broadcastToAll('player leave', { socketId: socket.id });
+        });
+
+    }));
+
     setInterval(cleanPlayers, 10000)
     function cleanPlayers() {
         for (const sId in players) {
             if (Date.now() - players[sId].lastUpdate > 600000) {
+                sockets[sId]?.send(JSON.stringify({ eventName: 'sendHome' }));
+                sockets[sId]?.close();
                 delete players[sId];
-                io.to(sId).emit('sendHome');
+                delete sockets[sId];
             }
         }
     }
     setInterval(gameStatusBroadcast, 1000 / 30);
     function gameStatusBroadcast() {
         if (hasPlayersToSend || killsList.length || newBullets.length || bulletsToRemove.length) {
-            io.emit('gameBroadcast', {
+            broadcastToAll('gameBroadcast', {
                 bulletsToRemove,
                 newBullets,
                 players: playersToSend,
@@ -290,7 +329,17 @@ const gameRoutes = (app, io, mongoose) => {
             bulletsToRemove = [];
         }
     }
-    io._jaesGameHandlerRegistered = true;
+
+    function broadcastToAll(eventName, data) {
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ eventName, ...data }));
+            }
+        });
+    }
+
+    console.log('WebSocket Server is running');
+    return wss;
 }
 
 export default gameRoutes;

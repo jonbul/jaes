@@ -12,6 +12,12 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+/*
+app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'");
+    next();
+});/**/
+
 const PORT_HTTPS = process.env.PORT || 3000;
 console.log(`🚀 Starting server on port ${PORT_HTTPS}...`);
 // SSL
@@ -25,26 +31,10 @@ try {
     options.cert = fs.readFileSync(process.env.SSL_DEBUG_CERT_PATH);
 }
 
-import httpsModule from 'https';
+import httpsModule from 'https';     
 import http from 'http';
 
 const https = httpsModule.createServer(options, app);
-
-import { Server } from 'socket.io';
-const gameWS = new Server(https, {
-    pingTimeout: 30000,
-    pingInterval: 25000,
-    upgradeTimeout: 10000,
-    maxHttpBufferSize: 1e6, // 1MB
-    transports: ['websocket', 'polling'],
-    cors: {
-        origin: true,
-        methods: ["GET", "POST"]
-    },
-    // ✅ Limitar conexiones por IP
-    //perMessageDeflate: false,
-    //httpCompression: false
-});
 
 http.createServer((req, res) => {
     let host;
@@ -73,7 +63,7 @@ mongoose.connect(process.env.MONGODB_URI);
 app.use(flash());
 
 
-global.io = gameWS;
+
 app.use(express.static('public'));
 app.use(express.static('shared'));
 app.use(express.json({ limit: '50mb' }));
@@ -107,10 +97,10 @@ import paintingBoardRoutes from './routes/paintingBoardRoutes.js';
 
 grafanaRoutes(app);
 userRoutes(app);
-gameRoutes(app, gameWS, mongoose);
+gameRoutes(app, mongoose, https);
 paintingBoardRoutes(app);
 
-//Server /status - Reuse existing Socket.IO instance
+//Server /status
 import expressStatusMonitor from 'express-status-monitor';
 app.use(expressStatusMonitor({
     title: 'JAES Server Status',

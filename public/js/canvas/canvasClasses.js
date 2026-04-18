@@ -1,3 +1,4 @@
+import { showAlert } from '../utils/functions.js';
 import CONST from '/constants.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {
@@ -736,6 +737,7 @@ class Picture {
         this.sh = sh;
 
         this.rotation = rotation;
+        this.srcError = false;
 
     }
     draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
@@ -757,7 +759,19 @@ class Picture {
         }
 
         //context.drawImage(this.img, this.sx, this.sy, this.sw, this.sh, this.x, this.y, this.width, this.height);
-        context.drawImage(this.img, this.x, this.y, this.width, this.height);
+
+        try {
+            if (!this.srcError) {
+                context.drawImage(this.img, this.x, this.y, this.width, this.height);
+            }
+        } catch (e) {
+            this.srcError = true;
+        }
+
+        if (this.srcError) {
+            new Rect(this.x, this.y, this.width, this.height, '#ff0000', '#000000', 1).draw(context, options);
+        }
+
 
         if (this.rotation > 0) {
             context.translate(moveX, moveY);
@@ -820,11 +834,11 @@ class Text {
         this.name = name || this.desc;
         this.rotation = rotation;
 
-        this.align ={
+        this.align = {
             START: "start",
             END: "end",
-            LEFT:"left",
-            RIGHT:"right",
+            LEFT: "left",
+            RIGHT: "right",
             CENTER: "center",
         }
     }

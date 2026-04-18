@@ -17,7 +17,6 @@ import { asyncRequest, showAlert } from '../utils/functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-import { io } from 'https://cdn.socket.io/4.8.3/socket.io.esm.min.js';
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -37,55 +36,57 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = io({
+        /*this.ws = io({
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
             reconnectionAttempts: 5,
             timeout: 20000,
             transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
-        });
+        });*/
         this.loadEvents();
 
         this.createStaticCanvas();
 
         // Wait for connection
-        this.io.once('connect', async () => {
-            const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
-            for (const id in tempPlayers) {
-                this.updatePlayers(tempPlayers[id]);
-            }
+        this.ws = new WebSocket(`wss://${location.host}`)
+        if (this.ws.readyState === WebSocket.CONNECTING) {
+            this.ws.addEventListener('open', this.onWebSocketOpen.bind(this));
+        } else if (this.ws.readyState === WebSocket.OPEN) {
+            this.onWebSocketOpen();
+        }
+    }
 
-            if (!ship) {
-                const baseShips = shipsManager.getGenericShips();
-                const index = parseInt(Math.random() * baseShips.length)
-                ship = baseShips[index]
-            }
+    async onWebSocketOpen() {
+        const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
+        for (const id in tempPlayers) {
+            this.updatePlayers(tempPlayers[id]);
+        }
 
-            this.player = new Player(shipsManager.getShipById(ship._id), this.username, ship._id, 0, 0, credits);
-            this.chargingBar = new ChargingBar(this.player, this.context);
-            this.player.socketId = this.io.id;
-            this.players[this.player.socketId] = this.player;
+        if (!this.ship) {
+            const baseShips = this.shipsManager.getGenericShips();
+            const index = parseInt(Math.random() * baseShips.length)
+            this.ship = baseShips[index]
+        }
 
-            this.drawableBullets = new Layer('bullets');
-            this.drawablePlayers = [];
-            do {
-                this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
-                this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
-            } while (this.checkCollisionsWithPlayers());
-            const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
-            const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
-            this.context.translate(tX, tY);
+        this.player = new Player(this.shipsManager.getShipById(this.ship._id), this.username, this.ship._id, 0, 0, this.credits);
+        this.chargingBar = new ChargingBar(this.player, this.context);
 
-            this.messagesManager = new MessagesManager(this);
-            this.socketIOEvents();
+        this.players[this.player.socketId] = this.player;
 
-            this.playerUpdated = true;
-            this.beginInterval();
-            setTimeout(() => {
-                this.io.emit('playerData', this.player.getSortDetails());
-            }, 1);
-        });
+        this.drawableBullets = new Layer('bullets');
+        this.drawablePlayers = [];
+        do {
+            this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
+            this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
+        } while (this.checkCollisionsWithPlayers());
+        const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
+        const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
+        this.context.translate(tX, tY);
+
+        this.messagesManager = new MessagesManager(this);
+        this.socketIOEvents();
+
     }
 
     reloadPlayer() {
@@ -100,17 +101,33 @@ class Game {
         this.context.translate(x - this.player.x, y - this.player.y);
     }
     socketIOEvents() {
-        this.io.on('gameBroadcast', this.gameBroadcast.bind(this));
-        this.io.on('player leave', id => {
+        this.ws.events = {};
+
+        this.ws.addEventListener('message', event => {
+            const data = JSON.parse(event.data);
+            this.ws.events[data.eventName](data);
+        });
+
+        this.ws.on = (function (eventName, callback) {
+            this.ws.events[eventName] = callback.bind(this);
+        }).bind(this);
+
+        this.ws.sendData = (function (eventName, data) {
+            data = data || {};
+            this.ws.send(JSON.stringify({ ...data, eventName }));
+        }).bind(this);
+
+        this.ws.on('gameBroadcast', this.gameBroadcast.bind(this));
+        this.ws.on('player leave', id => {
             delete this.players[id];
             this.updatePlayers();
         });
-        this.io.on('player hit', msg => {
+        this.ws.on('player hit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0)
                 this.player.life = Math.max(0, this.player.life - msg.bulletCharge);
             if (!this.player.life) {
-                this.io.emit('player died', msg);
+                this.ws.sendData('player died', msg);
                 this.bulletCharging = null;
                 this.player.dead();
                 setTimeout(() => {
@@ -125,11 +142,11 @@ class Game {
                     }, 10000);
                 }, 2000);
             }
-            this.io.emit('removeBullet', msg.bulletId);
+            this.ws.sendData('removeBullet', { bulletId: msg.bulletId });
         });
-        this.io.on('sendHome', () => location.href = '/');
-        this.io.on('getBackgroundCards', cards => {
-            cards.forEach(card => {
+        this.ws.on('sendHome', () => location.href = '/');
+        this.ws.on('getBackgroundCards', data => {
+            data.cards.forEach(card => {
                 const shapes = [];
                 card[2].forEach(point => {
                     shapes.push(new Arc(
@@ -147,37 +164,55 @@ class Game {
         })
 
         // ✅ Manage connection events
-        this.io.on('connect_error', (error) => {
+        this.ws.on('connect_error', (error) => {
             console.error('❌ Connection error:', error.message);
             showAlert('Connection error. Reconnecting...', 'Error', 'danger', 5000);
         });
 
-        this.io.on('connect_timeout', () => {
+        this.ws.on('connect_timeout', () => {
             console.error('⏱️ Connection timeout');
             showAlert('Connection timeout', 'Error', 'danger', 5000);
             location.reload();
         });
 
-        this.io.on('reconnect_attempt', (attemptNumber) => {
+        this.ws.on('reconnect_attempt', (attemptNumber) => {
             console.log(`🔄 Reconnecting... Attempt ${attemptNumber}`);
         });
 
-        this.io.on('reconnect_failed', () => {
+        this.ws.on('reconnect_failed', () => {
             console.error('❌ All reconnection attempts failed');
             showAlert('Failed to reconnect. Please reload the page.', 'Error', 'danger', 5000);
         });
 
-        this.io.on('connect', () => {
-            console.log('✅ Connected to server:', this.io.id);
+        this.ws.on('connect', () => {
+            console.log('✅ Connected to WebSocket');
             location.reload();
         });
 
-        this.io.on('disconnect', (reason) => {
+        this.ws.on('disconnect', (reason) => {
             console.warn('⚠️ Disconnected:', reason);
-            if (reason === 'io server disconnect') {
-                this.io.connect();
+            if (reason === 'WS server disconnect') {
+                this.ws.connect();
             }
         });
+
+        this.ws.on('connection_success', data => {
+            console.log('✅ Connection established with socket ID:', data.socketId);
+            this.socketId = data.socketId;
+            this.player.socketId = data.socketId;
+            this.players[this.player.socketId] = this.player;
+        });
+
+        this.ws.sendData('connection_success');
+
+
+
+
+        this.playerUpdated = true;
+        this.beginInterval();
+        setTimeout(() => {
+            this.ws.sendData('playerData', this.player.getSortDetails());
+        }, 1);
     }
     beginInterval() {
         const timestep = 1000 / 30; // 30 updates per second (fixed timestep)
@@ -289,7 +324,7 @@ class Game {
         this.drawAll();
 
         if (this.playerUpdated || this.player.moving || this.player.speed) {
-            this.io.emit('playerData', this.player.getSortDetails());
+            this.ws.sendData('playerData', this.player.getSortDetails());
         }
         this.playerUpdated = false;
     }
@@ -519,7 +554,7 @@ class Game {
                     })
                 if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
                     this.bulletCharging = null;
-                    this.io.emit('player hit', {
+                    this.ws.sendData('player hit', {
                         bulletId: null,
                         playerId: this.player.socketId,
                         from: this.player.socketId,
@@ -556,9 +591,9 @@ class Game {
             }
         }
 
-        if (data.length && !this.requestingBackgroundCards) {
+        if (data.length && !this.requestingBackgroundCards && this.socketId) {
             this.requestingBackgroundCards = true;
-            this.io.emit('getBackgroundCards', { socketId: this.io.id, data });
+            this.ws.sendData('getBackgroundCards', { socketId: this.socketId, data });
         }
 
         if (!this.background) {
@@ -883,7 +918,7 @@ class Game {
 
         this.bulletCharging = null;
 
-        this.io.emit('newBullet', msg);
+        this.ws.sendData('newBullet', msg);
         this.lastBulletTs = Date.now()
     }
     leaveWindow() {
@@ -902,7 +937,7 @@ class Game {
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
                 if (playerHit) {
-                    this.io.emit('player hit', {
+                    this.ws.sendData('player hit', {
                         bulletId: bullet.id,
                         playerId: playerHit.socketId,
                         from: this.player.socketId,
