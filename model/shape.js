@@ -27,5 +27,4 @@ const Shape = new mongoose.Schema(
     }
 )
 
-
 export default Shape;

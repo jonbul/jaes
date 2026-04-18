@@ -62,13 +62,10 @@ mongoose.connect(process.env.MONGODB_URI);
 
 app.use(flash());
 
-
-
 app.use(express.static('public'));
 app.use(express.static('shared'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
-
 
 import './model/user.js';
 

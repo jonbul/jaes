@@ -80,7 +80,6 @@ class Game {
 
         this.messagesManager = new MessagesManager(this);
         this.socketIOEvents();
-
     }
 
     reloadPlayer() {
@@ -94,6 +93,7 @@ class Game {
 
         this.context.translate(x - this.player.x, y - this.player.y);
     }
+
     socketIOEvents() {
         this.ws.events = {};
 
@@ -205,6 +205,7 @@ class Game {
             this.ws.sendData('playerData', this.player.getSortDetails());
         }, 1);
     }
+
     beginInterval() {
         const timestep = 1000 / 30; // 30 updates per second (fixed timestep)
         let lastTime = null;
@@ -231,6 +232,7 @@ class Game {
         };
         requestAnimationFrame(loop);
     }
+
     toFullScreen(e) {
 
         console.warn(JSON.stringify({ x: e?.clientX, y: e?.clientY }))
@@ -254,6 +256,7 @@ class Game {
             document.exitFullscreen()
         }
     }
+
     onPlayerDied(msg) {
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
@@ -277,6 +280,7 @@ class Game {
         const diedName = this.players[msg.playerId].name;
         this.messagesManager.addKillMessage(fromName, diedName);
     }
+
     intervalMethod() {
 
         if (this.isSmartphone) {
@@ -319,6 +323,7 @@ class Game {
         }
         this.playerUpdated = false;
     }
+
     clear() {
         const playerRealDimension = this.player.getRealDimension();
         this.context.clearRect(playerRealDimension.x - this.canvas.width, playerRealDimension.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -383,8 +388,8 @@ class Game {
                 player.y = tempPosition.y;
             }
         }
-
     }
+
     movementSmarphone() {
         if (this.player.isDead) return;
         const player = this.player;
@@ -445,6 +450,7 @@ class Game {
             }
         }
     }
+
     gameBroadcast(data) {
         const playersData = data.players;
 
@@ -463,6 +469,7 @@ class Game {
             delete this.bullets[bulletId];
         });
     }
+
     comingNewBullets(newBullets) {
         newBullets.forEach(newBullet => {
             const bullet = new Bullet(
@@ -482,6 +489,7 @@ class Game {
             gameSounds.shot();
         })
     }
+
     updatePlayers(plDetails) {
         const players = this.players;
         if (plDetails) {
@@ -497,6 +505,7 @@ class Game {
             players[plDetails.socketId].credits = plDetails.credits;
         }
     }
+
     drawAll() {
         this.clear();
         let translateX;
@@ -559,6 +568,7 @@ class Game {
 
         this.drawTexts();
     }
+
     drawBackground() {
         const playerRealDimension = this.player.getRealDimension();
         // Math.floor maneja correctamente coordenadas negativas
@@ -614,6 +624,7 @@ class Game {
             }
         }
     }
+
     drawArrows() {
         /****************************** */
         const rotationAxis = {}
@@ -651,6 +662,7 @@ class Game {
             }
         }
     }
+
     loadRadar() {
         const player = this.player;
         // r is radar scale
@@ -689,6 +701,7 @@ class Game {
             }
         }
     }
+
     drawRadar() {
         const playerRealDimension = this.player.getRealDimension();
         this.radar.draw(this.context, { x: playerRealDimension.x, y: playerRealDimension.y });
@@ -699,6 +712,7 @@ class Game {
             arcPoint.draw(this.context);
         })
     }
+
     drawRadarSmartphone() {
         const rotationCenter = this.isSmartphone ? { x: this.radar.shapes[0].x, y: this.radar.shapes[0].y } : {};
         const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
@@ -718,6 +732,7 @@ class Game {
             arcPoint.draw(this.context, options);
         });
     }
+
     drawTexts() {
 
         const texts = [
@@ -794,6 +809,7 @@ class Game {
         }
         this.messagesManager.draw();
     }
+
     createStaticCanvas() {
         this.fontSize = this.canvas.width / 1920 * 40;
         this.lineHeight = this.canvas.width / 1920 * (40 + 10);
@@ -812,6 +828,7 @@ class Game {
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }
+
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
@@ -825,38 +842,9 @@ class Game {
             addEventListener("deviceorientation", (e) => {
                 this.deviceorientation = e
             })
-
-            //this.requestOrientationPermission();
-
-            /*
-            if (location.host.indexOf(3000) > 0) {
-                const div = document.createElement("div")
-                div.style.position = "absolute"
-                div.style.display = "block"
-                div.style.height = "60px";
-                div.style.width = "100%";
-                div.style.top = "0";
-                div.style.left = "0";
-                div.style.backgroundColor  = "#fff";
-                document.body.appendChild(div)
- 
-                function log() {
-                    let deviceorientation = this.deviceorientation;
-                    //let gyroscope = this.gyroscope;
-                    let text = ""
-                    if (deviceorientation && deviceorientation.alpha)
-                        text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
-                    //if (gyroscope && gyroscope.x)
-                    //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
- 
-                    text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
-                    div.innerText = text;
-                }
-                setInterval(log.bind(this), 1)
-            }/**/
         }
-
     }
+
     keyDownEvent(event) {
         if (this.keys[event.keyCode]) return;
         this.keys[event.keyCode] = true;
@@ -867,6 +855,7 @@ class Game {
             this.bulletCharging = Date.now()
         }
     }
+
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
         if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
@@ -880,6 +869,7 @@ class Game {
 
         if (event.keyCode === KEYS.F11) this.toFullScreen()
     }
+
     screenTouchEventStart() {
         if (this.screenTouchEventStarted) return;
         this.screenTouchEventStarted = true;
@@ -888,12 +878,14 @@ class Game {
             this.bulletCharging = Date.now()
         }
     }
+
     screenTouchEventEnd() {
         if (this.player && !this.player.isDead) {
             this.newBullet()
         }
         this.screenTouchEventStarted = false;
     }
+
     newBullet() {
         // 1 every 100ms
         if (Date.now() - (this.lastBulletTs || 0) <= 100) return;
@@ -912,11 +904,13 @@ class Game {
         this.ws.sendData('newBullet', msg);
         this.lastBulletTs = Date.now()
     }
+
     leaveWindow() {
         for (const keyCode in this.keys) {
             this.keys[keyCode] = false;
         }
     }
+
     bulletInterval() {
         let bulletsUpdated = false;
         this.player.bullets = this.player.bullets.filter((bullet) => {
@@ -941,10 +935,10 @@ class Game {
                     return true;
                 }
             }
-
         });
         return bulletsUpdated;
     }
+
     checkBulletCollision(bullet) {
         let collision = false;
         let playerKilled;
@@ -961,6 +955,7 @@ class Game {
         }
         return playerKilled;
     }
+
     /**
      * Check collisions with other players
      * 
@@ -990,12 +985,14 @@ class Game {
         }
         return collision;
     }
+
     checkRectsCollision(rect1, rect2) {
         return (rect1.x < rect2.x + rect2.width &&
             rect1.x + rect1.width > rect2.x &&
             rect1.y < rect2.y + rect2.height &&
             rect1.height + rect1.y > rect2.y);
     }
+
     checkArcRectCollision(arc, rect) {
         return this.checkRectsCollision(rect, {
             x: arc.x - (arc.radiusX || arc.radius),
@@ -1005,4 +1002,5 @@ class Game {
         });
     }
 }
+
 export default Game;

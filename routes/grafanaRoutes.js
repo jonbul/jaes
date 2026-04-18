@@ -11,4 +11,5 @@ const grafanaRoutes = (app) => {
         }
     });
 }
+
 export default grafanaRoutes;

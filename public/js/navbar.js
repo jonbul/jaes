@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         menu.toggleAttribute('collapsed-expanded', menu.hasAttribute('collapsed-expanded') ? '' : 'true');
     });
 
-
     // User session handling
     let user = await asyncRequest({ path: '/userInfo', method: 'GET', silent: true });
     if (user) {
@@ -39,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    
     let username = user?.username || 'Guest';
     const usernameElement = document.getElementById('username');
     if (usernameElement) {
@@ -79,5 +77,4 @@ document.addEventListener('DOMContentLoaded', async function () {
             window.location.href = '/';
         });
     }
-
 });

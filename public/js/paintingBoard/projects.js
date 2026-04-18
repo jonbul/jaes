@@ -31,7 +31,7 @@ if (projects) {
         }
 
         card.appendChild(canvas);
-        
+
         const title = document.createElement('h5');
         const link = document.createElement('a');
         link.href = `/paintingBoard?id=${project._id}`;
@@ -49,16 +49,17 @@ if (projects) {
 
         projectBoard.appendChild(card);
     }
+
     function deleteProject(id, card) {
         asyncRequest({
             path: `../paintingBoard/projects?id=${id}`,
             method: 'DELETE'
         }).then(data => {
-                if (data.success) {
-                    card.remove();
-                } else {
-                    alert('Failed to delete project.');
-                }
-            });
+            if (data.success) {
+                card.remove();
+            } else {
+                alert('Failed to delete project.');
+            }
+        });
     }
 }

@@ -19,8 +19,8 @@ class MasterJasonFile {
         this.grid.v = gridV;
         this.layers = layers;
     }
-
 }
+
 //Shapes
 class Rect {
     constructor(x, y, width, height, backgroundColor, borderColor, borderWidth = 0, rotation = 0, name) {
@@ -115,6 +115,7 @@ class Rect {
         }
     }
 }
+
 class Arc {
     constructor(x, y, radius, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name, mirror = false) {
         this.desc = CONST.ARC;
@@ -130,6 +131,7 @@ class Arc {
         this.mirror = mirror;
         this.rotation = 0;
     }
+
     draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
         context.scale(options.scale, options.scale);
@@ -174,6 +176,7 @@ class Arc {
         context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
+
     drawResized(context, resizeSize = 100) {
         const radius = resizeSize / 2;
         if (this.radius < 0) this.radius *= -1;
@@ -189,6 +192,7 @@ class Arc {
         context.fill();
     }
 }
+
 class Ellipse {
     constructor(x, y, radiusX, radiusY, rotation = 0, backgroundColor, borderColor, borderWidth, startAngle = 0, endAngle = 2 * Math.PI, name) {
         this.desc = CONST.ELLIPSE;
@@ -253,9 +257,9 @@ class Ellipse {
         }
 
         context.fill();
-
     }
 }
+
 class Line {
     constructor(points = [], borderColor = '#ffffff', borderWidth = 1, name) {
         this.desc = CONST.LINE;
@@ -305,6 +309,7 @@ class Line {
         context.fill();
     }
 }
+
 class Polygon {
     constructor(points = [], backgroundColor, borderColor, borderWidth, name, rotation = 0) {
         this.desc = CONST.POLYGON;
@@ -447,6 +452,7 @@ class Polygon {
         */
     }
 }
+
 class Pencil {
     constructor(points = [], color, borderWidth = 1, name) {
         this.desc = CONST.PENCIL;
@@ -504,6 +510,7 @@ class Pencil {
         context.stroke();
     }
 }
+
 class Abstract {
     constructor(points, backgroundColor, borderColor, borderWidth, name, rotation = 0) {
         this.desc = CONST.ABSTRACT;
@@ -573,6 +580,7 @@ class Abstract {
         context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
+
     drawResized(context, resizeSize = 100) {
         let newPoints = [];
         this.points.forEach(p => {
@@ -628,6 +636,7 @@ class Abstract {
         }
     }
 }
+
 class Rubber {
     constructor(points, borderWidth = 0, name, rotation = 0) {
         this.desc = CONST.RUBBER;
@@ -682,6 +691,7 @@ class Rubber {
         }
         context.translate(-options.x, -options.y);
     }
+
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
         context.scale(options.scale, options.scale);
@@ -720,6 +730,7 @@ class Rubber {
         context.translate(-options.x, -options.y);
     }
 }
+
 class Picture {
     constructor(img, src, sx, sy, sw, sh, x, y, width, height, rotation = 0, name) {
         this.desc = CONST.PICTURE;
@@ -738,8 +749,8 @@ class Picture {
 
         this.rotation = rotation;
         this.srcError = false;
-
     }
+
     draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
         context.scale(options.scale, options.scale);
@@ -772,7 +783,6 @@ class Picture {
             new Rect(this.x, this.y, this.width, this.height, '#ff0000', '#000000', 1).draw(context, options);
         }
 
-
         if (this.rotation > 0) {
             context.translate(moveX, moveY);
             context.rotate(-this.rotation);
@@ -787,6 +797,7 @@ class Picture {
         context.scale(1 / options.scale, 1 / options.scale);
         context.translate(-options.x, -options.y);
     }
+
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
         if (options.rotationCenter && options.rotate) {
@@ -815,6 +826,7 @@ class Picture {
         }
         context.translate(-options.x, -options.y);
     }
+
     addImgToElem(elem, img) {
         elem.img = img;
         return elem;
@@ -842,6 +854,7 @@ class Text {
             CENTER: "center",
         }
     }
+
     draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
         context.scale(options.scale, options.scale);
@@ -888,6 +901,7 @@ class ClickXY {
         this.x = Math.round(data.x / roundX) * roundX;
         this.y = Math.round(data.y / roundY) * roundY;
     }
+
     getSimple() {
         return {
             x: this.x,
@@ -895,6 +909,7 @@ class ClickXY {
         }
     }
 }
+
 class Layer {
     constructor(name, shapes = []) {
         this.shapes = shapes;
@@ -902,6 +917,7 @@ class Layer {
         this.desc = "desc";
         this.visible = true;
     }
+
     draw(context, options) {
         if (this.visible) {
             this.shapes.forEach(shape => {
@@ -909,6 +925,7 @@ class Layer {
             });
         }
     }
+
     drawResized(context, scale, options) {
         if (this.visible) {
             this.shapes.forEach(shape => {
@@ -929,14 +946,17 @@ class ProjectShape {
         this.name = name || this.desc;
         this.points = [];
     }
+
     add(point) {
         if (this.points.filter(p => p.x === point.x && p.y === point.y).length === 0) {
             this.points.push(point);
         }
     }
+
     remove(point) {
         this.points = this.points.filter(p => p.x !== point.x || p.y !== point.y);
     }
+
     draw(context, options = { x: 0, y: 0, rotate: 0, scale: 1 }) {
         context.translate(options.x, options.y);
 
@@ -957,6 +977,7 @@ class ProjectShape {
 
         context.translate(-options.x, -options.y);
     }
+
     drawResized(context, resizeSize = 100, options = { x: 0, y: 0 }) {
         context.translate(options.x, options.y);
 

@@ -33,7 +33,6 @@ async function onRegisterSubmit(event) {
         if (result.success) {
             return location.href = '/login';
         }
-
     } catch (err) {
 
         try {

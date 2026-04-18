@@ -12,17 +12,14 @@ class WebSocketHandler {
         this.wss = new WebSocket.Server({ server: https });
         this.wss.on('connection', this.onWSSConnection.bind(this));
 
-
         this.playersToSend = {};
         this.hasPlayersToSend = false;
         this.killsList = [];
         this.newBullets = [];
         this.bulletsToRemove = [];
 
-
         setInterval(this.cleanPlayers.bind(this), 10000)
         setInterval(this.gameStatusBroadcast.bind(this), 1000 / 30);
-
     }
 
     onWSSConnection(socket) {
@@ -154,6 +151,7 @@ class WebSocketHandler {
             }
         }
     }
+
     gameStatusBroadcast() {
         if (this.hasPlayersToSend || this.killsList.length || this.newBullets.length || this.bulletsToRemove.length) {
             this.broadcastToAll('gameBroadcast', {

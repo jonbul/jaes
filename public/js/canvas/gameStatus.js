@@ -24,6 +24,7 @@ class GameStatus {
         this.playersDetails = document.getElementById('playersDetails');
         this.ships = null;
     }
+
     drawMapInterval() {
         const func = async () => {
             const data = (await asyncRequest({ path: '/gameData', method: 'POST', data: this.backgroundCardsSorted }));
@@ -34,6 +35,7 @@ class GameStatus {
         };
         setInterval(func, 1000);
     }
+
     writePlayersTable(players) {
         this.playersDetails.innerHTML = '';
         const props = [
@@ -54,6 +56,7 @@ class GameStatus {
             this.playersDetails.appendChild(tr);
         }
     }
+
     async drawMap(resultCards) {
         if (!this.ships || Object.keys(this.ships).length === 0) {
             const shipList = await asyncRequest({ path: '/game/getShips', method: 'GET' });
@@ -136,6 +139,7 @@ class GameStatus {
             }
         }
     }
+
     mouseEvent() {
         const block = document.createElement('div');
         block.style.position = 'absolute';
@@ -158,6 +162,7 @@ class GameStatus {
         });
     }
 }
+
 const data = await asyncRequest({ path: '/game/data' });
 const canvas = document.getElementById('canvas')
 canvas.width = data.canvasWidth;

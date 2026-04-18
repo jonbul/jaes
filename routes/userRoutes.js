@@ -95,7 +95,6 @@ const userRoutes = (app) => {
             req.flash('success', 'Registration successful, you can now login');
             res.json({ success: true });
         }
-
     });
 
     app.post('/login', async (req, res) => {
@@ -162,7 +161,6 @@ const userRoutes = (app) => {
                 expirationTime
             });
         }, req, res, SESSIONITEMTYPES.SESSION);
-
     });
 
     app.post('/logout', async (req, res) => {
@@ -180,4 +178,5 @@ const userRoutes = (app) => {
         res.json({ success: true });
     });
 }
+
 export default userRoutes;

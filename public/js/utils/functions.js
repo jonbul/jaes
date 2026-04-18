@@ -46,7 +46,6 @@ async function asyncRequest({ path, method, data, silent = false }) {
     });
 }
 
-
 function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
     if (validTypes.indexOf(type) === -1) {
