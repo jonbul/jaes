@@ -479,7 +479,7 @@ class Game {
             bullet.id = newBullet.id;
             this.bullets[bullet.id] = bullet;
 
-            gameSounds['shot']();
+            gameSounds.shot();
         })
     }
     updatePlayers(plDetails) {
