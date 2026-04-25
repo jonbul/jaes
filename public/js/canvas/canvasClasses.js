@@ -1,4 +1,3 @@
-import { showAlert } from '../utils/functions.js';
 import CONST from '/constants.js';
 class MasterJasonFile {
     constructor(cnvW, cnvH, bgc, gridH, gridV, layers) {

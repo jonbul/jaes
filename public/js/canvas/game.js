@@ -18,6 +18,9 @@ import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
+const backendHost = (window.location.host.substring(0, window.location.host.indexOf(':')) || window.location.host) + ':3000';
+const websocketHost = "wss://" + backendHost;
+
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
 
@@ -43,7 +46,7 @@ class Game {
         this.createStaticCanvas();
 
         // Wait for connection
-        this.ws = new WebSocket(`wss://${location.host}`)
+        this.ws = new WebSocket(websocketHost);
         if (this.ws.readyState === WebSocket.CONNECTING) {
             this.ws.addEventListener('open', this.onWebSocketOpen.bind(this));
         } else if (this.ws.readyState === WebSocket.OPEN) {
