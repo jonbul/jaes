@@ -101,9 +101,7 @@ paintingBoardRoutes(app);
 import expressStatusMonitor from 'express-status-monitor';
 app.use(expressStatusMonitor({
     title: 'JAES Server Status',
-    path: '/status',
-    websocket: null,
-    port: PORT_HTTPS
+    path: '/status'
 }));
 
 app.get('/metrics', async (req, res) => {
