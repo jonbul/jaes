@@ -1,5 +1,4 @@
 node_modules
-.package-lock.json
 sslDebug/cert.pem
 sslDebug/key.pem
 .env
