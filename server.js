@@ -60,8 +60,6 @@ import MongoStore from 'connect-mongo';
 
 mongoose.connect(process.env.MONGODB_URI);
 
-app.use(flash());
-
 app.use(express.static('public'));
 app.use(express.static('shared'));
 app.use(express.json({ limit: '50mb' }));
@@ -80,6 +78,7 @@ app.use(session({
     }),
     cookie: { sameSite: 'none', secure: true }
 }));
+app.use(flash());
 
 app.set('view engine', 'ejs');
 app.engine('ejs', ejsMate);

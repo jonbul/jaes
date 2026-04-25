@@ -26,7 +26,10 @@ else
     git clone git@github.com:jonbul/jaes.git
     cd jaes
 fi
+# git checkout cleaning
 
+
+cp -f /home/jonbul/servers/files/.env /home/jonbul/servers/jaes/.env
 
 echo ____________________ DESCARGAR DEPENDENCIAS
 npm install
@@ -34,7 +37,16 @@ echo ____________________ NUEVO DOCKER
 docker build -t jaes .
 
 
-docker run -d -p 3000:3000 -p 3001:3001 --name jaes-container -v /home/jonbul/servers/ssl:/files/ssl jaes
+docker run -d -p 3000:3000 -p 3001:3001 --name jaes-container -v /home/jonbul/servers/files/ssl:/ssl jaes
+
+# Mounts certs directly from the creation folder
+# Mounts 'live' folder with symlinks which never changes the names
+# To work inside the docker container mounts 'archive' folder with files
+
+# docker run -d -p 3000:3000 -p 3001:3001 --name jaes-container \
+#   -v /etc/letsencrypt/live/jonbul.ddns.net/:/ssl \
+#   -v /etc/letsencrypt/archive/jonbul.ddns.net/:/etc/letsencrypt/archive/jonbul.ddns.net \
+#   jaes
 
 
 
