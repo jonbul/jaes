@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 import User from '../model/user.js';
 
 class WebSocketHandler {
@@ -9,7 +9,7 @@ class WebSocketHandler {
         this.currentResolution = currentResolution;
         this.sockets = {};
 
-        this.wss = new WebSocket.Server({ server: https });
+        this.wss = new WebSocketServer({ server: https });
         this.wss.on('connection', this.onWSSConnection.bind(this));
 
         this.playersToSend = {};
