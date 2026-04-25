@@ -98,11 +98,13 @@ gameRoutes(app, mongoose, https);
 paintingBoardRoutes(app);
 
 //Server /status
-import expressStatusMonitor from 'express-status-monitor';
+/*import expressStatusMonitor from 'express-status-monitor';
 app.use(expressStatusMonitor({
     title: 'JAES Server Status',
-    path: '/status'
-}));
+    path: '/status',
+    websocket: null,
+    port: 2999
+}));*/
 
 app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
