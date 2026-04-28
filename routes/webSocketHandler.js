@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import User from '../model/user.js';
 import { randomUUID } from 'crypto';
 
