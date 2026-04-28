@@ -1,5 +1,7 @@
 import { WebSocketServer } from 'ws';
 import User from '../model/user.js';
+import { randomUUID } from 'crypto';
+
 
 class WebSocketHandler {
     constructor(https, players, backgroundCards, currentResolution) {
@@ -9,7 +11,7 @@ class WebSocketHandler {
         this.currentResolution = currentResolution;
         this.sockets = {};
 
-        this.wss = new WebSocketServer({ server: https });
+        this.wss = new WebSocketServer({ server: https, maxPayload: 1024 * 1024 });
         this.wss.on('connection', this.onWSSConnection.bind(this));
 
         this.playersToSend = {};
@@ -23,7 +25,7 @@ class WebSocketHandler {
     }
 
     onWSSConnection(socket) {
-        socket.id = Date.now() + parseInt(Math.random() * 1000);
+        socket.id = randomUUID();
         this.sockets[socket.id] = socket;
         console.log(`✅ Nueva conexión: ${socket.id} | Total: ${Object.keys(this.sockets).length}`);
 
@@ -38,7 +40,7 @@ class WebSocketHandler {
 
         this.addMessageEvent(socket, 'newBullet', this.msg_newBullet.bind(this));
 
-        this.addMessageEvent(socket, 'getBackgroundCards', this.msg_getBackgroundCards.bind(this));
+        this.addMessageEvent(socket, 'getBackgroundCards', this.msg_getBackgroundCards.bind(this, socket));
 
         this.addMessageEvent(socket, 'removeBullet', this.msg_removeBullet.bind(this));
 
@@ -54,23 +56,30 @@ class WebSocketHandler {
     }
 
     async socketMessageEvent(socket, event) {
-        const data = JSON.parse(event.data);
-        socket.events[data.eventName](data);
+        try {
+            const data = JSON.parse(event.data);
+            socket.events[data.eventName](data);
+        } catch (err) {
+            console.error('Error processing message:', err);
+            console.error('Original message:', event.data);
+        }
     }
 
     async socketCloseEvent(socket) {
         console.log(`❌ Desconexión: ${socket.id} | Total: ${Object.keys(this.sockets).length}`);
 
-        if (!this.players[socket.id]) return;
-        const user = await User.findOne({ username: this.players[socket.id].name });
+        delete this.sockets[socket.id];
+        let player = this.players[socket.id];
+        delete this.players[socket.id];
+
+        if (!player) return;
+        const user = await User.findOne({ username: player.name });
         if (user) {
-            user.credits = this.players[socket.id] ? this.players[socket.id].credits : 0;
-            user.kills = user.kills ? user.kills + this.players[socket.id].kills : this.players[socket.id].kills;
-            user.deaths = user.deaths ? user.deaths + this.players[socket.id].deaths : this.players[socket.id].deaths;
+            user.credits = player ? player.credits : 0;
+            user.kills = user.kills ? user.kills + player.kills : player.kills;
+            user.deaths = user.deaths ? user.deaths + player.deaths : player.deaths;
             await user.save();
         }
-        delete this.players[socket.id];
-        delete this.sockets[socket.id];
         this.broadcastToAll('player leave', { socketId: socket.id });
     }
 
@@ -99,7 +108,7 @@ class WebSocketHandler {
         this.newBullets.push(msg.bullet);
     }
 
-    msg_getBackgroundCards(msg) {
+    msg_getBackgroundCards(socket, msg) {
         const backgroundCards = this.backgroundCards;
         const cards = []
         msg.data.forEach(card => {
@@ -111,10 +120,11 @@ class WebSocketHandler {
                     card[1],//y
                     []//start
                 ]
+                const res = this.currentResolution();
                 for (let i = 0; i < 500; i++) {
                     newCard[2].push([
-                        parseInt(Math.random() * this.currentResolution.width),
-                        parseInt(Math.random() * this.currentResolution.height),
+                        parseInt(Math.random() * res.width),
+                        parseInt(Math.random() * res.height),
                         parseInt(Math.random() * 4) + 1
                     ]);
                 }
@@ -123,7 +133,7 @@ class WebSocketHandler {
                 cards.push(newCard);
             }
         });
-        this.sockets[msg.socketId]?.send(JSON.stringify({ eventName: 'getBackgroundCards', cards }));
+        this.sockets[socket.id]?.send(JSON.stringify({ eventName: 'getBackgroundCards', cards }));
     }
 
     msg_removeBullet(msg) {
@@ -143,11 +153,17 @@ class WebSocketHandler {
 
     cleanPlayers() {
         for (const sId in this.players) {
-            if (Date.now() - this.players[sId].lastUpdate > 600000) {
-                this.sockets[sId]?.send(JSON.stringify({ eventName: 'sendHome' }));
-                this.sockets[sId]?.close();
-                delete this.players[sId];
-                delete this.sockets[sId];
+            const player = this.players[sId];
+            if (!player || player.timedOut) continue;
+            if (Date.now() - player.lastUpdate > 15000) {
+                player.timedOut = true;
+                
+                const socket = this.sockets[sId];
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ eventName: 'sendHome' }));
+                }
+
+                socket?.close();
             }
         }
     }

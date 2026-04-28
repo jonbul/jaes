@@ -20,7 +20,7 @@ class Animation {
     }
 
     pause() {
-        this.playing = true;
+        this.playing = false;
     }
 
     stop() {

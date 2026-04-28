@@ -28,8 +28,8 @@ else
 fi
 # git checkout cleaning
 
-
-cp -f /home/jonbul/servers/files/.env /home/jonbul/servers/jaes/.env
+cd
+cp -f /home/jonbul/servers/files/.env ./servers/jaes/.env
 
 echo ____________________ DESCARGAR DEPENDENCIAS
 npm install

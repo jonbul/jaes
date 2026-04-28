@@ -13,12 +13,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-/*
-app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'");
-    next();
-});/**/
-
 const PORT_HTTPS = process.env.PORT || 3000;
 console.log(`🚀 Starting server on port ${PORT_HTTPS}...`);
 // SSL

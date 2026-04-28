@@ -179,7 +179,7 @@ const gameRoutes = (app, mongoose, https) => {
         }, req, res, SESSIONITEMTYPES.USER);
     });
 
-    new WebSocketHandler(https, players, backgroundCards, resolutions[currentResolution]);
+    new WebSocketHandler(https, players, backgroundCards, () => resolutions[currentResolution]);
 
     console.log('WebSocket Server is running');
 }

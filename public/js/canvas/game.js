@@ -19,7 +19,7 @@ import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
 
 const backendHost = (window.location.host.substring(0, window.location.host.indexOf(':')) || window.location.host) + ':3000';
-const websocketHost = "wss://" + backendHost;
+const websocketHost = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + backendHost;
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -69,8 +69,6 @@ class Game {
         this.player = new Player(this.shipsManager.getShipById(this.ship._id), this.username, this.ship._id, 0, 0, this.credits);
         this.chargingBar = new ChargingBar(this.player, this.context);
 
-        this.players[this.player.socketId] = this.player;
-
         this.drawableBullets = new Layer('bullets');
         this.drawablePlayers = [];
         do {
@@ -97,11 +95,42 @@ class Game {
         this.context.translate(x - this.player.x, y - this.player.y);
     }
 
+    _reconnect() {
+        const MAX_ATTEMPTS = 10;
+        const DELAY_MS = 2000;
+        let attempts = 0;
+
+        const tryConnect = () => {
+            attempts++;
+            console.log(`🔄 Reconnecting... Attempt ${attempts}`);
+            showAlert({msg: `Reconnecting... Attempt ${attempts}`, title:'Info', type:'info', duration: 2000});
+            this.ws = new WebSocket(websocketHost);
+            this.ws.addEventListener('open', () => {
+                console.log('✅ Reconnected. Reloading...');
+                location.reload();
+            });
+            this.ws.addEventListener('close', () => {
+                if (attempts < MAX_ATTEMPTS) {
+                    setTimeout(tryConnect, DELAY_MS);
+                } else {
+                    console.error('❌ All reconnection attempts failed');
+                    showAlert({ msg: 'Failed to reconnect. Please reload the page.', title: 'Error', type: 'danger', duration: 5000 });
+                }
+            });
+        };
+
+        setTimeout(tryConnect, DELAY_MS);
+    }
+
     socketIOEvents() {
         this.ws.events = {};
 
         this.ws.addEventListener('message', event => {
             const data = JSON.parse(event.data);
+            if (!this.ws.events[data.eventName]) {
+                console.error('No handler for event:', data.eventName);
+                return;
+            }
             this.ws.events[data.eventName](data);
         });
 
@@ -115,8 +144,8 @@ class Game {
         }).bind(this);
 
         this.ws.on('gameBroadcast', this.gameBroadcast.bind(this));
-        this.ws.on('player leave', id => {
-            delete this.players[id];
+        this.ws.on('player leave', data => {
+            delete this.players[data.socketId];
             this.updatePlayers();
         });
         this.ws.on('playerHit', msg => {
@@ -163,34 +192,18 @@ class Game {
         // ✅ Manage connection events
         this.ws.on('connect_error', (error) => {
             console.error('❌ Connection error:', error.message);
-            showAlert('Connection error. Reconnecting...', 'Error', 'danger', 5000);
+            showAlert({msg: 'Connection error. Reconnecting...', title:'Error', type:'danger', duration: 5000});
         });
 
         this.ws.on('connect_timeout', () => {
             console.error('⏱️ Connection timeout');
-            showAlert('Connection timeout', 'Error', 'danger', 5000);
+            showAlert({msg: 'Connection timeout', title:'Error', type:'danger', duration: 5000});
             location.reload();
         });
 
-        this.ws.on('reconnect_attempt', (attemptNumber) => {
-            console.log(`🔄 Reconnecting... Attempt ${attemptNumber}`);
-        });
-
-        this.ws.on('reconnect_failed', () => {
-            console.error('❌ All reconnection attempts failed');
-            showAlert('Failed to reconnect. Please reload the page.', 'Error', 'danger', 5000);
-        });
-
-        this.ws.on('connect', () => {
-            console.log('✅ Connected to WebSocket');
-            location.reload();
-        });
-
-        this.ws.on('disconnect', (reason) => {
-            console.warn('⚠️ Disconnected:', reason);
-            if (reason === 'WS server disconnect') {
-                this.ws.connect();
-            }
+        this.ws.addEventListener('close', (event) => {
+            console.warn('⚠️ Disconnected:', event.code, event.reason);
+            this._reconnect();
         });
 
         this.ws.on('connectionSuccess', data => {

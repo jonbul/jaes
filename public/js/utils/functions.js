@@ -121,11 +121,13 @@ function parseShape(shape) {
     if (CONST.PICTURE === newShape.desc) {
         const img = new Image()
 
+        newShape.srcError = false;
+
         img.onload = () => {
-            img.srcError = false;
+            newShape.srcError = false;
         }
         img.onerror = () => {
-            img.srcError = true;
+            newShape.srcError = true;
             console.warn('Error loading image:', newShape.src);
             if (location.pathname.indexOf('paintingBoard') > 0) {
                 showAlert({ type: 'warning', msg: 'Error loading given Picture. Try to reload it from a different source.', title: 'Warning' });
