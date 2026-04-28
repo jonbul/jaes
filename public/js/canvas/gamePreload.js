@@ -3,7 +3,6 @@ import CharacterSelector from '/js/canvas/characterSelector.js';
 import { ShipsManager } from '/js/canvas/gameClasses.js'
 import { asyncRequest } from '/js/utils/functions.js';
 
-
 const gameData = await asyncRequest({ path: "/game/data" });
 
 let guest = false;
@@ -73,6 +72,7 @@ async function btnStart(e) {
             canvas.requestFullscreen().then(launch)
         }
     }
+
     async function smartphoneLaunch() {
         console.log(DeviceOrientationEvent)
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -110,7 +110,6 @@ async function btnStart(e) {
             } else {
                 alert('Permission not granted to access device orientation');
             }
-
         } else {
             canvas.requestFullscreen().then(launch)
         }

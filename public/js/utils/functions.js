@@ -46,7 +46,6 @@ async function asyncRequest({ path, method, data, silent = false }) {
     });
 }
 
-
 function showAlert({ type = 'danger', msg, title, duration = 3000 }) {
     const validTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
     if (validTypes.indexOf(type) === -1) {
@@ -121,6 +120,19 @@ function parseShape(shape) {
 
     if (CONST.PICTURE === newShape.desc) {
         const img = new Image()
+
+        newShape.srcError = false;
+
+        img.onload = () => {
+            newShape.srcError = false;
+        }
+        img.onerror = () => {
+            newShape.srcError = true;
+            console.warn('Error loading image:', newShape.src);
+            if (location.pathname.indexOf('paintingBoard') > 0) {
+                showAlert({ type: 'warning', msg: 'Error loading given Picture. Try to reload it from a different source.', title: 'Warning' });
+            }
+        }
         img.src = newShape.src;
         newShape.img = img;
     } else if (CONST.PROJECT_SHAPE === newShape.desc) {
@@ -130,7 +142,7 @@ function parseShape(shape) {
 }
 
 async function refreshToken() {
-    asyncRequest({path: '/refreshToken', method: 'POST'}).then(data => {
+    asyncRequest({ path: '/refreshToken', method: 'POST' }).then(data => {
         if (data?.success) {
             if (data.expirationTime) {
                 const expirationTime = new Date(data.expirationTime).getTime();
@@ -146,7 +158,7 @@ async function refreshToken() {
     });
 }
 
-async function setRefreshTokenTimeout () {
+async function setRefreshTokenTimeout() {
     const sessionExpiration = localStorage.getItem('sessionExpiration');
     if (sessionExpiration) {
         const expirationTime = parseInt(sessionExpiration, 10);
@@ -154,8 +166,8 @@ async function setRefreshTokenTimeout () {
         if (expirationTime > 0 && Date.now() < expirationTime) {
             // Refresh token 5 minutes before expiration
             let timeoutMs = expirationTime - Date.now() - 300000;
-            if (timeoutMs > 10 * 24* 3600000) {
-                timeoutMs = 10 * 24* 3600000;//a safe value to prevent overflow in setTimeout
+            if (timeoutMs > 10 * 24 * 3600000) {
+                timeoutMs = 10 * 24 * 3600000;//a safe value to prevent overflow in setTimeout
             }
             setTimeout(refreshToken, timeoutMs);
         }

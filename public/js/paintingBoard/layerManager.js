@@ -97,11 +97,13 @@ class LayerManager {
             this.layers.push(layer)
         }
     }
+
     createShape(shape) {
         const shapeDiv = this._createShapeInternal(shape);
         this.currentLayerDiv.querySelector(".layersManager_layer_shapes").appendChild(shapeDiv);
         this.updateExampleCanvas();
     }
+
     _createShapeInternal(shape, layer = this.currentLayer) {
         const shapeHead = document.createElement("div");
         shapeHead.classList.add("layersManager_shapes_head")
@@ -133,7 +135,6 @@ class LayerManager {
         if (shape.desc !== CONST.PROJECT_SHAPE) {
             // shape copy button
             createButton("&#128203;", "btnShapeCopy", "Copy shape", copyShape.bind(this, shape, layer), tools);
-
         } else if (shape.desc === CONST.PROJECT_SHAPE) {
             // paint shape button
             createButton("&#128394;", "btnShapePaint", "Paint Tile", paintShape.bind(this, shape), tools);
@@ -149,6 +150,7 @@ class LayerManager {
         }
         return shapeHead
     }
+
     selectLayer(layer, evt) {
         if (!evt || evt.button !== CONST.MOUSE_KEYS.LEFT) return;
         this.currentLayer = layer;
@@ -160,8 +162,8 @@ class LayerManager {
         evt.currentTarget.setAttribute("selected", "true")
 
         this.updateExampleCanvas();
-
     }
+
     updateExampleCanvas() {
         if (this.currentLayer) {
             const resolution = this.paintingBoard.menus.resolution;
@@ -253,7 +255,6 @@ function copyLayer(layer) {
     this.needRefresh = true;
 }
 
-
 function layerToggleVisible(layer, evt) {
     layer.visible = !layer.visible;
     if (layer.visible) {
@@ -263,6 +264,7 @@ function layerToggleVisible(layer, evt) {
     }
     setTimeout(() => this.needRefresh = true, 1);
 }
+
 const pictureRect = new Rect(0, 0, 100, 100, null, null, null, null, "Picture Area");
 function layersManager_shapeOver(shape) {
     if (shape.desc === CONST.PICTURE) {
@@ -309,7 +311,6 @@ function editShape(shape, shapeTitle) {
                 const [rgb, alpha] = splitColorAlpha(value);
                 value = rgbToHex(rgb);
                 shapePropertiesTable.querySelector(`[name="opacity"] input`).value = alpha;
-
             } else if (["startAngle", "endAngle", "rotation"].includes(prop)) {
                 // specific property conversion
                 value = radiansToDegrees(value);
@@ -342,6 +343,7 @@ function copyShape(shape) {
 function radiansToDegrees(rad) {
     return rad * (180 / Math.PI);
 }
+
 function degreesToRadians(deg) {
     return deg * (Math.PI / 180);
 }
@@ -374,7 +376,6 @@ function rgbToHex(rgb) {
     }
     return '#000000';
 }
-
 
 function editShapeProperty(evt) {
     const shape = this.editingShape.shape;
@@ -432,7 +433,6 @@ function paintShape(shape) {
 
 // endregion Shape events functions
 
-
 function layersManager_layerShapeMousedown(item, div, evt) {
     if (evt.button !== CONST.MOUSE_KEYS.LEFT) return;
 
@@ -447,7 +447,6 @@ function layersManager_layerShapeMousedown(item, div, evt) {
     div.style.left = evt.clientX + 20 + "px";
     div.style.top = evt.clientY + 20 + "px";
 }
-
 
 function layersManagerMouseUp(evt) {
     const movingItem = this.movingItem;
@@ -480,7 +479,6 @@ function layersManagerMouseUp(evt) {
                 } else {
                     overElem = overElem.parentElement;
                 }
-
             }
         } catch {
             overElem = layersManager;
@@ -520,7 +518,6 @@ function layersManagerMouseUp(evt) {
                     console.log(this.layers);
                 }
             }
-
         } else { // is a layer
             if (overElem.layer !== movingDiv.layer) {
                 this.layers.splice(this.layers.indexOf(movingDiv.layer), 1);

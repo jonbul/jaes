@@ -9,5 +9,4 @@ const Layer = new mongoose.Schema(
     }
 )
 
-
 export default Layer;

@@ -106,7 +106,6 @@ class PaintingBoard {
             this.loadEvents();
             setTimeout(this.drawAll.bind(this), 1);
             this.interval = setInterval(this.canvasInterval.bind(this));
-
         })();
     }
 
@@ -118,15 +117,18 @@ class PaintingBoard {
             dateCreated: project.dateCreated
         };
     }
+
     clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
+
     canvasInterval() {
         if (this.drawingObj || this.layerManager.shapeOver || this.layerManager.needRefresh) {
             this.drawAll();
             this.layerManager.needRefresh = false;
         }
     }
+
     drawAll() {
         this.clear();
         this.layers.forEach(layer => {
@@ -165,7 +167,6 @@ class PaintingBoard {
                 shapeOver.draw(this.context);
             }
             shapeOver[prop] = color;
-
         }
 
         const gridV = parseInt(this.menus.gridV.value);
@@ -183,6 +184,7 @@ class PaintingBoard {
             }
         }
     }
+
     loadEvents() {
         this.setResizeObserver();
         this.resolutionChangeEvent();
@@ -199,6 +201,7 @@ class PaintingBoard {
         this.menus.imageLoaderLocal.addEventListener("input", this.loadLocalImageEvent.bind(this))
         this.menus.boardZoom.addEventListener("input", this.boardZoomChange.bind(this));
     }
+
     boardZoomChange() {
         this.scale = this.menus.boardZoom.value;
 
@@ -206,6 +209,7 @@ class PaintingBoard {
         this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         this.layerManager.needRefresh = true;
     }
+
     loadImageEvent() {
         if (confirm('Load image from URL (Yes) or from Local file (No) ?')) {
             const url = prompt("Image URL:", "https://");
@@ -219,6 +223,7 @@ class PaintingBoard {
             this.menus.imageLoaderLocal.click();
         }
     }
+
     loadLocalImageEvent(evt) {
         if (!evt.target.files || !evt.target.files.length) return;
         //const f = evt.target.files[0];
@@ -273,6 +278,7 @@ class PaintingBoard {
             this.layerManager.needRefresh = true;
         }
     }
+
     setResizeObserver() {
         if (this.resizeObserver) return;
 
@@ -288,6 +294,7 @@ class PaintingBoard {
             }
         }
     }
+
     onCanvasWheel(evt) {
         if (evt.ctrlKey) {
             evt.stopImmediatePropagation();
@@ -302,6 +309,7 @@ class PaintingBoard {
             this.canvas.style.height = (parseInt(this.canvas.height) * this.scale / 100) + "px";
         }
     }
+
     loadColorEvents() {
         this.menus.backgroundColor.addEventListener('input', this.updateBgColor.bind(this));
         this.menus.opacity.addEventListener('input', this.updateBgColor.bind(this));
@@ -312,6 +320,7 @@ class PaintingBoard {
 
         this.updateBgColor();
     }
+
     updateBgColor() {
         const coloSplitted = this.menus.backgroundColor.value.match(/\w{2}/g);
         const r = parseInt(coloSplitted[0], 16);
@@ -324,6 +333,7 @@ class PaintingBoard {
         this.menus.colorGreen.value = g;
         this.menus.colorBlue.value = b;
     }
+
     updateBgColorFromRadio() {
         const r = this.menus.colorRed.value;
         const g = this.menus.colorGreen.value;
@@ -333,6 +343,7 @@ class PaintingBoard {
         this.menus.bgColor = bgColor;
         this.menus.backgroundColor.value = `#${this.toHex(r) + this.toHex(g) + this.toHex(b)}`;
     }
+
     toHex(n) {
         let r = parseInt(n).toString(16);
         if (r.length === 1) {
@@ -340,18 +351,20 @@ class PaintingBoard {
         }
         return r;
     }
+
     loadLayerManager() {
         const layersManager = this.menus.layersManager;
         layersManager.innerHTML = "";
 
         this.layerManager = new LayerManager(this)
-
     }
+
     toolClickEvent() {
         const selectedTool = this.menus.toolList.querySelector('input:checked')
         this.selectedTool = selectedTool.value;
         this.canvas.setAttribute('tool', selectedTool.value);
     }
+
     toolProjectShapeClickEvent() {
         const projectShapeWindow = document.getElementById('projectShapeWindow');
 
@@ -368,6 +381,7 @@ class PaintingBoard {
             projectShapeWindow.classList.remove('hidden');
         });
     }
+
     loadCanvasEvents() {
         this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
         document.body.addEventListener('mouseup', this.canvasMouseUp.bind(this));
@@ -375,6 +389,7 @@ class PaintingBoard {
         this.canvas.addEventListener('dblclick', this.canvasDblClick.bind(this));
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
     }
+
     getCurrentPos(evt) {
         const rect = this.canvas.getBoundingClientRect(); // Obtiene la posición del canvas
         let x = Math.round(Math.max(evt.clientX - rect.left, 0)); // Calcula la posición relativa al canvas
@@ -395,6 +410,7 @@ class PaintingBoard {
 
         return currentPos.getSimple();
     }
+
     canvasMouseDown(evt) {
         if (evt.button === CONST.MOUSE_KEYS.LEFT && this.movingShape) {
             this.movingShape = null;
@@ -447,6 +463,7 @@ class PaintingBoard {
             }
         }
     }
+
     canvasMouseDownPolygon(currentPos) {
         if (!this.drawingObj) {
             this.drawingObj = {
@@ -460,6 +477,7 @@ class PaintingBoard {
             points.push(currentPos);
         }
     }
+
     canvasMouseDownProjectShape(currentPos) {
         if (!this.painting) {
             this.painting = { shape: null };
@@ -478,6 +496,7 @@ class PaintingBoard {
         this.painting.shape.add(pos);
         this.layerManager.needRefresh = true;
     }
+
     canvasMouseUp(evt) {
         if (evt.target === this.canvas && this.selectedTool === CONST.COLORPICKER) {
             const colorData = this.getCurrentPositionColor(evt);
@@ -529,6 +548,7 @@ class PaintingBoard {
         this.layerManager.createShape(this.drawingObj.shape);
         this.drawingObj = undefined;
     }
+
     canvasMouseMove(evt) {
         const currentPos = this.getCurrentPos(evt);
 
@@ -614,6 +634,7 @@ class PaintingBoard {
             }
         }
     }
+
     canvasDblClick() {
         if (this.drawingObj.tool === CONST.POLYGON) {
             const shape = this.drawingObj.shape;
@@ -623,6 +644,7 @@ class PaintingBoard {
             this.drawingObj = undefined;
         }
     }
+
     drawingPencil(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
@@ -642,6 +664,7 @@ class PaintingBoard {
             }
         }
     }
+
     drawingAbstract(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
@@ -661,6 +684,7 @@ class PaintingBoard {
             }
         }
     }
+
     drawingArc(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
@@ -684,6 +708,7 @@ class PaintingBoard {
         if (ellipse.radiusX < 0) ellipse.radiusX *= -1;
         if (ellipse.radiusY < 0) ellipse.radiusY *= -1;
     }
+
     drawingRect(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
@@ -695,6 +720,7 @@ class PaintingBoard {
         rect.width = currentPos.x - rect.x;
         rect.height = currentPos.y - rect.y;
     }
+
     drawingLine(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         if (!drawingObj.initialized) {
@@ -703,6 +729,7 @@ class PaintingBoard {
         }
         drawingObj.shape.points[1] = currentPos;
     }
+
     drawingPolygon(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         const shapePoints = drawingObj.shape.points;
@@ -711,6 +738,7 @@ class PaintingBoard {
             new Line([currentPos, shapePoints[shapePoints.length - 1]], '#000000', 1)
         ]
     }
+
     drawingSemiArc(evt, drawingObj) {
         const currentPos = this.getCurrentPos(evt);
         const arc = drawingObj.shape;
@@ -725,6 +753,7 @@ class PaintingBoard {
                 break;
         }
     }
+
     drawingSemiArcStep1(arc, currentPos) {
         let c1 = currentPos.x - arc.x;//Base
         let c2 = currentPos.y - arc.y;//Height
@@ -741,6 +770,7 @@ class PaintingBoard {
 
         arc.endAngle = a;
     }
+
     semiArcClick(evt) {
         const currentPos = this.getCurrentPos(evt);
         let arc;
@@ -774,6 +804,7 @@ class PaintingBoard {
         if (this.drawingObj)
             this.drawingObj.step++;
     }
+
     semiArcClickStep0(arc, drawingObj, currentPos) {
         arc.radius = Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2));
         const c1 = currentPos.x - arc.x;//Base
@@ -799,8 +830,8 @@ class PaintingBoard {
         Math.sqrt(Math.pow(currentPos.x - arc.x, 2) + Math.pow(currentPos.y - arc.y, 2))
 
         drawingObj.extraShapes = [];
-
     }
+
     drawingRubber(evt, drawingObj) {
         if (!drawingObj.initialized) {
             drawingObj.initialized = true;
@@ -813,6 +844,7 @@ class PaintingBoard {
             drawingObj.shape.points.push(point);
         }
     }
+
     getCurrentPositionColor(evt) {
         const currentPos = this.getCurrentPos(evt);
         const imgData = this.context.getImageData(currentPos.x, currentPos.y, 1, 1);
@@ -835,6 +867,7 @@ class PaintingBoard {
             rgba: `rgb(${imgData.data[0]},${imgData.data[1]},${imgData.data[2]},${alpha})`
         }
     }
+
     async save() {
         const name = document.getElementById('projectName').value;
         if (!name) {

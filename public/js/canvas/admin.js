@@ -35,4 +35,5 @@ async function load() {
         selectResolution.appendChild(option);
     }
 }
+
 addEventListener('DOMContentLoaded', load);

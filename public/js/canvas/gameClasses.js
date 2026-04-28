@@ -38,6 +38,7 @@ class Player {
         this.picture = null;
         this.calculateScale();
     }
+
     draw_old(context) {
         if (this.hide) return;
         const rotationCenter = { x: this.ship.width / 2, y: this.ship.height / 2 };
@@ -56,6 +57,7 @@ class Player {
         this.nameShape.y = layerOptions.y - 20;
         this.nameShape.draw(context, { x: 0, y: 0 });
     }
+
     /**
      * Draws the player's ship on the canvas. If the ship is hidden, it returns without drawing. It calculates the real dimensions of the ship based on its scale and translation, and then calls drawPicture to render the ship using a pre-rendered picture for optimized performance. Finally, it draws the player's name above the ship.
      * @param {CanvasRenderingContext2D} context 
@@ -79,6 +81,7 @@ class Player {
         this.nameShape.y = layerOptions.y - 20;
         this.nameShape.draw(context, { x: 0, y: 0 });
     }
+
     /**
      * Draws the player's ship using vector graphics. This method is less optimized than drawPicture and is intended for drawing an unrotated ship at the origin using vector layers (e.g. for pre-rendering). It supports scaling via this.scale but always uses a rotation value of 0. It iterates through each layer of the ship and draws it according to these options.
      * @param {CanvasRenderingContext2D} context 
@@ -101,6 +104,7 @@ class Player {
         //this.nameShape.y = layerOptions.y - 20;
         //this.nameShape.draw(context, { x: 0, y: 0 });
     }
+
     /**
      * Draws the player's ship using a pre-rendered picture for optimized performance. If the picture is not yet rendered, it calls the render method to create it before drawing.
      * @param {CanvasRenderingContext2D} context 
@@ -113,6 +117,7 @@ class Player {
         }
         this.picture.draw(context, layerOptions);
     }
+
     /**
      * Renders the player's ship into a picture for optimized drawing. This is called whenever the player's scale changes, to ensure the picture is up to date with the current size.
      */
@@ -121,8 +126,8 @@ class Player {
             this.pictureCanvas = document.createElement('canvas');
         }
         const realDimension = this.getRealDimension();
-         const roundedWidth = Math.ceil(realDimension.width);
-         const roundedHeight = Math.ceil(realDimension.height);
+        const roundedWidth = Math.ceil(realDimension.width);
+        const roundedHeight = Math.ceil(realDimension.height);
         this.pictureCanvas.width = roundedWidth;
         this.pictureCanvas.height = roundedHeight;
         // reset canvas
@@ -132,6 +137,7 @@ class Player {
         this.drawVectorial(offscreenContext);
         this.picture = new Picture(offscreenCanvas, null, 0, 0, roundedWidth, roundedHeight, 0, 0, roundedWidth, roundedHeight);
     }
+
     /**
      * Calculates the scale of the player's ship based on a standard size and the player's kills and deaths. It adjusts the real width and height of the ship accordingly, as well as the translation needed to keep the ship centered. Finally, it calls render to update the picture with the new scale.
      * @param {number} sizeStandard 
@@ -154,6 +160,7 @@ class Player {
         this.scale = scaleDec;
         this.render();
     }
+
     /**
      * Returns the real dimensions of the player's ship, including the x and y position adjusted for translation, and the real width and height based on the current scale.
      * @returns {Object} An object containing the real dimensions of the player's ship, including the x and y position adjusted for translation, and the real width and height based on the current scale. This is used for accurate collision detection and drawing calculations.
@@ -166,6 +173,7 @@ class Player {
             height: this.realHeight || this.height
         }
     }
+
     /**
      * Creates a new bullet object based on the player's current position, rotation, and speed. The bullet is initialized with the player's socket ID, starting position at the center of the ship, angle of rotation, and speed. The bullet is then added to the player's bullets array and returned for further processing (such as adding to the game world or sending to the server).
      */
@@ -177,10 +185,12 @@ class Player {
         this.bullets.push(bullet);
         return bullet;
     }
+
     dead() {
         this.isDead = true;
         this.speed = 0;
     }
+
     getSortDetails() {
         return {
             x: this.x,
@@ -199,11 +209,13 @@ class Player {
             yTranslation: this.yTranslation
         }
     }
+
     getDistanceToPlayer(player) {
         const xLength = this.x - player.x;
         const yLength = this.y - player.y;
         return Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
     }
+
     getCenteredPosition() {
         return {
             x: this.x + (this.width / 2),
@@ -211,6 +223,7 @@ class Player {
         }
     }
 }
+
 class Bullet {
     constructor(socketId, x, y, angle, shootingSpeed = 0, rotation, radiusX = 25, radiusY = 5, bulletCharge = 1) {
         this.socketId = socketId;
@@ -253,21 +266,25 @@ class Bullet {
         colorHex = colorHex.length === 1 ? "0" + colorHex : colorHex;
         this.arc = new Ellipse(this.x, this.y, this.radiusX + extraRadiusX, this.radiusY + extraRadiusY, this.rotation, `#ff${colorHex}${colorHex}cc`)
     }
+
     updatePosition(x, y) {
         this.x = x;
         this.y = y;
         this.arc.x = x;
         this.arc.y = y;
     }
+
     draw(context) {
         this.arc.draw(context);
     }
+
     isExpired() {
         return this.moveX > 0 && this.x > this.expX ||
             this.moveX < 0 && this.x < this.expX ||
             this.moveY > 0 && this.y > this.expY ||
             this.moveY < 0 && this.y < this.expY
     }
+
     moveStep() {
         this.x += (this.speed * this.moveX);
         this.y += (this.speed * this.moveY);
@@ -328,6 +345,7 @@ class RadarArrow {
         this.player = player;
         this.target = target;
     }
+
     getDistance() {
         const target = this.target;
         const player = this.player;
@@ -350,6 +368,7 @@ class RadarArrow {
             this.arrowDir = { x: 1, y: -1 };
         }
     }
+
     draw(context, distance) {
         this.getDistance();
         const canvas = context.canvas;
@@ -378,6 +397,7 @@ class RadarArrow {
         new Polygon(points, '#ff0000').draw(context, { rotationCenter, rotate: this.angleRadian });
     }
 }
+
 class ShipsManager {
     constructor(ships) {
         this.ships = ships;
@@ -391,12 +411,15 @@ class ShipsManager {
             }
         })
     }
+
     getShips() {
         return this.ships;
     }
+
     getShipById(shipId) {
         return this.shipsById[shipId];
     }
+
     getGenericShips() {
         return this.ships.filter(s => !s.userId)
     }

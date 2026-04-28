@@ -17,7 +17,9 @@ import { asyncRequest, showAlert } from '../utils/functions.js';
 import { Animation, getExplossionFrames } from './animationClass.js';
 import gameSounds from './gameSounds.js';
 import MessagesManager from './messagesManagerClass.js';
-import { io } from 'https://cdn.socket.io/4.8.3/socket.io.esm.min.js';
+
+const backendHost = (window.location.host.substring(0, window.location.host.indexOf(':')) || window.location.host) + ':3000';
+const websocketHost = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + backendHost;
 
 class Game {
     constructor(canvas, username, credits, isSmartphone, ship, shipsManager) {
@@ -28,6 +30,8 @@ class Game {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
+        this.credits = credits;
+        this.ship = ship;
         this.backgroundCards = [];
         this.players = {};
         this.bullets = {};
@@ -37,55 +41,46 @@ class Game {
         window.game = this;
         this.username = username
 
-        this.io = io({
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5,
-            timeout: 20000,
-            transports: ['websocket', 'polling'] // Fallback a polling si WebSocket falla
-        });
         this.loadEvents();
 
         this.createStaticCanvas();
 
         // Wait for connection
-        this.io.once('connect', async () => {
-            const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
-            for (const id in tempPlayers) {
-                this.updatePlayers(tempPlayers[id]);
-            }
+        this.ws = new WebSocket(websocketHost);
+        if (this.ws.readyState === WebSocket.CONNECTING) {
+            this.ws.addEventListener('open', this.onWebSocketOpen.bind(this));
+        } else if (this.ws.readyState === WebSocket.OPEN) {
+            this.onWebSocketOpen();
+        }
+    }
 
-            if (!ship) {
-                const baseShips = shipsManager.getGenericShips();
-                const index = parseInt(Math.random() * baseShips.length)
-                ship = baseShips[index]
-            }
+    async onWebSocketOpen() {
+        const tempPlayers = (await asyncRequest({ path: '/game/getPlayers', method: 'GET' }));
+        for (const id in tempPlayers) {
+            this.updatePlayers(tempPlayers[id]);
+        }
 
-            this.player = new Player(shipsManager.getShipById(ship._id), this.username, ship._id, 0, 0, credits);
-            this.chargingBar = new ChargingBar(this.player, this.context);
-            this.player.socketId = this.io.id;
-            this.players[this.player.socketId] = this.player;
+        if (!this.ship) {
+            const baseShips = this.shipsManager.getGenericShips();
+            const index = parseInt(Math.random() * baseShips.length)
+            this.ship = baseShips[index]
+        }
 
-            this.drawableBullets = new Layer('bullets');
-            this.drawablePlayers = [];
-            do {
-                this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
-                this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
-            } while (this.checkCollisionsWithPlayers());
-            const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
-            const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
-            this.context.translate(tX, tY);
+        this.player = new Player(this.shipsManager.getShipById(this.ship._id), this.username, this.ship._id, 0, 0, this.credits);
+        this.chargingBar = new ChargingBar(this.player, this.context);
 
-            this.messagesManager = new MessagesManager(this);
-            this.socketIOEvents();
+        this.drawableBullets = new Layer('bullets');
+        this.drawablePlayers = [];
+        do {
+            this.player.x = parseInt(Math.random() * this.canvas.width - this.player.width);
+            this.player.y = parseInt(Math.random() * this.canvas.height - this.player.height);
+        } while (this.checkCollisionsWithPlayers());
+        const tX = this.canvas.width / 2 - this.player.width / 2 - this.player.x;
+        const tY = this.canvas.height / 2 - this.player.height / 2 - this.player.y;
+        this.context.translate(tX, tY);
 
-            this.playerUpdated = true;
-            this.beginInterval();
-            setTimeout(() => {
-                this.io.emit('playerData', this.player.getSortDetails());
-            }, 1);
-        });
+        this.messagesManager = new MessagesManager(this);
+        this.socketIOEvents();
     }
 
     reloadPlayer() {
@@ -99,18 +94,66 @@ class Game {
 
         this.context.translate(x - this.player.x, y - this.player.y);
     }
+
+    _reconnect() {
+        const MAX_ATTEMPTS = 10;
+        const DELAY_MS = 2000;
+        let attempts = 0;
+
+        const tryConnect = () => {
+            attempts++;
+            console.log(`🔄 Reconnecting... Attempt ${attempts}`);
+            showAlert({msg: `Reconnecting... Attempt ${attempts}`, title:'Info', type:'info', duration: 2000});
+            this.ws = new WebSocket(websocketHost);
+            this.ws.addEventListener('open', () => {
+                console.log('✅ Reconnected. Reloading...');
+                location.reload();
+            });
+            this.ws.addEventListener('close', () => {
+                if (attempts < MAX_ATTEMPTS) {
+                    setTimeout(tryConnect, DELAY_MS);
+                } else {
+                    console.error('❌ All reconnection attempts failed');
+                    showAlert({ msg: 'Failed to reconnect. Please reload the page.', title: 'Error', type: 'danger', duration: 5000 });
+                }
+            });
+        };
+
+        setTimeout(tryConnect, DELAY_MS);
+    }
+
     socketIOEvents() {
-        this.io.on('gameBroadcast', this.gameBroadcast.bind(this));
-        this.io.on('player leave', id => {
-            delete this.players[id];
+        this.ws.events = {};
+
+        this.ws.addEventListener('message', event => {
+            const data = JSON.parse(event.data);
+            if (!this.ws.events[data.eventName]) {
+                console.error('No handler for event:', data.eventName);
+                return;
+            }
+            this.ws.events[data.eventName](data);
+        });
+
+        this.ws.on = (function (eventName, callback) {
+            this.ws.events[eventName] = callback.bind(this);
+        }).bind(this);
+
+        this.ws.sendData = (function (eventName, data) {
+            data = data || {};
+            this.ws.send(JSON.stringify({ ...data, eventName }));
+        }).bind(this);
+
+        this.ws.on('gameBroadcast', this.gameBroadcast.bind(this));
+        this.ws.on('player leave', data => {
+            delete this.players[data.socketId];
             this.updatePlayers();
         });
-        this.io.on('player hit', msg => {
+        this.ws.on('playerHit', msg => {
             if (this.player.isDead) return;
             if (this.player.life > 0)
                 this.player.life = Math.max(0, this.player.life - msg.bulletCharge);
             if (!this.player.life) {
-                this.io.emit('player died', msg);
+                this.ws.sendData('playerDied', msg);
                 this.bulletCharging = null;
                 this.player.dead();
                 setTimeout(() => {
@@ -125,11 +168,11 @@ class Game {
                     }, 10000);
                 }, 2000);
             }
-            this.io.emit('removeBullet', msg.bulletId);
+            this.ws.sendData('removeBullet', { bulletId: msg.bulletId });
         });
-        this.io.on('sendHome', () => location.href = '/');
-        this.io.on('getBackgroundCards', cards => {
-            cards.forEach(card => {
+        this.ws.on('sendHome', () => location.href = '/');
+        this.ws.on('getBackgroundCards', data => {
+            data.cards.forEach(card => {
                 const shapes = [];
                 card[2].forEach(point => {
                     shapes.push(new Arc(
@@ -147,38 +190,38 @@ class Game {
         })
 
         // ✅ Manage connection events
-        this.io.on('connect_error', (error) => {
+        this.ws.on('connect_error', (error) => {
             console.error('❌ Connection error:', error.message);
-            showAlert('Connection error. Reconnecting...', 'Error', 'danger', 5000);
+            showAlert({msg: 'Connection error. Reconnecting...', title:'Error', type:'danger', duration: 5000});
         });
 
-        this.io.on('connect_timeout', () => {
+        this.ws.on('connect_timeout', () => {
             console.error('⏱️ Connection timeout');
-            showAlert('Connection timeout', 'Error', 'danger', 5000);
+            showAlert({msg: 'Connection timeout', title:'Error', type:'danger', duration: 5000});
             location.reload();
         });
 
-        this.io.on('reconnect_attempt', (attemptNumber) => {
-            console.log(`🔄 Reconnecting... Attempt ${attemptNumber}`);
+        this.ws.addEventListener('close', (event) => {
+            console.warn('⚠️ Disconnected:', event.code, event.reason);
+            this._reconnect();
         });
 
-        this.io.on('reconnect_failed', () => {
-            console.error('❌ All reconnection attempts failed');
-            showAlert('Failed to reconnect. Please reload the page.', 'Error', 'danger', 5000);
+        this.ws.on('connectionSuccess', data => {
+            console.log('✅ Connection established with socket ID:', data.socketId);
+            this.socketId = data.socketId;
+            this.player.socketId = data.socketId;
+            this.players[this.player.socketId] = this.player;
         });
 
-        this.io.on('connect', () => {
-            console.log('✅ Connected to server:', this.io.id);
-            location.reload();
-        });
+        this.ws.sendData('connectionSuccess');
 
-        this.io.on('disconnect', (reason) => {
-            console.warn('⚠️ Disconnected:', reason);
-            if (reason === 'io server disconnect') {
-                this.io.connect();
-            }
-        });
+        this.playerUpdated = true;
+        this.beginInterval();
+        setTimeout(() => {
+            this.ws.sendData('playerData', this.player.getSortDetails());
+        }, 1);
     }
+
     beginInterval() {
         const timestep = 1000 / 30; // 30 updates per second (fixed timestep)
         let lastTime = null;
@@ -205,6 +248,7 @@ class Game {
         };
         requestAnimationFrame(loop);
     }
+
     toFullScreen(e) {
 
         console.warn(JSON.stringify({ x: e?.clientX, y: e?.clientY }))
@@ -228,6 +272,7 @@ class Game {
             document.exitFullscreen()
         }
     }
+
     onPlayerDied(msg) {
         this.players[msg.playerId].deaths++;
         this.players[msg.from].kills++;
@@ -251,6 +296,7 @@ class Game {
         const diedName = this.players[msg.playerId].name;
         this.messagesManager.addKillMessage(fromName, diedName);
     }
+
     intervalMethod() {
 
         if (this.isSmartphone) {
@@ -289,10 +335,11 @@ class Game {
         this.drawAll();
 
         if (this.playerUpdated || this.player.moving || this.player.speed) {
-            this.io.emit('playerData', this.player.getSortDetails());
+            this.ws.sendData('playerData', this.player.getSortDetails());
         }
         this.playerUpdated = false;
     }
+
     clear() {
         const playerRealDimension = this.player.getRealDimension();
         this.context.clearRect(playerRealDimension.x - this.canvas.width, playerRealDimension.y - this.canvas.height, this.canvas.width * 2, this.canvas.height * 2);
@@ -357,8 +404,8 @@ class Game {
                 player.y = tempPosition.y;
             }
         }
-
     }
+
     movementSmarphone() {
         if (this.player.isDead) return;
         const player = this.player;
@@ -419,6 +466,7 @@ class Game {
             }
         }
     }
+
     gameBroadcast(data) {
         const playersData = data.players;
 
@@ -437,6 +485,7 @@ class Game {
             delete this.bullets[bulletId];
         });
     }
+
     comingNewBullets(newBullets) {
         newBullets.forEach(newBullet => {
             const bullet = new Bullet(
@@ -453,9 +502,10 @@ class Game {
             bullet.id = newBullet.id;
             this.bullets[bullet.id] = bullet;
 
-            gameSounds['shot']();
+            gameSounds.shot();
         })
     }
+
     updatePlayers(plDetails) {
         const players = this.players;
         if (plDetails) {
@@ -471,6 +521,7 @@ class Game {
             players[plDetails.socketId].credits = plDetails.credits;
         }
     }
+
     drawAll() {
         this.clear();
         let translateX;
@@ -519,7 +570,7 @@ class Game {
                     })
                 if (chargeOverflow >= CHARGE_TIME_OVERFLOW) {
                     this.bulletCharging = null;
-                    this.io.emit('player hit', {
+                    this.ws.sendData('playerHit', {
                         bulletId: null,
                         playerId: this.player.socketId,
                         from: this.player.socketId,
@@ -533,6 +584,7 @@ class Game {
 
         this.drawTexts();
     }
+
     drawBackground() {
         const playerRealDimension = this.player.getRealDimension();
         // Math.floor maneja correctamente coordenadas negativas
@@ -556,9 +608,9 @@ class Game {
             }
         }
 
-        if (data.length && !this.requestingBackgroundCards) {
+        if (data.length && !this.requestingBackgroundCards && this.socketId) {
             this.requestingBackgroundCards = true;
-            this.io.emit('getBackgroundCards', { socketId: this.io.id, data });
+            this.ws.sendData('getBackgroundCards', { socketId: this.socketId, data });
         }
 
         if (!this.background) {
@@ -588,6 +640,7 @@ class Game {
             }
         }
     }
+
     drawArrows() {
         /****************************** */
         const rotationAxis = {}
@@ -625,6 +678,7 @@ class Game {
             }
         }
     }
+
     loadRadar() {
         const player = this.player;
         // r is radar scale
@@ -663,6 +717,7 @@ class Game {
             }
         }
     }
+
     drawRadar() {
         const playerRealDimension = this.player.getRealDimension();
         this.radar.draw(this.context, { x: playerRealDimension.x, y: playerRealDimension.y });
@@ -673,6 +728,7 @@ class Game {
             arcPoint.draw(this.context);
         })
     }
+
     drawRadarSmartphone() {
         const rotationCenter = this.isSmartphone ? { x: this.radar.shapes[0].x, y: this.radar.shapes[0].y } : {};
         const rotate = this.isSmartphone ? (-this.player.rotate - 90 * Math.PI / 180) : 0;
@@ -692,6 +748,7 @@ class Game {
             arcPoint.draw(this.context, options);
         });
     }
+
     drawTexts() {
 
         const texts = [
@@ -768,6 +825,7 @@ class Game {
         }
         this.messagesManager.draw();
     }
+
     createStaticCanvas() {
         this.fontSize = this.canvas.width / 1920 * 40;
         this.lineHeight = this.canvas.width / 1920 * (40 + 10);
@@ -786,6 +844,7 @@ class Game {
         this.shadowBackground = new Rect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0,0,0,0.2)');
         this.animations = [];
     }
+
     loadEvents() {
         document.body.addEventListener('keydown', this.keyDownEvent.bind(this));
         document.body.addEventListener('keyup', this.keyUpEvent.bind(this));
@@ -799,38 +858,9 @@ class Game {
             addEventListener("deviceorientation", (e) => {
                 this.deviceorientation = e
             })
-
-            //this.requestOrientationPermission();
-
-            /*
-            if (location.host.indexOf(3000) > 0) {
-                const div = document.createElement("div")
-                div.style.position = "absolute"
-                div.style.display = "block"
-                div.style.height = "60px";
-                div.style.width = "100%";
-                div.style.top = "0";
-                div.style.left = "0";
-                div.style.backgroundColor  = "#fff";
-                document.body.appendChild(div)
- 
-                function log() {
-                    let deviceorientation = this.deviceorientation;
-                    //let gyroscope = this.gyroscope;
-                    let text = ""
-                    if (deviceorientation && deviceorientation.alpha)
-                        text += `deviceorientation a: ${deviceorientation.alpha.toFixed(2)}, b: ${deviceorientation.beta.toFixed(2)}, c: ${deviceorientation.gamma.toFixed(2)}`
-                    //if (gyroscope && gyroscope.x)
-                    //    text += `\ngyroscope x: ${gyroscope.x.toFixed(2)}, y: ${gyroscope.y.toFixed(2)}, z: ${gyroscope.z.toFixed(2)}`
- 
-                    text += `\nrotate:  ${this.player ? this.player.rotate : 0}`
-                    div.innerText = text;
-                }
-                setInterval(log.bind(this), 1)
-            }/**/
         }
-
     }
+
     keyDownEvent(event) {
         if (this.keys[event.keyCode]) return;
         this.keys[event.keyCode] = true;
@@ -841,6 +871,7 @@ class Game {
             this.bulletCharging = Date.now()
         }
     }
+
     keyUpEvent(event) {
         this.keys[event.keyCode] = false;
         if (this.player && !this.player.isDead && event.keyCode === KEYS.SPACE) {
@@ -854,6 +885,7 @@ class Game {
 
         if (event.keyCode === KEYS.F11) this.toFullScreen()
     }
+
     screenTouchEventStart() {
         if (this.screenTouchEventStarted) return;
         this.screenTouchEventStarted = true;
@@ -862,12 +894,14 @@ class Game {
             this.bulletCharging = Date.now()
         }
     }
+
     screenTouchEventEnd() {
         if (this.player && !this.player.isDead) {
             this.newBullet()
         }
         this.screenTouchEventStarted = false;
     }
+
     newBullet() {
         // 1 every 100ms
         if (Date.now() - (this.lastBulletTs || 0) <= 100) return;
@@ -883,14 +917,16 @@ class Game {
 
         this.bulletCharging = null;
 
-        this.io.emit('newBullet', msg);
+        this.ws.sendData('newBullet', msg);
         this.lastBulletTs = Date.now()
     }
+
     leaveWindow() {
         for (const keyCode in this.keys) {
             this.keys[keyCode] = false;
         }
     }
+
     bulletInterval() {
         let bulletsUpdated = false;
         this.player.bullets = this.player.bullets.filter((bullet) => {
@@ -902,7 +938,7 @@ class Game {
             } else {
                 const playerHit = this.checkBulletCollision(bullet);
                 if (playerHit) {
-                    this.io.emit('player hit', {
+                    this.ws.sendData('playerHit', {
                         bulletId: bullet.id,
                         playerId: playerHit.socketId,
                         from: this.player.socketId,
@@ -915,10 +951,10 @@ class Game {
                     return true;
                 }
             }
-
         });
         return bulletsUpdated;
     }
+
     checkBulletCollision(bullet) {
         let collision = false;
         let playerKilled;
@@ -935,6 +971,7 @@ class Game {
         }
         return playerKilled;
     }
+
     /**
      * Check collisions with other players
      * 
@@ -964,12 +1001,14 @@ class Game {
         }
         return collision;
     }
+
     checkRectsCollision(rect1, rect2) {
         return (rect1.x < rect2.x + rect2.width &&
             rect1.x + rect1.width > rect2.x &&
             rect1.y < rect2.y + rect2.height &&
             rect1.height + rect1.y > rect2.y);
     }
+
     checkArcRectCollision(arc, rect) {
         return this.checkRectsCollision(rect, {
             x: arc.x - (arc.radiusX || arc.radius),
@@ -979,4 +1018,5 @@ class Game {
         });
     }
 }
+
 export default Game;

@@ -15,19 +15,22 @@ class GameSounds {
             this.sounds[soundName] = audio;
         }
     }
+
     shot() {
         this.play(this.sounds.shot.cloneNode(true));
     }
+
     explosion() {
         this.play(this.sounds.explosion.cloneNode(true));
     }
+
     play(s) {
         try {
             s.volume = this.volumeElement.value / 100;
             s.play();
         } catch (e) {
             console.log('Error playing sound: ', e);
-         }
+        }
     }
 }
 

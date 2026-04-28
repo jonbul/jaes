@@ -70,7 +70,6 @@ function movedWinBar(evt) {
             const maxLeft = parseInt(getComputedStyle(document.body).width) - parseInt(getComputedStyle(selWin).width)
             const posL = Math.min(Math.max(evt.clientX - selWin.difX, 0), maxLeft);
             selWin.style.left = posL + "px";
-
         }
     }
 }
